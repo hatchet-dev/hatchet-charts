@@ -37,7 +37,7 @@ spec:
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
       initContainers:
-        name: config-generator
+      - name: config-generator
         image: "ghcr.io/hatchet-dev/hatchet/hatchet-admin:v0.1.0-alpha.1"
         imagePullPolicy: Always
         command: [
