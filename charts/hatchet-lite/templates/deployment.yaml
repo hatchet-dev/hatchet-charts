@@ -61,6 +61,11 @@ spec:
 {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 8 }}
 {{- end }}
+{{- range .Values.extraConfigMapMounts }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          subPath: {{ .subPath }}
+{{- end }}
 {{- if .Values.initContainers }}
 {{- range $key, $value := .Values.initContainers }}
       - name: "{{ $key }}"
@@ -118,13 +123,13 @@ spec:
 {{- if .Values.extraVolumeMounts }}
 {{ toYaml .Values.extraVolumeMounts | indent 8 }}
 {{- end }}
-{{- with .Values.extraContainers }}
-{{ tpl . $ | indent 6 }}
-{{- end }}
 {{- range .Values.extraConfigMapMounts }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
           subPath: {{ .subPath }}
+{{- end }}
+{{- with .Values.extraContainers }}
+{{ tpl . $ | indent 6 }}
 {{- end }}
     {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
