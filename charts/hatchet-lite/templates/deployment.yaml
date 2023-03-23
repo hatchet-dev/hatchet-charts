@@ -100,6 +100,14 @@ spec:
         volumeMounts:
         - name: data-volume
           mountPath: /hatchet/data
+{{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 8 }}
+{{- end }}
+{{- range .Values.extraConfigMapMounts }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          subPath: {{ .subPath }}
+{{- end }}
       - name: {{ .Chart.Name }}-runner-worker
         image: "{{ .Values.runnerWorker.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.runnerWorker.image.tag }}"
         imagePullPolicy: {{ .Values.runnerWorker.image.pullPolicy }}
