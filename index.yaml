@@ -13,4 +13,17 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-0.1.0/hatchet-0.1.0.tgz
     version: 0.1.0
-generated: "2023-03-23T12:56:15.288385647Z"
+  hatchet-lite:
+  - apiVersion: v2
+    created: "2023-03-23T13:07:16.929919319Z"
+    description: A Helm chart for deploying Hatchet on Kubernetes.
+    digest: 09b0506d0582144bd0b08224878a95d3778835cca371d4a4a45269b879dcf964
+    maintainers:
+    - email: support@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-lite
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-lite-0.1.0/hatchet-lite-0.1.0.tgz
+    version: 0.1.0
+generated: "2023-03-23T13:07:16.929925119Z"
