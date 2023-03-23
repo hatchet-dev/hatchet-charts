@@ -209,28 +209,7 @@ securityContext:
 
 extraConfigMapMounts: []
 
-initContainers: 
-  config-generator:
-    image: "ghcr.io/hatchet-dev/hatchet/hatchet-admin:v0.1.0-alpha.1"
-    imagePullPolicy: Always
-    command: [
-      "/hatchet/hatchet-admin", 
-      "quickstart", 
-      "--config", 
-      "/hatchet/config", 
-      "--cert-dir", 
-      "/hatchet/data/config/generated/certs", 
-      "--generated-config-dir", 
-      "/hatchet/data/config/generated", 
-      "--skip",
-      "static",
-      "--overwrite=false",
-    ]
-    volumeMounts:
-    - name: data-volume
-      mountPath: /hatchet/data
-    - name: config-volume
-      mountPath: "/hatchet/config"
+initContainers: []
 
 extraManifests: []
 

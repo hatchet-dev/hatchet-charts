@@ -36,8 +36,32 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
-{{- if .Values.initContainers }}
       initContainers:
+        name: config-generator
+        image: "ghcr.io/hatchet-dev/hatchet/hatchet-admin:v0.1.0-alpha.1"
+        imagePullPolicy: Always
+        command: [
+          "/hatchet/hatchet-admin", 
+          "quickstart", 
+          "--config", 
+          "/hatchet/config", 
+          "--cert-dir", 
+          "/hatchet/data/config/generated/certs", 
+          "--generated-config-dir", 
+          "/hatchet/data/config/generated", 
+          "--skip",
+          "static",
+          "--overwrite=false",
+        ]
+        volumeMounts:
+        - name: data-volume
+          mountPath: /hatchet/data
+        - name: config-volume
+          mountPath: "/hatchet/config"
+{{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 8 }}
+{{- end }}
+{{- if .Values.initContainers }}
 {{- range $key, $value := .Values.initContainers }}
       - name: "{{ $key }}"
 {{ toYaml $value | indent 8 }}
