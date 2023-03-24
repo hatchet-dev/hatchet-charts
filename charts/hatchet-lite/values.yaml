@@ -60,6 +60,8 @@ config:
   runner_worker:
     provisioner:
       kind: local
+      local:
+        binaryPath: "hatchet-runner"
 
 runnerWorker:
   image: 
