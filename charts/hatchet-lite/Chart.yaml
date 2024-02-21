@@ -1,8 +1,0 @@
-apiVersion: v2
-name: hatchet-lite
-description: A Helm chart for deploying Hatchet on Kubernetes. 
-type: application
-version: 0.1.0
-maintainers:
-  - name: Hatchet Engineering
-    email: support@hatchet.run

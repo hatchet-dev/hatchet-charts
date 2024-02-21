@@ -1,0 +1,8 @@
+apiVersion: v2
+name: hatchet-api
+description: A Helm chart for deploying Hatchet API components on Kubernetes.
+type: application
+version: 0.1.0
+maintainers:
+  - name: Hatchet Engineering
+    email: alexander@hatchet.run

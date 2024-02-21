@@ -1,0 +1,62 @@
+{{- if .Values.migrationJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "hatchet.fullname" . }}-migration
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    {{- if not .Values.debug }}
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+    {{- end }}
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      name: {{ template "hatchet.fullname" . }}-migration
+      labels:
+{{- include "hatchet.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      shareProcessNamespace: true
+      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      containers:
+      - name: migration-job
+        image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
+        imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+        - sleep 30 && go run github.com/steebchen/prisma-client-go migrate deploy && curl -X POST localhost:9091/quitquitquit;
+        securityContext:
+          capabilities:
+            add:
+              - SYS_PTRACE
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.envFrom | indent 10 }}
+{{- if .Values.cloudSQLSidecar.enabled }}
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
+        args:
+        - "--quitquitquit"
+        - "--private-ip"
+        - "--structured-logs"
+        - "--port=5432"
+        - "{{ .Values.cloudSQLSidecar.address }}"
+        securityContext:
+          runAsNonRoot: true
+        resources:
+{{ toYaml .Values.cloudSQLSidecar.resources | indent 10 }}
+{{- end }}
+{{- with .Values.extraContainers }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- end }}
