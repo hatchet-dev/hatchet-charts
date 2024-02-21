@@ -12,6 +12,7 @@ metadata:
     {{- end }}
 spec:
   backoffLimit: 1
+  activeDeadlineSeconds: 300
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -24,6 +25,17 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
+      initContainers:
+      - name: check-db-connection
+        image: postgres:15.6.0
+        command: ['sh', '-c', 'until pg_isready -d $DATABASE_URL; do echo waiting for database; sleep 2; done;']
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.envFrom | indent 10 }}
       containers:
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
