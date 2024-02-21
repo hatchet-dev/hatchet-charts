@@ -1,5 +1,31 @@
 apiVersion: v1
 entries:
+  hatchet-api:
+  - apiVersion: v2
+    created: "2024-02-21T01:03:36.217937906Z"
+    description: A Helm chart for deploying Hatchet API components on Kubernetes.
+    digest: 23e09deb7830b535fcd325b0b07152558c1ecba427e13540ee407b775f584741
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-api
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-api-0.1.0/hatchet-api-0.1.0.tgz
+    version: 0.1.0
+  hatchet-frontend:
+  - apiVersion: v2
+    created: "2024-02-21T01:03:36.330626909Z"
+    description: A Helm chart for deploying a frontend static file server on Kubernetes.
+    digest: f45e6de0c9c7fb0f3266cb9871c40e3cc6eb49f60b0ec4b50044551a5259ae0c
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-frontend
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.1.0/hatchet-frontend-0.1.0.tgz
+    version: 0.1.0
   hatchet-lite:
   - apiVersion: v2
     created: "2023-03-23T13:07:16.929919319Z"
@@ -13,4 +39,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-lite-0.1.0/hatchet-lite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-03-23T13:07:16.929925119Z"
+generated: "2024-02-21T01:03:36.330632479Z"
