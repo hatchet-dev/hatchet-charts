@@ -9,17 +9,17 @@ maintainers:
 dependencies:
   - name: "hatchet-api"
     condition: api.enabled
-    repository: "https://hatchet-dev.github.io/hatchet-charts"
+    repository: "file://../hatchet-api"
     version: "^0.1.0"
     alias: api
   - name: "hatchet-api"
     condition: engine.enabled
-    repository: "https://hatchet-dev.github.io/hatchet-charts"
+    repository: "file://../hatchet-api"
     version: "^0.1.0"
     alias: engine
   - name: "hatchet-frontend"
     condition: frontend.enabled
-    repository: "https://hatchet-dev.github.io/hatchet-charts"
+    repository: "file://../hatchet-frontend"
     version: "^0.1.0"
     alias: frontend
   - name: "postgresql"
