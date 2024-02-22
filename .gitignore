@@ -1,3 +1,26 @@
 *values-test.yaml
 
 /test
+
+.env
+*.pem
+*.crt
+*.key
+*.srl
+*.csr
+*.pfx
+*.cert
+
+notes.md
+
+certs/**
+!certs/generate-certs.sh
+
+.DS_Store
+
+credentials
+production.json
+
+*.tgz
+
+*keyset.json

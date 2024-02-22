@@ -1,0 +1,104 @@
+api:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
+  migrationJob:
+    image:
+      repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
+  serviceAccount:
+    create: true
+    name: hatchet-api
+  env:
+    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+    SERVER_URL: "http://localhost:8080"
+    SERVER_AUTH_COOKIE_INSECURE: "t"
+    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+    SERVER_LOGGER_LEVEL: "debug"
+    SERVER_LOGGER_FORMAT: "console"
+    DATABASE_LOGGER_LEVEL: "debug"
+    DATABASE_LOGGER_FORMAT: "console"
+    SERVER_AUTH_GOOGLE_ENABLED: "f"
+    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-postgres:5432/hatchet?sslmode=disable"
+    DATABASE_POSTGRES_HOST: "hatchet-postgres"
+    DATABASE_POSTGRES_PORT: "5432"
+    DATABASE_POSTGRES_USERNAME: "hatchet"
+    DATABASE_POSTGRES_PASSWORD: "hatchet"
+    DATABASE_POSTGRES_DB_NAME: "hatchet"
+    DATABASE_POSTGRES_SSL_MODE: "disable"
+    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-rabbitmq:5672/"
+    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
+  ingress:
+    enabled: false
+
+engine:
+  enabled: true
+  nameOverride: hatchet-engine
+  fullnameOverride: hatchet-engine
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
+  migrationJob:
+    enabled: false
+  service:
+    externalPort: 7070
+    internalPort: 7070
+  commandline:
+    command: ["/hatchet/hatchet-engine"]
+  deployment:
+    annotations:
+      app.kubernetes.io/name: hatchet-engine
+  serviceAccount:
+    create: true
+    name: hatchet-engine
+  env:
+    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+    SERVER_URL: "http://localhost:8080"
+    SERVER_AUTH_COOKIE_INSECURE: "t"
+    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+    SERVER_LOGGER_LEVEL: "debug"
+    SERVER_LOGGER_FORMAT: "console"
+    DATABASE_LOGGER_LEVEL: "debug"
+    DATABASE_LOGGER_FORMAT: "console"
+    SERVER_AUTH_GOOGLE_ENABLED: "f"
+    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-postgres:5432/hatchet?sslmode=disable"
+    DATABASE_POSTGRES_HOST: "hatchet-postgres"
+    DATABASE_POSTGRES_PORT: "5432"
+    DATABASE_POSTGRES_USERNAME: "hatchet"
+    DATABASE_POSTGRES_PASSWORD: "hatchet"
+    DATABASE_POSTGRES_DB_NAME: "hatchet"
+    DATABASE_POSTGRES_SSL_MODE: "disable"
+    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-rabbitmq:5672/"
+    SERVER_GRPC_BIND_ADDRESS: "0.0.0.0"
+    SERVER_GRPC_INSECURE: "true"
+    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
+  ingress:
+    enabled: false
+
+frontend:
+  enabled: true
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
+  service:
+    externalPort: 8080
+    internalPort: 80
+  ingress:
+    enabled: false
+
+postgres:
+  enabled: true
+  auth:
+    username: "hatchet"
+    password: "hatchet"
+    database: "hatchet"
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: "hatchet"
+    password: "hatchet"
+
+caddy:
+  enabled: false
