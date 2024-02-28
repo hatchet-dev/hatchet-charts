@@ -3,6 +3,8 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
+    tag: "v0.13.1"
+    pullPolicy: "Always"
   migrationJob:
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
@@ -39,6 +41,8 @@ engine:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
+    tag: "v0.13.1"
+    pullPolicy: "Always"
   migrationJob:
     enabled: false
   service:
@@ -76,11 +80,15 @@ engine:
     SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
   ingress:
     enabled: false
+  health:
+    enabled: true
 
 frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
+    tag: "v0.13.1"
+    pullPolicy: "Always"
   service:
     externalPort: 8080
     internalPort: 80

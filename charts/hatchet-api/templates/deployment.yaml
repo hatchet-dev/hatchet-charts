@@ -54,7 +54,7 @@ spec:
         - name: "{{ $key }}"
           value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
         ports:
         - containerPort: {{ .Values.service.internalPort }}
@@ -71,18 +71,9 @@ spec:
           mountPath: {{ .mountPath }}
           subPath: {{ .subPath }}
 {{- end }}
-        # livenessProbe:
-        #   httpGet:
-        #     path: /api/v1/livez
-        #     port: {{ .Values.service.internalPort }}
-        #   initialDelaySeconds: 15
-        #   periodSeconds: 20
-        # readinessProbe:
-        #   httpGet:
-        #     path: /api/v1/readyz
-        #     port: {{ .Values.service.internalPort }}
-        #   initialDelaySeconds: 5
-        #   periodSeconds: 10
+{{- if .Values.health.enabled }}
+{{ toYaml .Values.health.spec | indent 8 }}
+{{- end }}
 {{- if .Values.cloudSQLSidecar.enabled }}
       - name: cloud-sql-proxy
         image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
