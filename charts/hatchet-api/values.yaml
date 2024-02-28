@@ -144,16 +144,3 @@ securityGroupPolicy:
 
 health:
   enabled: false
-  spec:
-    livenessProbe:
-      httpGet:
-        path: /live
-        port: 8733
-      periodSeconds: 5
-      initialDelaySeconds: 60
-    readinessProbe:
-      httpGet:
-        path: /ready
-        port: 8733
-      periodSeconds: 5
-      initialDelaySeconds: 20

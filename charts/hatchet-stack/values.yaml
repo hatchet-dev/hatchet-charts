@@ -82,6 +82,20 @@ engine:
     enabled: false
   health:
     enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
 
 frontend:
   enabled: true
