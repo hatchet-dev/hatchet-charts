@@ -24,3 +24,5 @@ production.json
 *.tgz
 
 *keyset.json
+
+charts/hatchet-stack/hatchet-values.yaml

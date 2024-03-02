@@ -18,7 +18,7 @@ randstring() {
 mkdir -p ./keys
 
 # Generate keysets using Docker
-docker run -v $(pwd)/keys:/hatchet/keys ghcr.io/hatchet-dev/hatchet/hatchet-admin:v0.11.3 /hatchet/hatchet-admin keyset create-local-keys --key-dir /hatchet/keys
+docker run -v $(pwd)/keys:/hatchet/keys ghcr.io/hatchet-dev/hatchet/hatchet-admin:v0.14.0 /hatchet/hatchet-admin keyset create-local-keys --key-dir /hatchet/keys
 
 # Read keysets from files
 SERVER_ENCRYPTION_MASTER_KEYSET=$(<./keys/master.key)
