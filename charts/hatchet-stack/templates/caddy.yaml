@@ -13,11 +13,11 @@ data:
   Caddyfile: |
     http://localhost:8080 {
         handle /api/* {
-            reverse_proxy hatchet-api:8080
+            reverse_proxy hatchet-stack-api:8080
         }
 
         handle /* {
-            reverse_proxy hatchet-frontend:8080
+            reverse_proxy hatchet-stack-frontend:8080
         }
     }
 ---
