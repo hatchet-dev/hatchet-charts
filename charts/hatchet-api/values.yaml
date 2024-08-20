@@ -1,13 +1,13 @@
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-  tag: "v0.32.1"
+  tag: "v0.42.8"
   pullPolicy: "Always"
 
 migrationJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-    tag: "v0.32.1"
+    tag: "v0.42.8"
     pullPolicy: "Always"
 
 commandline:
