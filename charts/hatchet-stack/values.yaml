@@ -3,7 +3,7 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.42.8"
+    tag: "v0.42.12"
     pullPolicy: "Always"
   migrationJob:
     image:
@@ -16,9 +16,9 @@ api:
     SERVER_URL: "http://localhost:8080"
     SERVER_AUTH_COOKIE_INSECURE: "t"
     SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
-    SERVER_LOGGER_LEVEL: "debug"
+    SERVER_LOGGER_LEVEL: "warn"
     SERVER_LOGGER_FORMAT: "console"
-    DATABASE_LOGGER_LEVEL: "debug"
+    DATABASE_LOGGER_LEVEL: "warn"
     DATABASE_LOGGER_FORMAT: "console"
     SERVER_AUTH_GOOGLE_ENABLED: "f"
     SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
@@ -56,9 +56,11 @@ engine:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.42.8"
+    tag: "v0.42.12"
     pullPolicy: "Always"
   migrationJob:
+    enabled: false
+  setupJob:
     enabled: false
   service:
     externalPort: 7070
@@ -115,7 +117,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.42.8"
+    tag: "v0.42.12"
     pullPolicy: "Always"
   service:
     externalPort: 8080
