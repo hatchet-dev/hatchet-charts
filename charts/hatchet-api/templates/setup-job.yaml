@@ -1,0 +1,131 @@
+{{- if .Values.setupJob.enabled }}
+# create a role and rolebinding to write to the configmap
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hatchet-config-writer
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hatchet-config-writer
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hatchet-config-writer
+subjects:
+- kind: ServiceAccount
+  name: {{ template "hatchet.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}"
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      name: {{ template "hatchet.fullname" . }}-migration
+      labels:
+{{- include "hatchet.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      shareProcessNamespace: true
+      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      initContainers:
+      # Run migrations as an init container
+      {{- if .Values.migrationJob.enabled }}
+      - name: migration-job
+        image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
+        imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+        - ./atlas-apply.sh
+        securityContext:
+          capabilities:
+            add:
+              - SYS_PTRACE
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.envFrom | indent 10 }}
+      {{- end }}
+      {{- if .Values.seedJob.enabled }}
+      - name: seed-job
+        image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
+        imagePullPolicy: Always
+        # this command requires read-write access on the hatchet-config configmap
+        command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
+        securityContext:
+          capabilities:
+            add:
+              - SYS_PTRACE
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.envFrom | indent 10 }}
+      {{- end }}
+      {{- if and (not .Values.migrationJob.enabled) (not .Values.seedJob.enabled) }}
+      []
+      {{- end }}
+      containers:
+      - name: setup-job
+        image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
+        imagePullPolicy: Always
+        # this command requires read-write access on the hatchet-config configmap
+        command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}"]
+        securityContext:
+          capabilities:
+            add:
+              - SYS_PTRACE
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.envFrom | indent 10 }}
+      - name: setup-worker-token
+        image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
+        imagePullPolicy: Always
+        # this command requires read-write access on the hatchet-config configmap
+        command: ["/hatchet/hatchet-admin", "k8s", "create-worker-token", "--namespace", "{{ .Release.Namespace }}"]
+        securityContext:
+          capabilities:
+            add:
+              - SYS_PTRACE
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{- if .Values.envFrom }}
+{{ toYaml .Values.envFrom | nindent 10 }}
+{{- end }}
+{{- with .Values.extraContainers }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- end }}
