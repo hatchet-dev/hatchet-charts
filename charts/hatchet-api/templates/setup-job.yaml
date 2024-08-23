@@ -94,7 +94,7 @@ spec:
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
         imagePullPolicy: Always
         # this command requires read-write access on the hatchet-config configmap
-        command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}"]
+        command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}", "--overwrite=false"]
         securityContext:
           capabilities:
             add:
@@ -106,6 +106,43 @@ spec:
         {{- end }}
         envFrom: 
 {{ toYaml .Values.envFrom | indent 10 }}
+{{- with .Values.extraContainers }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}-worker-token"
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      name: {{ template "hatchet.fullname" . }}-migration
+      labels:
+{{- include "hatchet.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      shareProcessNamespace: true
+      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      initContainers:
+      - name: check-db-connection
+        image: postgres:latest
+        command: ['sh', '-c', 'until pg_isready -d $DATABASE_URL; do echo waiting for database; sleep 2; done;']
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        envFrom: 
+{{ toYaml .Values.envFrom | indent 10 }}
+      containers:
       - name: setup-worker-token
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
         imagePullPolicy: Always
