@@ -3,7 +3,7 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.42.13"
+    tag: "v0.42.14"
     pullPolicy: "Always"
   migrationJob:
     image:
@@ -56,7 +56,7 @@ engine:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.42.13"
+    tag: "v0.42.14"
     pullPolicy: "Always"
   migrationJob:
     enabled: false
@@ -117,7 +117,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.42.13"
+    tag: "v0.42.14"
     pullPolicy: "Always"
   service:
     externalPort: 8080
