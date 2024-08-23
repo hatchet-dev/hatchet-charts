@@ -2,6 +2,18 @@ apiVersion: v1
 entries:
   hatchet-api:
   - apiVersion: v2
+    created: "2024-08-23T00:24:34.697561282Z"
+    description: A Helm chart for deploying Hatchet API components on Kubernetes.
+    digest: 453b4fdcf68e0da2945a0214cc7df297e5756d4978b8b95fb435c120f642c599
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-api
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-api-0.6.1/hatchet-api-0.6.1.tgz
+    version: 0.6.1
+  - apiVersion: v2
     created: "2024-08-22T21:37:40.461363568Z"
     description: A Helm chart for deploying Hatchet API components on Kubernetes.
     digest: 732795ad7671e40234442437cf9bd58335a52f6e70503a88c923fb147841a726
@@ -160,6 +172,45 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-lite-0.1.0/hatchet-lite-0.1.0.tgz
     version: 0.1.0
   hatchet-stack:
+  - apiVersion: v2
+    created: "2024-08-23T00:24:34.821030364Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: ^0.6.1
+    - alias: engine
+      condition: engine.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: ^0.6.1
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: ^0.6.0
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: ^14.2.1
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: ^12.13.1
+    description: A Helm chart for deploying Hatchet on Kubernetes together with a
+      PostgreSQL database and RabbitMQ.
+    digest: 3a23198f1faea8a1e52fa352c4b7ba86d297cb79a2020435af7c090d8ba6a6cb
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-stack
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.6.1/hatchet-stack-0.6.1.tgz
+    version: 0.6.1
   - apiVersion: v2
     created: "2024-08-22T21:37:40.706989336Z"
     dependencies:
@@ -394,4 +445,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.1.0/hatchet-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2024-08-22T21:37:40.707033679Z"
+generated: "2024-08-23T00:24:34.821098111Z"
