@@ -1,6 +1,6 @@
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-  tag: "v0.42.12"
+  tag: "v0.42.13"
   pullPolicy: "Always"
 
 commandline:
