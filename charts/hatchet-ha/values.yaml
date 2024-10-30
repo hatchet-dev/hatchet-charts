@@ -1,0 +1,221 @@
+api:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
+    tag: "v0.50.4"
+    pullPolicy: "Always"
+  migrationJob:
+    image:
+      repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
+  serviceAccount:
+    create: true
+    name: hatchet-api
+  extraManifests:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: hatchet-api-config
+      data:
+        SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+        SERVER_URL: "http://localhost:8080"
+        SERVER_AUTH_COOKIE_INSECURE: "t"
+        SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+        SERVER_LOGGER_LEVEL: "warn"
+        SERVER_LOGGER_FORMAT: "console"
+        DATABASE_LOGGER_LEVEL: "warn"
+        DATABASE_LOGGER_FORMAT: "console"
+        SERVER_AUTH_GOOGLE_ENABLED: "f"
+        SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+        DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
+        DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
+        DATABASE_POSTGRES_PORT: "5432"
+        DATABASE_POSTGRES_USERNAME: "hatchet"
+        DATABASE_POSTGRES_PASSWORD: "hatchet"
+        DATABASE_POSTGRES_DB_NAME: "hatchet"
+        DATABASE_POSTGRES_SSL_MODE: "disable"
+        SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
+        SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
+  envFrom:
+    - secretRef:
+        name: hatchet-api-config
+  ingress:
+    enabled: false
+  health:
+    enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /api/live
+          port: 8080
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /api/ready
+          port: 8080
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
+grpc:
+  enabled: true
+  nameOverride: hatchet-grpc
+  fullnameOverride: hatchet-grpc
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
+    tag: "v0.50.4"
+    pullPolicy: "Always"
+  setupJob:
+    enabled: false
+  service:
+    externalPort: 7070
+    internalPort: 7070
+  commandline:
+    command: ["/hatchet/hatchet-engine"]
+  deployment:
+    annotations:
+      app.kubernetes.io/name: hatchet-grpc
+  serviceAccount:
+    create: true
+    name: hatchet-grpc
+  env:
+    SERVER_SERVICES: "grpc-api"
+  envFrom:
+    - secretRef:
+        name: hatchet-api-config
+  ingress:
+    enabled: false
+  health:
+    enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
+controllers:
+  enabled: true
+  nameOverride: hatchet-controllers
+  fullnameOverride: hatchet-controllers
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
+    tag: "v0.50.4"
+    pullPolicy: "Always"
+  setupJob:
+    enabled: false
+  service:
+    externalPort: 7070
+    internalPort: 7070
+  commandline:
+    command: ["/hatchet/hatchet-engine"]
+  deployment:
+    annotations:
+      app.kubernetes.io/name: hatchet-controllers
+  serviceAccount:
+    create: true
+    name: hatchet-controllers
+  env:
+    SERVER_SERVICES: "controllers"
+  envFrom:
+    - secretRef:
+        name: hatchet-api-config
+  ingress:
+    enabled: false
+  health:
+    enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
+scheduler:
+  enabled: true
+  nameOverride: hatchet-scheduler
+  fullnameOverride: hatchet-scheduler
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
+    tag: "v0.50.4"
+    pullPolicy: "Always"
+  setupJob:
+    enabled: false
+  service:
+    externalPort: 7070
+    internalPort: 7070
+  commandline:
+    command: ["/hatchet/hatchet-engine"]
+  deployment:
+    annotations:
+      app.kubernetes.io/name: hatchet-scheduler
+  serviceAccount:
+    create: true
+    name: hatchet-scheduler
+  env:
+    SERVER_SERVICES: "scheduler"
+  envFrom:
+    - secretRef:
+        name: hatchet-api-config
+  ingress:
+    enabled: false
+  health:
+    enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
+frontend:
+  enabled: true
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
+    tag: "v0.50.4"
+    pullPolicy: "Always"
+  service:
+    externalPort: 8080
+    internalPort: 80
+  ingress:
+    enabled: false
+
+postgres:
+  enabled: true
+  auth:
+    username: "hatchet"
+    password: "hatchet"
+    database: "hatchet"
+
+rabbitmq:
+  enabled: true
+  auth:
+    username: "hatchet"
+    password: "hatchet"
+
+caddy:
+  enabled: false

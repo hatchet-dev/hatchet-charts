@@ -1,0 +1,77 @@
+{{- if .Values.caddy.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hatchet-caddy-config
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+{{- if .Values.caddy.annotations }}
+  annotations:
+{{ toYaml .Values.caddy.annotations | indent 4 }}
+{{- end }}
+data:
+  Caddyfile: |
+    http://localhost:8080 {
+        handle /api/* {
+            reverse_proxy hatchet-stack-api:8080
+        }
+
+        handle /* {
+            reverse_proxy hatchet-stack-frontend:8080
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+{{- if .Values.caddy.annotations }}
+  annotations:
+{{ toYaml .Values.caddy.annotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy
+  template:
+    metadata:
+      labels:
+        app: caddy
+    spec:
+      containers:
+      - name: caddy
+        image: caddy:2.7.6-alpine
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: caddyfile-volume
+          mountPath: /etc/caddy/Caddyfile
+          subPath: Caddyfile
+      volumes:
+      - name: caddyfile-volume
+        configMap:
+          name: hatchet-caddy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+{{- if .Values.caddy.annotations }}
+  annotations:
+{{ toYaml .Values.caddy.annotations | indent 4 }}
+{{- end }}
+
+spec:
+  selector:
+    app: caddy
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+{{- end -}}

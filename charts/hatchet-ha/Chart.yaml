@@ -1,6 +1,6 @@
 apiVersion: v2
-name: hatchet-stack
-description: A Helm chart for deploying Hatchet on Kubernetes together with a PostgreSQL database and RabbitMQ.
+name: hatchet-ha
+description: A Helm chart for deploying Hatchet in a high-availability configuration
 type: application
 version: 0.7.0
 maintainers:
@@ -13,10 +13,20 @@ dependencies:
     version: "^0.7.0"
     alias: api
   - name: "hatchet-api"
-    condition: engine.enabled
+    condition: grpc.enabled
     repository: "file://../hatchet-api"
     version: "^0.7.0"
-    alias: engine
+    alias: grpc
+  - name: "hatchet-api"
+    condition: controllers.enabled
+    repository: "file://../hatchet-api"
+    version: "^0.7.0"
+    alias: controllers
+  - name: "hatchet-api"
+    condition: scheduler.enabled
+    repository: "file://../hatchet-api"
+    version: "^0.7.0"
+    alias: scheduler
   - name: "hatchet-frontend"
     condition: frontend.enabled
     repository: "file://../hatchet-frontend"

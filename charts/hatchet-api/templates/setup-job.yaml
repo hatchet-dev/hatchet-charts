@@ -70,7 +70,7 @@ spec:
       {{- end }}
       {{- if .Values.seedJob.enabled }}
       - name: seed-job
-        image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
+        image: "{{ .Values.seedJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.seedJob.image.tag }}"
         imagePullPolicy: Always
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
@@ -90,6 +90,7 @@ spec:
       []
       {{- end }}
       containers:
+{{- if .Values.quickstartJob.enabled }}
       - name: setup-job
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
         imagePullPolicy: Always
@@ -109,7 +110,14 @@ spec:
 {{- with .Values.extraContainers }}
 {{ toYaml . | indent 8 }}
 {{- end }}
+{{- else }}
+      # Write an empty container to avoid a syntax error
+      - name: empty
+        image: "alpine:3.14"
+        command: ["sh", "-c", "echo 'No setup job configured'"]
+{{- end }}
 ---
+{{- if .Values.workerTokenJob.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -164,5 +172,6 @@ spec:
 {{- end }}
 {{- with .Values.extraContainers }}
 {{ toYaml . | indent 8 }}
+{{- end }}
 {{- end }}
 {{- end }}
