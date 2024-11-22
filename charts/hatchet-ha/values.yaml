@@ -104,8 +104,8 @@ grpc:
 
 controllers:
   enabled: true
-  nameOverride: hatchet-controllers
-  fullnameOverride: hatchet-controllers
+  nameOverride: controllers
+  fullnameOverride: controllers
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
@@ -120,10 +120,10 @@ controllers:
     command: ["/hatchet/hatchet-engine"]
   deployment:
     annotations:
-      app.kubernetes.io/name: hatchet-controllers
+      app.kubernetes.io/name: controllers
   serviceAccount:
     create: true
-    name: hatchet-controllers
+    name: controllers
   env:
     SERVER_SERVICES: "controllers"
     SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
