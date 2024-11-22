@@ -11,34 +11,22 @@ api:
   serviceAccount:
     create: true
     name: hatchet-api
-  extraManifests:
-    - apiVersion: v1
-      kind: Secret
-      metadata:
-        name: hatchet-api-config
-      data:
-        SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
-        SERVER_URL: "http://localhost:8080"
-        SERVER_AUTH_COOKIE_INSECURE: "t"
-        SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
-        SERVER_LOGGER_LEVEL: "warn"
-        SERVER_LOGGER_FORMAT: "console"
-        DATABASE_LOGGER_LEVEL: "warn"
-        DATABASE_LOGGER_FORMAT: "console"
-        SERVER_AUTH_GOOGLE_ENABLED: "f"
-        SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
-        DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
-        DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
-        DATABASE_POSTGRES_PORT: "5432"
-        DATABASE_POSTGRES_USERNAME: "hatchet"
-        DATABASE_POSTGRES_PASSWORD: "hatchet"
-        DATABASE_POSTGRES_DB_NAME: "hatchet"
-        DATABASE_POSTGRES_SSL_MODE: "disable"
-        SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
-        SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
-  envFrom:
-    - secretRef:
-        name: hatchet-api-config
+  env:
+    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+    SERVER_URL: "http://localhost:8080"
+    SERVER_AUTH_COOKIE_INSECURE: "t"
+    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+    SERVER_AUTH_GOOGLE_ENABLED: "f"
+    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
+    DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
+    DATABASE_POSTGRES_PORT: "5432"
+    DATABASE_POSTGRES_USERNAME: "hatchet"
+    DATABASE_POSTGRES_PASSWORD: "hatchet"
+    DATABASE_POSTGRES_DB_NAME: "hatchet"
+    DATABASE_POSTGRES_SSL_MODE: "disable"
+    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
+    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
   ingress:
     enabled: false
   health:
@@ -81,9 +69,21 @@ grpc:
     name: hatchet-grpc
   env:
     SERVER_SERVICES: "grpc-api"
-  envFrom:
-    - secretRef:
-        name: hatchet-api-config
+    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+    SERVER_URL: "http://localhost:8080"
+    SERVER_AUTH_COOKIE_INSECURE: "t"
+    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+    SERVER_AUTH_GOOGLE_ENABLED: "f"
+    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
+    DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
+    DATABASE_POSTGRES_PORT: "5432"
+    DATABASE_POSTGRES_USERNAME: "hatchet"
+    DATABASE_POSTGRES_PASSWORD: "hatchet"
+    DATABASE_POSTGRES_DB_NAME: "hatchet"
+    DATABASE_POSTGRES_SSL_MODE: "disable"
+    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
+    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
   ingress:
     enabled: false
   health:
@@ -126,9 +126,21 @@ controllers:
     name: hatchet-controllers
   env:
     SERVER_SERVICES: "controllers"
-  envFrom:
-    - secretRef:
-        name: hatchet-api-config
+    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+    SERVER_URL: "http://localhost:8080"
+    SERVER_AUTH_COOKIE_INSECURE: "t"
+    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+    SERVER_AUTH_GOOGLE_ENABLED: "f"
+    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
+    DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
+    DATABASE_POSTGRES_PORT: "5432"
+    DATABASE_POSTGRES_USERNAME: "hatchet"
+    DATABASE_POSTGRES_PASSWORD: "hatchet"
+    DATABASE_POSTGRES_DB_NAME: "hatchet"
+    DATABASE_POSTGRES_SSL_MODE: "disable"
+    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
+    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
   ingress:
     enabled: false
   health:
@@ -149,8 +161,8 @@ controllers:
 
 scheduler:
   enabled: true
-  nameOverride: hatchet-scheduler
-  fullnameOverride: hatchet-scheduler
+  nameOverride: scheduler
+  fullnameOverride: scheduler
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
@@ -165,15 +177,27 @@ scheduler:
     command: ["/hatchet/hatchet-engine"]
   deployment:
     annotations:
-      app.kubernetes.io/name: hatchet-scheduler
+      app.kubernetes.io/name: scheduler
   serviceAccount:
     create: true
-    name: hatchet-scheduler
+    name: scheduler
   env:
     SERVER_SERVICES: "scheduler"
-  envFrom:
-    - secretRef:
-        name: hatchet-api-config
+    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
+    SERVER_URL: "http://localhost:8080"
+    SERVER_AUTH_COOKIE_INSECURE: "t"
+    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
+    SERVER_AUTH_GOOGLE_ENABLED: "f"
+    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
+    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
+    DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
+    DATABASE_POSTGRES_PORT: "5432"
+    DATABASE_POSTGRES_USERNAME: "hatchet"
+    DATABASE_POSTGRES_PASSWORD: "hatchet"
+    DATABASE_POSTGRES_DB_NAME: "hatchet"
+    DATABASE_POSTGRES_SSL_MODE: "disable"
+    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
+    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
   ingress:
     enabled: false
   health:
