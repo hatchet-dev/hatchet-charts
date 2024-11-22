@@ -2,7 +2,7 @@ apiVersion: v2
 name: hatchet-ha
 description: A Helm chart for deploying Hatchet in a high-availability configuration
 type: application
-version: 0.7.2
+version: 0.7.3
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
