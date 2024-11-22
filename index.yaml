@@ -280,6 +280,54 @@ entries:
     version: 0.1.0
   hatchet-ha:
   - apiVersion: v2
+    created: "2024-11-22T19:21:12.007474616Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: ^0.7.0
+    - alias: grpc
+      condition: grpc.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: ^0.7.0
+    - alias: controllers
+      condition: controllers.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: ^0.7.0
+    - alias: scheduler
+      condition: scheduler.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: ^0.7.0
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: ^0.7.0
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: ^14.2.1
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: ^12.13.1
+    description: A Helm chart for deploying Hatchet in a high-availability configuration
+    digest: 27a73331775efba9c305b630ef1954d5fdbff5051b7186c0177efa96d465924d
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-ha
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-ha-0.7.1/hatchet-ha-0.7.1.tgz
+    version: 0.7.1
+  - apiVersion: v2
     created: "2024-11-22T16:15:52.284844086Z"
     dependencies:
     - alias: api
@@ -809,4 +857,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.1.0/hatchet-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2024-11-22T16:15:52.416947119Z"
+generated: "2024-11-22T19:21:12.007548864Z"
