@@ -1,9 +1,28 @@
+# sharedConfig is inherited by all backend services: api, grpc, controllers, scheduler
+sharedConfig:
+  # you can disable shared config by setting this to false
+  enabled: true
+
+  # these are the most commonly configured values
+  serverUrl: "http://localhost:8080"
+  serverAuthCookieDomain: "localhost:8080" # the domain for the auth cookie
+  serverAuthCookieInsecure: "t" # allows cookies to be set over http
+  serverAuthSetEmailVerified: "t" # automatically sets email_verified to true for all users
+  serverAuthBasicAuthEnabled: "t" # allows login via basic auth (email/password)
+  grpcBroadcastAddress: "localhost:7070" # the endpoint for the gRPC server, exposed via the `grpc` service
+  grpcInsecure: "true" # allows gRPC to be served over http
+  defaultAdminEmail: "admin@example.com" # in exposed/production environments, change this to a valid email
+  defaultAdminPassword: "Admin123!!" # in exposed/production environments, change this to a secure password
+
+  # you can set additional environment variables here, which will override any defaults
+  env: {}
+
 api:
   enabled: true
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.50.4"
+    tag: "v0.52.0"
     pullPolicy: "Always"
   migrationJob:
     image:
@@ -11,26 +30,9 @@ api:
   serviceAccount:
     create: true
     name: hatchet-api
-  env:
-    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
-    SERVER_URL: "http://localhost:8080"
-    SERVER_AUTH_COOKIE_INSECURE: "t"
-    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
-    SERVER_LOGGER_LEVEL: "warn"
-    SERVER_LOGGER_FORMAT: "console"
-    DATABASE_LOGGER_LEVEL: "warn"
-    DATABASE_LOGGER_FORMAT: "console"
-    SERVER_AUTH_GOOGLE_ENABLED: "f"
-    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
-    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
-    DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
-    DATABASE_POSTGRES_PORT: "5432"
-    DATABASE_POSTGRES_USERNAME: "hatchet"
-    DATABASE_POSTGRES_PASSWORD: "hatchet"
-    DATABASE_POSTGRES_DB_NAME: "hatchet"
-    DATABASE_POSTGRES_SSL_MODE: "disable"
-    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
-    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
+  envFrom:
+    - secretRef:
+        name: hatchet-shared-config
   ingress:
     enabled: false
   health:
@@ -56,7 +58,7 @@ engine:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.50.4"
+    tag: "v0.52.0"
     pullPolicy: "Always"
   setupJob:
     enabled: false
@@ -71,28 +73,9 @@ engine:
   serviceAccount:
     create: true
     name: hatchet-engine
-  env:
-    SERVER_AUTH_COOKIE_DOMAIN: "localhost:8080"
-    SERVER_URL: "http://localhost:8080"
-    SERVER_AUTH_COOKIE_INSECURE: "t"
-    SERVER_AUTH_SET_EMAIL_VERIFIED: "t"
-    SERVER_LOGGER_LEVEL: "debug"
-    SERVER_LOGGER_FORMAT: "console"
-    DATABASE_LOGGER_LEVEL: "debug"
-    DATABASE_LOGGER_FORMAT: "console"
-    SERVER_AUTH_GOOGLE_ENABLED: "f"
-    SERVER_AUTH_BASIC_AUTH_ENABLED: "t"
-    DATABASE_URL: "postgres://hatchet:hatchet@hatchet-stack-postgres:5432/hatchet?sslmode=disable"
-    DATABASE_POSTGRES_HOST: "hatchet-stack-postgres"
-    DATABASE_POSTGRES_PORT: "5432"
-    DATABASE_POSTGRES_USERNAME: "hatchet"
-    DATABASE_POSTGRES_PASSWORD: "hatchet"
-    DATABASE_POSTGRES_DB_NAME: "hatchet"
-    DATABASE_POSTGRES_SSL_MODE: "disable"
-    SERVER_TASKQUEUE_RABBITMQ_URL: "amqp://hatchet:hatchet@hatchet-stack-rabbitmq:5672/"
-    SERVER_GRPC_BIND_ADDRESS: "0.0.0.0"
-    SERVER_GRPC_INSECURE: "true"
-    SERVER_GRPC_BROADCAST_ADDRESS: "localhost:7070"
+  envFrom:
+    - secretRef:
+        name: hatchet-shared-config
   ingress:
     enabled: false
   health:
@@ -115,7 +98,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.50.4"
+    tag: "v0.52.0"
     pullPolicy: "Always"
   service:
     externalPort: 8080
@@ -129,12 +112,21 @@ postgres:
     username: "hatchet"
     password: "hatchet"
     database: "hatchet"
+  tls:
+    enabled: false
+  primary:
+    service:
+      ports:
+        postgresql: 5432
 
 rabbitmq:
   enabled: true
   auth:
     username: "hatchet"
     password: "hatchet"
+  service:
+    ports:
+      amqp: 5672
 
 caddy:
   enabled: false
