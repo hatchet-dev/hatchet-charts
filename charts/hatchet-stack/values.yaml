@@ -53,8 +53,7 @@ api:
 
 engine:
   enabled: true
-  nameOverride: hatchet-engine
-  fullnameOverride: hatchet-engine
+  nameOverride: engine
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"

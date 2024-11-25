@@ -13,18 +13,18 @@ data:
   Caddyfile: |
     http://localhost:8080 {
         handle /api/* {
-            reverse_proxy hatchet-stack-api:8080
+            reverse_proxy {{ .Release.Name }}-api:8080
         }
 
         handle /* {
-            reverse_proxy hatchet-stack-frontend:8080
+            reverse_proxy {{ .Release.Name }}-frontend:8080
         }
     }
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: caddy
+  name: {{ .Release.Name }}-caddy
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
 {{- if .Values.caddy.annotations }}
