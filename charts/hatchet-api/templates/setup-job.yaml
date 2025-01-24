@@ -107,9 +107,6 @@ spec:
         {{- end }}
         envFrom: 
 {{ toYaml .Values.envFrom | indent 10 }}
-{{- with .Values.extraContainers }}
-{{ toYaml . | indent 6 }}
-{{- end }}
 {{- else }}
       # Write an empty container to avoid a syntax error
       - name: empty
@@ -169,9 +166,6 @@ spec:
 {{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
 {{- if .Values.envFrom }}
 {{ toYaml .Values.envFrom | nindent 10 }}
-{{- end }}
-{{- with .Values.extraContainers }}
-{{ toYaml . | indent 6 }}
 {{- end }}
 {{- end }}
 {{- end }}
