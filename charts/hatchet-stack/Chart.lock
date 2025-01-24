@@ -1,13 +1,13 @@
 dependencies:
 - name: hatchet-api
   repository: file://../hatchet-api
-  version: 0.8.0
+  version: 0.8.1
 - name: hatchet-api
   repository: file://../hatchet-api
-  version: 0.8.0
+  version: 0.8.1
 - name: hatchet-frontend
   repository: file://../hatchet-frontend
-  version: 0.8.0
+  version: 0.8.1
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 14.3.3
