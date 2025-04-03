@@ -79,6 +79,8 @@ spec:
             add:
               - SYS_PTRACE
         env:
+          - name: SERVER_DEFAULT_ENGINE_VERSION
+            value: "V1"
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
