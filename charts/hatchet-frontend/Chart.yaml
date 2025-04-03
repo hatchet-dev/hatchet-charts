@@ -2,7 +2,7 @@ apiVersion: v2
 name: hatchet-frontend
 description: A Helm chart for deploying a frontend static file server on Kubernetes.
 type: application
-version: 0.9.0
+version: 0.9.1
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
