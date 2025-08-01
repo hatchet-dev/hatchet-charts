@@ -52,7 +52,7 @@ spec:
       {{- if .Values.migrationJob.enabled }}
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
         command: ["/bin/sh", "-c"]
         args:
         - ./atlas-apply.sh
@@ -71,7 +71,7 @@ spec:
       {{- if .Values.seedJob.enabled }}
       - name: seed-job
         image: "{{ .Values.seedJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.seedJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
         securityContext:
@@ -95,7 +95,7 @@ spec:
 {{- if .Values.quickstartJob.enabled }}
       - name: setup-job
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}", "--overwrite=false"]
         securityContext:
@@ -152,7 +152,7 @@ spec:
       containers:
       - name: setup-worker-token
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "create-worker-token", "--namespace", "{{ .Release.Namespace }}"]
         securityContext:
