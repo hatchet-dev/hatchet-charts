@@ -29,6 +29,10 @@ quickstartJob:
 
 workerTokenJob:
   enabled: true
+  image:
+    repository: "postgres"
+    tag: "latest"
+    pullPolicy: "Always"
 
 commandline:
   command: ["/hatchet/hatchet-api"]

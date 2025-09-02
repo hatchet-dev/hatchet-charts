@@ -140,7 +140,7 @@ spec:
       {{- end }}
       initContainers:
       - name: check-db-connection
-        image: postgres:latest
+        image: "{{ .Values.workerTokenJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.workerTokenJob.image.tag }}"
         command: ['sh', '-c', 'until pg_isready -d $DATABASE_URL; do echo waiting for database; sleep 2; done;']
         env:
         {{- range $key, $value := .Values.env }}
