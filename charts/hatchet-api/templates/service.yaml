@@ -34,6 +34,9 @@ spec:
 {{- if .Values.service.portName }}
       name: {{ .Values.service.portName }}
 {{- end }}
+{{- if .Values.service.extraPorts }}
+{{ toYaml .Values.service.extraPorts | indent 4 }}
+{{- end }}
 {{- if .Values.service.externalIPs }}
   externalIPs:
 {{ toYaml .Values.service.externalIPs | indent 4 }}

@@ -63,6 +63,9 @@ spec:
         - containerPort: {{ .Values.service.internalPort }}
           name: {{ template "hatchet.name" . }}
           protocol: TCP
+{{- if .Values.deployment.extraPorts }}
+{{ toYaml .Values.deployment.extraPorts | indent 8 }}
+{{- end }}
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         volumeMounts:
