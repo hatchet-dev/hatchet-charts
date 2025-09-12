@@ -25,7 +25,8 @@ spec:
   clusterIP: {{ .Values.service.clusterIP }}
   {{- end }}
   ports:
-    - port: {{ .Values.service.externalPort }}
+    - name: http
+      port: {{ .Values.service.externalPort }}
       targetPort: {{ .Values.service.internalPort }}
       protocol: TCP
 {{ if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
