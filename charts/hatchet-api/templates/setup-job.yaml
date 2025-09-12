@@ -34,7 +34,7 @@ metadata:
 {{- include "hatchet.labels" . | nindent 4 }}
 spec:
   backoffLimit: 1
-  activeDeadlineSeconds: 300
+  activeDeadlineSeconds: 900
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -48,8 +48,25 @@ spec:
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
       initContainers:
-      # Run migrations as an init container
       {{- if .Values.migrationJob.enabled }}
+      - name: check-db-connection
+        image: postgres:16-alpine
+        imagePullPolicy: IfNotPresent
+        command: ['sh','-lc']
+        args:
+          - |
+            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
+              echo "waiting for database"; sleep 2
+            done
+        env:
+      {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+      {{- end }}
+        envFrom:
+{{ toYaml .Values.envFrom | indent 10 }}
+
+      # Run migrations as an initContainer
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
         imagePullPolicy: Always
@@ -125,7 +142,7 @@ metadata:
 {{- include "hatchet.labels" . | nindent 4 }}
 spec:
   backoffLimit: 1
-  activeDeadlineSeconds: 300
+  activeDeadlineSeconds: 900
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -140,8 +157,14 @@ spec:
       {{- end }}
       initContainers:
       - name: check-db-connection
-        image: postgres:latest
-        command: ['sh', '-c', 'until pg_isready -d $DATABASE_URL; do echo waiting for database; sleep 2; done;']
+        image: postgres:16-alpine
+        imagePullPolicy: IfNotPresent
+        command: ['sh','-lc']
+        args:
+          - |
+            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
+              echo "waiting for database"; sleep 2
+            done
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
