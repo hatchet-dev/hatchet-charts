@@ -1,34 +1,38 @@
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-  tag: "v0.58.0"
-  pullPolicy: "Always"
+  tag: "v0.71.0"
+  pullPolicy: "IfNotPresent"
 
 setupJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
 
 migrationJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
 
 seedJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
 
 quickstartJob:
   enabled: true
 
 workerTokenJob:
   enabled: true
+  image:
+    repository: "postgres"
+    tag: "latest"
+    pullPolicy: "Always"
 
 commandline:
   command: ["/hatchet/hatchet-api"]
@@ -48,6 +52,13 @@ retainFailedHooks: false
 
 env: {}
 
+# Environment variable configuration
+# For production deployments, create a secret with required values:
+# kubectl create secret generic hatchet-config \
+#   --from-literal=DATABASE_URL="postgres://user:pass@host:port/dbname" \
+#   --from-literal=SERVER_URL="https://your-domain.com"
+#
+# For testing without external dependencies, set deploymentEnvFrom: []
 deploymentEnvFrom:
   - secretRef:
       name: hatchet-config
@@ -60,6 +71,7 @@ deployment:
   annotations:
     app.kubernetes.io/name: hatchet-api
   labels: {}
+  extraPorts: []
 
 persistence:
   size: 5Gi
@@ -80,20 +92,23 @@ service:
   # loadBalancerSourceRanges: []
   selector: {}
   # portName: service-port
+  extraPorts: []
 
 ingress:
-  enabled: true
+  # Set to true and configure hosts to enable ingress
+  enabled: false
   # For k8s 1.18+
   # ingressClassName:
   labels: {}
   annotations: {}
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
-  hosts:
+  hosts: []
   # - host: example.mydomain.com
   #   paths:
   #     - path: /
-  tls:
+  #       pathType: Prefix
+  tls: []
   # - secretName: example.mydomain.com
   #   hosts:
   #     - example.mydomain.com
