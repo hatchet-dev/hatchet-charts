@@ -88,6 +88,9 @@ jobs:
       - name: Template test all charts
         run: |
           helm dependency build charts/hatchet-stack
+          helm dependency build charts/hatchet-api
+          helm dependency build charts/hatchet-frontend
+          helm dependency build charts/hatchet-ha
 
           for chart in charts/*/; do
             chart_name=$(basename "$chart")
