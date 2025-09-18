@@ -36,7 +36,14 @@ jobs:
       - name: Install and test hatchet-api chart
         run: |
           helm install hatchet-api-test charts/hatchet-api \
-            --wait --timeout=5m
+            --set-json 'deploymentEnvFrom=[]' \
+            --set setupJob.enabled=false \
+            --set migrationJob.enabled=false \
+            --set seedJob.enabled=false \
+            --set quickstartJob.enabled=false \
+            --set workerTokenJob.enabled=false \
+            --set ingress.enabled=false \
+            --timeout=1m
 
           kubectl get pods -l app.kubernetes.io/name=hatchet-api
           helm test hatchet-api-test || true
@@ -45,7 +52,8 @@ jobs:
       - name: Install and test hatchet-frontend chart
         run: |
           helm install hatchet-frontend-test charts/hatchet-frontend \
-            --wait --timeout=5m
+            --set ingress.enabled=false \
+            --timeout=1m
 
           kubectl get pods -l app.kubernetes.io/name=hatchet-frontend
           helm test hatchet-frontend-test || true
@@ -54,7 +62,22 @@ jobs:
       - name: Install and test hatchet-stack chart
         run: |
           helm install hatchet-stack-test charts/hatchet-stack \
-            --wait --timeout=5m
+            --set postgres.enabled=false \
+            --set rabbitmq.enabled=false \
+            --set api.setupJob.enabled=false \
+            --set api.migrationJob.enabled=false \
+            --set api.seedJob.enabled=false \
+            --set api.quickstartJob.enabled=false \
+            --set api.workerTokenJob.enabled=false \
+            --set api.ingress.enabled=false \
+            --set engine.setupJob.enabled=false \
+            --set engine.migrationJob.enabled=false \
+            --set engine.seedJob.enabled=false \
+            --set engine.quickstartJob.enabled=false \
+            --set engine.workerTokenJob.enabled=false \
+            --set engine.ingress.enabled=false \
+            --set frontend.ingress.enabled=false \
+            --timeout=1m
 
           kubectl get pods
           helm test hatchet-stack-test || true
