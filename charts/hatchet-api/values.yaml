@@ -1,27 +1,27 @@
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-  tag: "0.71.0"
+  tag: "v0.71.0"
   pullPolicy: "IfNotPresent"
 
 setupJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "0.71.0"
+    tag: "v0.71.0"
     pullPolicy: "IfNotPresent"
 
 migrationJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-    tag: "0.71.0"
+    tag: "v0.71.0"
     pullPolicy: "IfNotPresent"
 
 seedJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "0.71.0"
+    tag: "v0.71.0"
     pullPolicy: "IfNotPresent"
 
 quickstartJob:
