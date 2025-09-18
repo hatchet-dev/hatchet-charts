@@ -64,26 +64,26 @@ jobs:
           helm dependency build charts/hatchet-stack
 
           helm install hatchet-stack-test charts/hatchet-stack \
-            --set postgres.enabled=false \
-            --set rabbitmq.enabled=false \
-            --set api.setupJob.enabled=false \
-            --set api.migrationJob.enabled=false \
-            --set api.seedJob.enabled=false \
-            --set api.quickstartJob.enabled=false \
-            --set api.workerTokenJob.enabled=false \
-            --set api.ingress.enabled=false \
-            --set engine.setupJob.enabled=false \
-            --set engine.migrationJob.enabled=false \
-            --set engine.seedJob.enabled=false \
-            --set engine.quickstartJob.enabled=false \
-            --set engine.workerTokenJob.enabled=false \
-            --set engine.ingress.enabled=false \
-            --set frontend.ingress.enabled=false \
             --timeout=1m
 
           kubectl get pods
           helm test hatchet-stack-test || true
-          helm uninstall hatchet-stack-test
+
+      - name: Run load test
+        env:
+          VERSION: v0.71.0
+          HATCHET_LOADTEST_TOKEN: test-token
+        run: |
+          # Install curl if not available
+          which curl || (apt-get update && apt-get install -y curl)
+
+          # Run the load test
+          ./hack/run-kind-loadtest.sh
+
+      - name: Cleanup
+        if: always()
+        run: |
+          helm uninstall hatchet-stack-test || true
 
       - name: Template test all charts
         run: |
