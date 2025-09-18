@@ -131,3 +131,7 @@ rabbitmq:
 
 caddy:
   enabled: false
+  image:
+    repository: "caddy"
+    tag: "2.7.6-alpine"
+    pullPolicy: "Always"
