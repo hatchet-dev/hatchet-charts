@@ -71,6 +71,7 @@ deployment:
   annotations:
     app.kubernetes.io/name: hatchet-api
   labels: {}
+  extraPorts: []
 
 persistence:
   size: 5Gi
@@ -91,6 +92,7 @@ service:
   # loadBalancerSourceRanges: []
   selector: {}
   # portName: service-port
+  extraPorts: []
 
 ingress:
   # Set to true and configure hosts to enable ingress
