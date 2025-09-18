@@ -22,11 +22,13 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   migrationJob:
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
+      tag: "v0.71.0"
+      pullPolicy: "IfNotPresent"
   serviceAccount:
     create: true
     name: hatchet-api
@@ -58,8 +60,8 @@ grpc:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
   service:
@@ -101,8 +103,8 @@ controllers:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
   service:
@@ -144,8 +146,8 @@ scheduler:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
   service:
@@ -184,8 +186,8 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   service:
     externalPort: 8080
     internalPort: 80
