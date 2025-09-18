@@ -61,7 +61,6 @@ jobs:
 
       - name: Install and test hatchet-stack chart
         run: |
-          # Build dependencies first
           helm dependency build charts/hatchet-stack
 
           helm install hatchet-stack-test charts/hatchet-stack \
@@ -88,6 +87,8 @@ jobs:
 
       - name: Template test all charts
         run: |
+          helm dependency build charts/hatchet-stack
+
           for chart in charts/*/; do
             chart_name=$(basename "$chart")
             echo "Testing template rendering for $chart_name"
