@@ -26,6 +26,8 @@ done
 echo "All required environment variables are set"
 echo "VERSION: $VERSION"
 
+helm dependency build charts/hatchet-stack
+
 helm install hatchet-stack-test charts/hatchet-stack \
     --create-namespace \
     --namespace loadtest \
