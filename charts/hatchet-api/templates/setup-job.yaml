@@ -52,12 +52,13 @@ spec:
       - name: check-db-connection
         image: postgres:16-alpine
         imagePullPolicy: IfNotPresent
-        command: ['sh','-lc']
+        command: ['/bin/sh','-lc']
         args:
           - |
             until pg_isready -q -t 5 -d "$DATABASE_URL"; do
               echo "waiting for database"; sleep 2
             done
+            psql "$DATABASE_URL" -c "SELECT 1"
         env:
       {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
@@ -70,9 +71,6 @@ spec:
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
         imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
-        command: ["/bin/sh", "-c"]
-        args:
-        - ./atlas-apply.sh
         securityContext:
           capabilities:
             add:
@@ -82,8 +80,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
       {{- end }}
       {{- if .Values.seedJob.enabled }}
       - name: seed-job
@@ -102,8 +102,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
       {{- end }}
       {{- if and (not .Values.migrationJob.enabled) (not .Values.seedJob.enabled) }}
       []
@@ -124,8 +126,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
 {{- else }}
       # Write an empty container to avoid a syntax error
       - name: empty
@@ -170,8 +174,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
       containers:
       - name: setup-worker-token
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
