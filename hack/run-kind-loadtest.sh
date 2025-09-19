@@ -2,10 +2,17 @@
 
 set -euo pipefail
 
+# Function to clean up
+cleanup() {
+    kubectl delete namespace loadtest || echo "Failed to delete loadtest namespace"
+}
+
+# Register the cleanup function to be called on the EXIT signal
+trap cleanup EXIT
+
 # Check required environment variables
 required_vars=(
     "VERSION"
-    "HATCHET_LOADTEST_TOKEN"
 )
 
 echo "Checking required environment variables..."
@@ -19,77 +26,136 @@ done
 echo "All required environment variables are set"
 echo "VERSION: $VERSION"
 
-# Create version configmap if it doesn't exist
-echo "Creating/updating version configmap..."
-kubectl create configmap version --from-literal=version="$VERSION" --dry-run=client -o yaml | kubectl apply -f -
+helm install hatchet-stack-test charts/hatchet-stack \
+    --create-namespace \
+    --namespace loadtest \
+    --set sharedConfig.grpcBroadcastAddress="hatchet-stack-test-engine:7070"
 
-# Wait for hatchet-stack deployment to be ready
-echo "Waiting for hatchet-stack deployments to be ready..."
-kubectl wait --for=condition=available deployment --all --timeout=300s || true
+# Wait for engine deployment
+kubectl rollout status deployment/hatchet-stack-test-engine -n loadtest --timeout=300s
+kubectl wait --for=condition=available deployment/hatchet-stack-test-engine -n loadtest --timeout=300s
 
-# Check pod status
-echo "Current pod status:"
-kubectl get pods
+# Run load test
+echo "Running load test..."
 
-# Get service endpoints for load testing
-echo "Getting service endpoints..."
-API_SERVICE=$(kubectl get svc -l app.kubernetes.io/name=hatchet-api -o jsonpath='{.items[0].metadata.name}' || echo "hatchet-api")
-FRONTEND_SERVICE=$(kubectl get svc -l app.kubernetes.io/name=hatchet-frontend -o jsonpath='{.items[0].metadata.name}' || echo "hatchet-frontend")
+# Generate random identifier for the pod
+RANDOM_ID="loadtest-$(date +%s)"
+echo "Load test pod name: $RANDOM_ID"
 
-echo "API Service: $API_SERVICE"
-echo "Frontend Service: $FRONTEND_SERVICE"
+# Create load test pod
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${RANDOM_ID}
+  namespace: loadtest
+spec:
+  restartPolicy: Never
+  containers:
+    - image: ghcr.io/hatchet-dev/hatchet/hatchet-loadtest:${VERSION}
+      imagePullPolicy: Always
+      name: loadtest
+      command: ["/hatchet/hatchet-load-test"]
+      args:
+        - loadtest
+        - --duration
+        - "60s"
+        - --events
+        - "5"
+        - --level
+        - warn
+        - --slots
+        - "1000"
+        - --dagSteps
+        - "2"
+        - --rlKeys
+        - "10"
+        - --rlLimit
+        - "10"
+        - --rlDurationUnit
+        - "second"
+      env:
+        - name: HATCHET_CLIENT_TOKEN
+          value: $(kubectl get secret hatchet-client-config -n loadtest -o jsonpath='{.data.HATCHET_CLIENT_TOKEN}' | base64 -d)
+        - name: HATCHET_CLIENT_NAMESPACE
+          value: ${RANDOM_ID}
+        - name: HATCHET_CLIENT_TLS_STRATEGY
+          value: "none"
+      resources:
+        limits:
+          memory: 512Mi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+EOF
 
-# Port forward to access services (run in background)
-echo "Setting up port forwarding..."
-kubectl port-forward svc/$API_SERVICE 8080:8080 &
-API_PF_PID=$!
-kubectl port-forward svc/$FRONTEND_SERVICE 3000:3000 &
-FRONTEND_PF_PID=$!
+# Wait for pod to complete (timeout after 10 minutes)
+echo "Waiting for load test pod to complete..."
+kubectl wait --for=condition=Ready pod/${RANDOM_ID} -n loadtest --timeout=30s
 
-# Wait a moment for port forwarding to establish
+# Wait for pod to finish (either succeed or fail)
+echo "Waiting for load test to finish..."
+LOAD_TEST_EXIT_CODE=0
+kubectl wait --for=condition=ContainersReady=false pod/${RANDOM_ID} -n loadtest --timeout=240s || {
+    echo "Pod did not complete within timeout"
+    LOAD_TEST_EXIT_CODE=1
+}
+
+# Give the pod a moment to transition to final state
 sleep 5
 
-# Function to cleanup
-cleanup() {
-    echo "Cleaning up port forwards..."
-    kill $API_PF_PID $FRONTEND_PF_PID 2>/dev/null || true
-}
-trap cleanup EXIT
+# Get final pod status
+POD_STATUS=$(kubectl get pod ${RANDOM_ID} -n loadtest -o jsonpath='{.status.phase}')
+echo "Final pod status: $POD_STATUS"
 
-# Basic health checks
-echo "Running basic health checks..."
+# Capture logs
+echo "Capturing load test logs..."
+kubectl logs ${RANDOM_ID} -n loadtest > /tmp/loadtest-logs.txt || echo "Failed to capture logs"
 
-# Check API health
-if curl -f http://localhost:8080/api/v1/health 2>/dev/null; then
-    echo "✓ API health check passed"
+# Show logs for debugging
+echo "Load test output:"
+cat /tmp/loadtest-logs.txt
+
+# Check if the load test actually succeeded by looking at the logs and pod status
+if [[ "$POD_STATUS" == "Succeeded" ]]; then
+    LOAD_TEST_STATUS="✅ PASSED"
+    LOAD_TEST_EMOJI="✅"
+    LOAD_TEST_EXIT_CODE=0
+elif [[ "$POD_STATUS" == "Failed" ]]; then
+    LOAD_TEST_STATUS="❌ FAILED"
+    LOAD_TEST_EMOJI="❌"
+    LOAD_TEST_EXIT_CODE=1
 else
-    echo "✗ API health check failed"
-    kubectl logs -l app.kubernetes.io/name=hatchet-api --tail=20 || true
-fi
-
-# Check Frontend accessibility
-if curl -f http://localhost:3000 2>/dev/null; then
-    echo "✓ Frontend accessibility check passed"
-else
-    echo "✗ Frontend accessibility check failed"
-    kubectl logs -l app.kubernetes.io/name=hatchet-frontend --tail=20 || true
-fi
-
-# Simple load test simulation
-echo "Running simple load test..."
-for i in {1..5}; do
-    echo "Load test iteration $i/5"
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health | grep -q "200"; then
-        echo "  ✓ API responded successfully"
+    # Pod is still running or in unknown state - check container exit code
+    CONTAINER_EXIT_CODE=$(kubectl get pod ${RANDOM_ID} -n loadtest -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' 2>/dev/null || echo "")
+    if [[ "$CONTAINER_EXIT_CODE" == "0" ]]; then
+        LOAD_TEST_STATUS="✅ PASSED"
+        LOAD_TEST_EMOJI="✅"
+        LOAD_TEST_EXIT_CODE=0
+    elif [[ -n "$CONTAINER_EXIT_CODE" ]]; then
+        LOAD_TEST_STATUS="❌ FAILED (exit code: $CONTAINER_EXIT_CODE)"
+        LOAD_TEST_EMOJI="❌"
+        LOAD_TEST_EXIT_CODE=1
     else
-        echo "  ✗ API request failed"
+        # Check logs for success indicator as fallback
+        if grep -q "✅ success" /tmp/loadtest-logs.txt; then
+            LOAD_TEST_STATUS="✅ PASSED (detected from logs)"
+            LOAD_TEST_EMOJI="✅"
+            LOAD_TEST_EXIT_CODE=0
+        else
+            LOAD_TEST_STATUS="❌ FAILED (unknown state: $POD_STATUS)"
+            LOAD_TEST_EMOJI="❌"
+            LOAD_TEST_EXIT_CODE=1
+        fi
     fi
-    sleep 1
-done
+fi
+
+# Clean up pod
+kubectl delete pod ${RANDOM_ID} -n loadtest || echo "Failed to delete pod"
+
+if [[ $LOAD_TEST_EXIT_CODE -ne 0 ]]; then
+    echo "Load test failed! Exiting with non-zero code."
+    exit 1
+fi
 
 echo "Load test completed successfully!"
-
-# Show final status
-echo "Final deployment status:"
-kubectl get pods
-kubectl get svc

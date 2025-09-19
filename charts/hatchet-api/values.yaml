@@ -52,13 +52,6 @@ retainFailedHooks: false
 
 env: {}
 
-# Environment variable configuration
-# For production deployments, create a secret with required values:
-# kubectl create secret generic hatchet-config \
-#   --from-literal=DATABASE_URL="postgres://user:pass@host:port/dbname" \
-#   --from-literal=SERVER_URL="https://your-domain.com"
-#
-# For testing without external dependencies, set deploymentEnvFrom: []
 deploymentEnvFrom:
   - secretRef:
       name: hatchet-config

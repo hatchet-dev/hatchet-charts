@@ -10,15 +10,9 @@ sharedConfig:
   serverAuthSetEmailVerified: "t" # automatically sets email_verified to true for all users
   serverAuthBasicAuthEnabled: "t" # allows login via basic auth (email/password)
   grpcBroadcastAddress: "localhost:7070" # the endpoint for the gRPC server, exposed via the `grpc` service
-  grpcInsecure: "true" # allows gRPC to be served over http
+  grpcInsecure: "t" # allows gRPC to be served over http
   defaultAdminEmail: "admin@example.com" # in exposed/production environments, change this to a valid email
   defaultAdminPassword: "Admin123!!" # in exposed/production environments, change this to a secure password
-
-  # follow the instructions at https://docs.hatchet.run/self-hosting/kubernetes-glasskube#generate-encryption-keys to generate these
-  serverAuthCookieSecrets: "" # used for cookie encryption
-  serverEncryptionMasterKeyset: "" # the master keyset for encryption
-  serverEncryptionJwtPublicKeyset: "" # the public keyset for JWT encryption
-  serverEncryptionJwtPrivateKeyset: "" # the private keyset for JWT encryption
 
   # you can set additional environment variables here, which will override any defaults
   env: {}
@@ -38,9 +32,6 @@ api:
   serviceAccount:
     create: true
     name: hatchet-api
-  deploymentEnvFrom:
-    - secretRef:
-        name: hatchet-shared-config
   envFrom:
     - secretRef:
         name: hatchet-shared-config
@@ -83,9 +74,6 @@ engine:
   serviceAccount:
     create: true
     name: hatchet-engine
-  deploymentEnvFrom:
-    - secretRef:
-        name: hatchet-shared-config
   envFrom:
     - secretRef:
         name: hatchet-shared-config

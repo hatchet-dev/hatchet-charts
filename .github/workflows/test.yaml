@@ -1,10 +1,7 @@
-name: Test
+name: test
 
 on:
   pull_request:
-    branches:
-      - main
-  push:
     branches:
       - main
 
@@ -64,27 +61,14 @@ jobs:
           helm dependency build charts/hatchet-stack
 
           helm install hatchet-stack-test charts/hatchet-stack \
+            --set postgres.enabled=false \
+            --set rabbitmq.enabled=false \
             --timeout=1m
 
           kubectl get pods
           helm test hatchet-stack-test || true
 
-      - name: Run load test
-        env:
-          VERSION: v0.71.0
-          HATCHET_LOADTEST_TOKEN: test-token
-        run: |
-          # Install curl if not available
-          which curl || (apt-get update && apt-get install -y curl)
-
-          # Run the load test
-          ./hack/run-kind-loadtest.sh
-
-      - name: Cleanup
-        if: always()
-        run: |
           helm uninstall hatchet-stack-test || true
-
       - name: Template test all charts
         run: |
           helm dependency build charts/hatchet-stack
@@ -111,6 +95,29 @@ jobs:
             echo "✓ Template rendering successful for $chart_name"
           done
 
+  loadtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.12.0
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Run load test
+        run: |
+          ./hack/run-kind-loadtest.sh
+        env:
+          VERSION: v0.71.0
+          
   security-scan:
     runs-on: ubuntu-latest
     steps:
