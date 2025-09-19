@@ -32,10 +32,8 @@ helm install hatchet-stack-test charts/hatchet-stack \
     --create-namespace \
     --namespace loadtest \
     --set sharedConfig.grpcBroadcastAddress="hatchet-stack-test-engine:7070" \
-    --set postgres.resources.limits.memory=1Gi \
-    --set postgres.resources.limits.cpu=500m \
-    --set postgres.resources.requests.memory=512Mi \
-    --set postgres.resources.requests.cpu=250m
+    --set postgres.primary.resources.limits.memory=1Gi \
+    --set postgres.primary.resources.limits.cpu=500m
 
 # Wait for engine deployment
 kubectl rollout status deployment/hatchet-stack-test-engine -n loadtest --timeout=300s
