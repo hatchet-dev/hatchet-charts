@@ -14,6 +14,12 @@ sharedConfig:
   defaultAdminEmail: "admin@example.com" # in exposed/production environments, change this to a valid email
   defaultAdminPassword: "Admin123!!" # in exposed/production environments, change this to a secure password
 
+  # follow the instructions at https://docs.hatchet.run/self-hosting/kubernetes-glasskube#generate-encryption-keys to generate these
+  serverAuthCookieSecrets: "" # used for cookie encryption
+  serverEncryptionMasterKeyset: "" # the master keyset for encryption
+  serverEncryptionJwtPublicKeyset: "" # the public keyset for JWT encryption
+  serverEncryptionJwtPrivateKeyset: "" # the private keyset for JWT encryption
+
   # you can set additional environment variables here, which will override any defaults
   env: {}
 
