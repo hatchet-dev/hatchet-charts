@@ -50,8 +50,8 @@ spec:
       initContainers:
       {{- if .Values.migrationJob.enabled }}
       - name: check-db-connection
-        image: postgres:16-alpine
-        imagePullPolicy: IfNotPresent
+        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
+        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
         command: ['/bin/sh','-lc']
         args:
           - |
@@ -161,8 +161,8 @@ spec:
       {{- end }}
       initContainers:
       - name: check-db-connection
-        image: "{{ .Values.workerTokenJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.workerTokenJob.image.tag }}"
-        imagePullPolicy: IfNotPresent
+        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
+        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
         command: ['sh','-lc']
         args:
           - |

@@ -212,13 +212,6 @@ postgres:
     service:
       ports:
         postgresql: 5432
-    resources:
-      limits:
-        cpu: 500m
-        memory: 1Gi
-      requests:
-        cpu: 250m
-        memory: 512Mi
 
 rabbitmq:
   enabled: true
@@ -240,4 +233,4 @@ caddy:
   image:
     repository: "caddy"
     tag: "2.7.6-alpine"
-    pullPolicy: "Always"
+    pullPolicy: "IfNotPresent"
