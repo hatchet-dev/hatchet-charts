@@ -131,16 +131,21 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
-      - name: Set up kind
-        uses: helm/kind-action@v1.12.0
-        with:
-          config: |
-            kind: Cluster
-            apiVersion: kind.x-k8s.io/v1alpha4
-            nodes:
+      - name: Create kind config
+        run: |
+          cat <<EOF > kind-config.yaml
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
             - role: control-plane
             - role: worker
             - role: worker
+          EOF
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.12.0
+        with:
+          config: kind-config.yaml
 
       - name: Add Helm repositories
         run: |
