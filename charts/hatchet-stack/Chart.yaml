@@ -2,7 +2,7 @@ apiVersion: v2
 name: hatchet-stack
 description: A Helm chart for deploying Hatchet on Kubernetes together with a PostgreSQL database and RabbitMQ.
 type: application
-version: 0.9.2
+version: 0.10.0
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
@@ -10,25 +10,25 @@ dependencies:
   - name: "hatchet-api"
     condition: api.enabled
     repository: "file://../hatchet-api"
-    version: "^0.9.2"
+    version: "0.10.0"
     alias: api
   - name: "hatchet-api"
     condition: engine.enabled
     repository: "file://../hatchet-api"
-    version: "^0.9.2"
+    version: "0.10.0"
     alias: engine
   - name: "hatchet-frontend"
     condition: frontend.enabled
     repository: "file://../hatchet-frontend"
-    version: "^0.9.2"
+    version: "0.10.0"
     alias: frontend
   - name: "postgresql"
     condition: postgres.enabled
     repository: "https://charts.bitnami.com/bitnami"
-    version: "^14.2.1"
+    version: "16.7.27"
     alias: postgres
   - name: "rabbitmq"
     condition: rabbitmq.enabled
     repository: "https://charts.bitnami.com/bitnami"
-    version: "^12.13.1"
+    version: "16.0.14"
     alias: rabbitmq

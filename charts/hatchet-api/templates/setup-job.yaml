@@ -34,7 +34,7 @@ metadata:
 {{- include "hatchet.labels" . | nindent 4 }}
 spec:
   backoffLimit: 1
-  activeDeadlineSeconds: 300
+  activeDeadlineSeconds: 900
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -48,14 +48,29 @@ spec:
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
       initContainers:
-      # Run migrations as an init container
       {{- if .Values.migrationJob.enabled }}
+      - name: check-db-connection
+        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
+        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
+        command: ['/bin/sh','-lc']
+        args:
+          - |
+            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
+              echo "waiting for database"; sleep 2
+            done
+            psql "$DATABASE_URL" -c "SELECT 1"
+        env:
+      {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+      {{- end }}
+        envFrom:
+{{ toYaml .Values.envFrom | indent 10 }}
+
+      # Run migrations as an initContainer
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.migrationJob.image.tag }}"
-        imagePullPolicy: Always
-        command: ["/bin/sh", "-c"]
-        args:
-        - ./atlas-apply.sh
+        imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
         securityContext:
           capabilities:
             add:
@@ -65,13 +80,15 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
       {{- end }}
       {{- if .Values.seedJob.enabled }}
       - name: seed-job
         image: "{{ .Values.seedJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.seedJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
         securityContext:
@@ -85,8 +102,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
       {{- end }}
       {{- if and (not .Values.migrationJob.enabled) (not .Values.seedJob.enabled) }}
       []
@@ -95,7 +114,7 @@ spec:
 {{- if .Values.quickstartJob.enabled }}
       - name: setup-job
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}", "--overwrite=false"]
         securityContext:
@@ -107,8 +126,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
 {{- else }}
       # Write an empty container to avoid a syntax error
       - name: empty
@@ -125,7 +146,7 @@ metadata:
 {{- include "hatchet.labels" . | nindent 4 }}
 spec:
   backoffLimit: 1
-  activeDeadlineSeconds: 300
+  activeDeadlineSeconds: 900
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -140,19 +161,27 @@ spec:
       {{- end }}
       initContainers:
       - name: check-db-connection
-        image: postgres:latest
-        command: ['sh', '-c', 'until pg_isready -d $DATABASE_URL; do echo waiting for database; sleep 2; done;']
+        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
+        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
+        command: ['sh','-lc']
+        args:
+          - |
+            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
+              echo "waiting for database"; sleep 2
+            done
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        envFrom: 
+        {{- if .Values.envFrom }}
+        envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
       containers:
       - name: setup-worker-token
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.setupJob.image.tag }}"
-        imagePullPolicy: Always
+        imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "create-worker-token", "--namespace", "{{ .Release.Namespace }}"]
         securityContext:

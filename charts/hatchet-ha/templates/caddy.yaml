@@ -43,7 +43,8 @@ spec:
     spec:
       containers:
       - name: caddy
-        image: caddy:2.7.6-alpine
+        image: "{{ .Values.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         ports:
         - containerPort: 8080
         volumeMounts:

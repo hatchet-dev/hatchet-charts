@@ -10,7 +10,7 @@ sharedConfig:
   serverAuthSetEmailVerified: "t" # automatically sets email_verified to true for all users
   serverAuthBasicAuthEnabled: "t" # allows login via basic auth (email/password)
   grpcBroadcastAddress: "localhost:7070" # the endpoint for the gRPC server, exposed via the `grpc` service
-  grpcInsecure: "true" # allows gRPC to be served over http
+  grpcInsecure: "t" # allows gRPC to be served over http
   defaultAdminEmail: "admin@example.com" # in exposed/production environments, change this to a valid email
   defaultAdminPassword: "Admin123!!" # in exposed/production environments, change this to a secure password
 
@@ -22,11 +22,13 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   migrationJob:
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
+      tag: "v0.71.0"
+      pullPolicy: "IfNotPresent"
   serviceAccount:
     create: true
     name: hatchet-api
@@ -58,8 +60,8 @@ grpc:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
   service:
@@ -101,8 +103,8 @@ controllers:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
   service:
@@ -144,8 +146,8 @@ scheduler:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
   service:
@@ -184,8 +186,8 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.71.0"
+    pullPolicy: "IfNotPresent"
   service:
     externalPort: 8080
     internalPort: 80
@@ -194,6 +196,11 @@ frontend:
 
 postgres:
   enabled: true
+  image:
+    repository: "bitnamilegacy/postgresql"
+  global:
+    security:
+      allowInsecureImages: true
   auth:
     username: "hatchet"
     password: "hatchet"
@@ -207,6 +214,11 @@ postgres:
 
 rabbitmq:
   enabled: true
+  image:
+    repository: "bitnamilegacy/rabbitmq"
+  global:
+    security:
+      allowInsecureImages: true
   auth:
     username: "hatchet"
     password: "hatchet"
@@ -216,3 +228,7 @@ rabbitmq:
 
 caddy:
   enabled: false
+  image:
+    repository: "caddy"
+    tag: "2.7.6-alpine"
+    pullPolicy: "IfNotPresent"
