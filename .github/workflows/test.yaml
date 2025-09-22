@@ -99,7 +99,7 @@ jobs:
             echo "✓ Template rendering successful for $chart_name"
           done
 
-  loadtest:
+  loadtest-stack:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -118,10 +118,39 @@ jobs:
 
       - name: Run load test
         run: |
-          ./hack/run-kind-loadtest.sh
+          ./hack/kind-stack-loadtest.sh
         env:
           VERSION: v0.71.0
           
+  loadtest-ha:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.12.0
+        with:
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+            - role: control-plane
+            - role: worker
+            - role: worker
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Run load test
+        run: |
+          ./hack/kind-ha-loadtest.sh
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
