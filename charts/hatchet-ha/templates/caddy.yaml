@@ -44,7 +44,7 @@ spec:
       containers:
       - name: caddy
         image: "{{ .Values.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         ports:
         - containerPort: 8080
         volumeMounts:

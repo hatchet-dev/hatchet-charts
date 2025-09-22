@@ -57,7 +57,7 @@ spec:
   restartPolicy: Never
   containers:
     - image: ghcr.io/hatchet-dev/hatchet/hatchet-loadtest:${VERSION}
-      imagePullPolicy: Always
+      imagePullPolicy: IfNotPresent
       name: loadtest
       command: ["/hatchet/hatchet-load-test"]
       args:

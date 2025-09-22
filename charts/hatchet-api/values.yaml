@@ -89,8 +89,7 @@ service:
   extraPorts: []
 
 ingress:
-  # Set to true and configure hosts to enable ingress
-  enabled: false
+  enabled: true
   # For k8s 1.18+
   # ingressClassName:
   labels: {}

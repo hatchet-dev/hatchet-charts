@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-09-22
+
+- Use image tag `v0.71.0` for all Hatchet services
+- Change default image `pullPolicy` to be `IfNotPresent` from `Always`
+
 ## [0.9.2] - 2025-04-03
 
 ## [0.9.1] - 2025-04-03
