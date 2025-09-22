@@ -32,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - 2024-11-22
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.9.2...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.10.0...HEAD
+[0.10.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.10.0
 [0.9.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.9.2
 [0.9.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.9.1
 [0.9.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.9.0
