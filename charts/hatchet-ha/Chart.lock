@@ -1,24 +1,24 @@
 dependencies:
 - name: hatchet-api
   repository: file://../hatchet-api
-  version: 0.10.0
+  version: 0.10.1
 - name: hatchet-api
   repository: file://../hatchet-api
-  version: 0.10.0
+  version: 0.10.1
 - name: hatchet-api
   repository: file://../hatchet-api
-  version: 0.10.0
+  version: 0.10.1
 - name: hatchet-api
   repository: file://../hatchet-api
-  version: 0.10.0
+  version: 0.10.1
 - name: hatchet-frontend
   repository: file://../hatchet-frontend
-  version: 0.10.0
+  version: 0.10.1
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 16.7.27
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 16.0.14
-digest: sha256:99a4054d7ba739ea7767226e199bd0c65fc9fb4adc25bcb513aa41bf9a6e6455
-generated: "2025-09-22T19:40:47.196308+02:00"
+digest: sha256:dc3ef83720f06b947c4e27c10c4c124d48f6ba88c8009eaacd43dfc84b5c3a91
+generated: "2025-10-09T14:46:10.622173+02:00"

@@ -1,3 +1,8 @@
+# sharedConfig (typically passed from parent chart)
+sharedConfig:
+  image:
+    tag: ""
+
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
   tag: "v0.71.0"

@@ -3,6 +3,11 @@ sharedConfig:
   # you can disable shared config by setting this to false
   enabled: true
 
+  # if set, this image tag will be used for all Hatchet components (api, grpc, controllers, scheduler, frontend)
+  # individual component image.tag values will be used as fallbacks if this is not set
+  image:
+    tag: ""
+
   # these are the most commonly configured values
   serverUrl: "http://localhost:8080"
   serverAuthCookieDomain: "localhost:8080" # the domain for the auth cookie
