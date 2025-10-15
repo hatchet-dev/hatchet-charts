@@ -174,10 +174,11 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
-        {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
-        {{- end }}
+{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{- if .Values.envFrom }}
+{{ toYaml .Values.envFrom | nindent 10 }}
+{{- end }}
       containers:
       - name: setup-worker-token
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.setupJob.image.tag) }}"
