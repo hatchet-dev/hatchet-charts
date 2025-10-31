@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2025-11-01
+
+- Introduce `sharedConfig.image.tag` variable to set the same tag for all Hatchet images
+- Fix Caddy's image tag value
+- Set `postgres.primary.resourcesPreset` to `"medium"`
+
 ## [0.10.0] - 2025-09-22
 
 - Use image tag `v0.71.0` for all Hatchet services
@@ -48,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.10.0...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.10.1...HEAD
+[0.10.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.10.1
 [0.10.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.10.0
 [0.9.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.9.2
 [0.9.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.9.1
