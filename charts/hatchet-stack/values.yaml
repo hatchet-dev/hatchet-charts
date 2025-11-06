@@ -3,6 +3,11 @@ sharedConfig:
   # you can disable shared config by setting this to false
   enabled: true
 
+  # if set, this image tag will be used for all Hatchet components (api, engine, frontend)
+  # individual component image.tag values will be used as fallbacks if this is not set
+  image:
+    tag: "v0.71.0"
+
   # these are the most commonly configured values
   serverUrl: "http://localhost:8080"
   serverAuthCookieDomain: "localhost:8080" # the domain for the auth cookie
@@ -108,6 +113,7 @@ frontend:
     enabled: false
 
 postgres:
+  # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml for more options
   enabled: true
   image:
     repository: "bitnamilegacy/postgresql"
@@ -121,11 +127,13 @@ postgres:
   tls:
     enabled: false
   primary:
+    resourcesPreset: "medium"
     service:
       ports:
         postgresql: 5432
 
 rabbitmq:
+  # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml for more options
   enabled: true
   image:
     repository: "bitnamilegacy/rabbitmq"
