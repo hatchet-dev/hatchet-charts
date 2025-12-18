@@ -1,0 +1,44 @@
+{{- if .Values.httproute.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hatchet-frontend-api
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.httproute.gatewayName }}
+      namespace: {{ .Values.httproute.gatewayNamespace }}
+  hostnames:
+    - {{ .Values.httproute.frontendHost }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/
+      backendRefs:
+        - name: {{ .Values.httproute.apiService }}
+          port: {{ .Values.httproute.apiPort }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ .Values.httproute.frontendService }}
+          port: {{ .Values.httproute.frontendPort }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hatchet-engine
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.httproute.gatewayName }}
+      namespace: {{ .Values.httproute.gatewayNamespace }}
+  hostnames:
+    - {{ .Values.httproute.engineHost }}
+  rules:
+    - backendRefs:
+        - name: {{ .Values.httproute.engineService }}
+          port: {{ .Values.httproute.enginePort }}
+{{- end }}
