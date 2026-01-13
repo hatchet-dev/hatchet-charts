@@ -152,11 +152,13 @@ spec:
         - --events
         - "5"
         - --level
-        - debug
+        - warn
         - --slots
         - "1000"
         - --dagSteps
         - "2"
+        - --averageDurationThreshold
+        - "500ms"
         - --rlKeys
         - "10"
         - --rlLimit
