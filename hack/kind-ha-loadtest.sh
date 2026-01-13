@@ -170,6 +170,8 @@ spec:
           value: ${RANDOM_ID}
         - name: HATCHET_CLIENT_TLS_STRATEGY
           value: "none"
+        - name: HATCHET_CLIENT_DISABLE_GZIP_COMPRESSION
+          value: "true"
       resources:
         limits:
           memory: 512Mi
