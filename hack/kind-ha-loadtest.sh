@@ -102,7 +102,7 @@ helm install hatchet-ha-test charts/hatchet-ha \
     --set postgres.primary.resources.limits.memory=1Gi \
     --set postgres.primary.resources.limits.cpu=500m \
     --set postgres.primary.extendedConfiguration="timezone='UTC'"
-    
+
 # Wait for engine deployment
 echo "Waiting for engine deployment to be ready..."
 if ! kubectl rollout status deployment/hatchet-grpc -n loadtest --timeout=300s; then
@@ -120,6 +120,9 @@ if ! kubectl wait --for=condition=available deployment/hatchet-grpc -n loadtest 
 fi
 
 echo "Engine deployment is ready!"
+
+# Sleep for 30 seconds
+echo "Sleeping for 30 seconds to allow services to stabilize..."
 
 # Run load test
 echo "Running load test..."

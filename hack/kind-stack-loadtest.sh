@@ -121,6 +121,9 @@ fi
 
 echo "Engine deployment is ready!"
 
+# Sleep for 30 seconds
+echo "Sleeping for 30 seconds to allow services to stabilize..."
+
 # Run load test
 echo "Running load test..."
 
