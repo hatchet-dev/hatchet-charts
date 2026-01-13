@@ -152,7 +152,7 @@ spec:
         - --events
         - "5"
         - --level
-        - warn
+        - debug
         - --slots
         - "1000"
         - --dagSteps
@@ -160,7 +160,7 @@ spec:
         - --rlKeys
         - "10"
         - --rlLimit
-        - "10"
+        - "20"
         - --rlDurationUnit
         - "second"
       env:
