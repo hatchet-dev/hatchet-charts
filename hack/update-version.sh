@@ -74,7 +74,7 @@ function update_chart_versions() {
 
 function show_usage() {
   echo "Usage:"
-  echo "  $0 image-tags <version>    # Update image tags (e.g., v0.71.0)"
+  echo "  $0 image-tags <version>    # Update image tags (e.g., v0.74.14)"
   echo "  $0 chart-versions <version> # Update chart versions (e.g., 0.10.0)"
   echo ""
   echo "Examples:"

@@ -1,11 +1,11 @@
 # sharedConfig (typically passed from parent chart)
 sharedConfig:
   image:
-    tag: "v0.71.0"
+    tag: "v0.74.14"
 
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-  tag: "v0.71.0"
+  tag: "v0.74.14"
   pullPolicy: "IfNotPresent"
 
 postgresImage:
@@ -17,21 +17,21 @@ setupJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.71.0"
+    tag: "v0.74.14"
     pullPolicy: "IfNotPresent"
 
 migrationJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-    tag: "v0.71.0"
+    tag: "v0.74.14"
     pullPolicy: "IfNotPresent"
 
 seedJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.71.0"
+    tag: "v0.74.14"
     pullPolicy: "IfNotPresent"
 
 quickstartJob:

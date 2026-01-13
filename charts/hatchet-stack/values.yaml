@@ -6,7 +6,7 @@ sharedConfig:
   # if set, this image tag will be used for all Hatchet components (api, engine, frontend)
   # individual component image.tag values will be used as fallbacks if this is not set
   image:
-    tag: "v0.71.0"
+    tag: "v0.74.14"
 
   # these are the most commonly configured values
   serverUrl: "http://localhost:8080"
@@ -27,12 +27,12 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.71.0"
+    tag: "v0.74.14"
     pullPolicy: "IfNotPresent"
   migrationJob:
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-      tag: "v0.71.0"
+      tag: "v0.74.14"
       pullPolicy: "IfNotPresent"
   serviceAccount:
     create: true
@@ -64,7 +64,7 @@ engine:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.71.0"
+    tag: "v0.74.14"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -104,7 +104,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.71.0"
+    tag: "v0.74.14"
     pullPolicy: "IfNotPresent"
   service:
     externalPort: 8080
