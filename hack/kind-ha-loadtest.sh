@@ -100,7 +100,9 @@ helm install hatchet-ha-test charts/hatchet-ha \
     --namespace loadtest \
     --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
     --set postgres.primary.resources.limits.memory=1Gi \
-    --set postgres.primary.resources.limits.cpu=500m
+    --set postgres.primary.resources.limits.cpu=500m \
+    --set postgres.primary.extendedConfiguration="timezone='UTC'" \
+    --set sharedConfig.env.DATABASE_ENFORCE_UTC_TIMEZONE="false"
 
 # Wait for engine deployment
 echo "Waiting for engine deployment to be ready..."
