@@ -2,9 +2,76 @@
 
 set -euo pipefail
 
+# Function to print debugging info for failed deployments
+print_deployment_debug() {
+    local deployment=$1
+    local namespace=$2
+
+    echo "=========================================="
+    echo "DEBUGGING DEPLOYMENT FAILURE: $deployment"
+    echo "=========================================="
+
+    # Check if namespace exists
+    if ! kubectl get namespace "$namespace" &> /dev/null; then
+        echo "ERROR: Namespace '$namespace' does not exist!"
+        return
+    fi
+
+    # Get deployment status
+    echo ""
+    echo "--- Deployment Status ---"
+    kubectl get deployment "$deployment" -n "$namespace" -o wide || echo "Failed to get deployment"
+
+    echo ""
+    echo "--- Deployment Description ---"
+    kubectl describe deployment "$deployment" -n "$namespace" || echo "Failed to describe deployment"
+
+    # Get pods
+    echo ""
+    echo "--- Pods ---"
+    kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-stack-test" -o wide || echo "Failed to get pods"
+
+    # Describe pods
+    echo ""
+    echo "--- Pod Details ---"
+    for pod in $(kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-stack-test" -o name 2>/dev/null); do
+        echo ""
+        echo "Describing $pod:"
+        kubectl describe "$pod" -n "$namespace"
+    done
+
+    # Get pod logs
+    echo ""
+    echo "--- Pod Logs ---"
+    for pod in $(kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-stack-test" -o name 2>/dev/null); do
+        echo ""
+        echo "Logs for $pod:"
+        kubectl logs "$pod" -n "$namespace" --all-containers=true --tail=100 || echo "Failed to get logs for $pod"
+    done
+
+    # Get events
+    echo ""
+    echo "--- Recent Events ---"
+    kubectl get events -n "$namespace" --sort-by='.lastTimestamp' || echo "Failed to get events"
+
+    # Check resource availability
+    echo ""
+    echo "--- Node Resources ---"
+    kubectl top nodes || echo "Metrics not available"
+
+    echo ""
+    echo "=========================================="
+}
+
 # Function to clean up
 cleanup() {
-    kubectl delete namespace loadtest || echo "Failed to delete loadtest namespace"
+    # Check if namespace exists before trying to delete
+    if kubectl get namespace loadtest-stack &> /dev/null; then
+        echo "Cleaning up loadtest-stack namespace..."
+        kubectl delete namespace loadtest-stack || echo "Failed to delete loadtest-stack namespace"
+    else
+        echo "Namespace loadtest-stack does not exist, skipping cleanup"
+    fi
 }
 
 # Register the cleanup function to be called on the EXIT signal
@@ -36,8 +103,22 @@ helm install hatchet-stack-test charts/hatchet-stack \
     --set postgres.primary.resources.limits.cpu=500m
 
 # Wait for engine deployment
-kubectl rollout status deployment/hatchet-stack-test-engine -n loadtest-stack --timeout=300s
-kubectl wait --for=condition=available deployment/hatchet-stack-test-engine -n loadtest-stack --timeout=300s
+echo "Waiting for engine deployment to be ready..."
+if ! kubectl rollout status deployment/hatchet-stack-test-engine -n loadtest-stack --timeout=300s; then
+    echo ""
+    echo "ERROR: Engine deployment rollout failed!"
+    print_deployment_debug "hatchet-stack-test-engine" "loadtest-stack"
+    exit 1
+fi
+
+if ! kubectl wait --for=condition=available deployment/hatchet-stack-test-engine -n loadtest-stack --timeout=300s; then
+    echo ""
+    echo "ERROR: Engine deployment did not become available!"
+    print_deployment_debug "hatchet-stack-test-engine" "loadtest-stack"
+    exit 1
+fi
+
+echo "Engine deployment is ready!"
 
 # Run load test
 echo "Running load test..."
