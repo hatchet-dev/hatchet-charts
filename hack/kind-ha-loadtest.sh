@@ -158,7 +158,7 @@ spec:
         - --dagSteps
         - "2"
         - --averageDurationThreshold
-        - "500ms"
+        - "1s"
         - --rlKeys
         - "10"
         - --rlLimit
