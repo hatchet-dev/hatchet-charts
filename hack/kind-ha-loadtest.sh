@@ -157,12 +157,12 @@ spec:
         - "1000"
         - --dagSteps
         - "2"
-        - --rlKeys
-        - "10"
-        - --rlLimit
-        - "20"
-        - --rlDurationUnit
-        - "second"
+        # - --rlKeys
+        # - "10"
+        # - --rlLimit
+        # - "20"
+        # - --rlDurationUnit
+        # - "second"
       env:
         - name: HATCHET_CLIENT_TOKEN
           value: $(kubectl get secret hatchet-client-config -n loadtest -o jsonpath='{.data.HATCHET_CLIENT_TOKEN}' | base64 -d)
