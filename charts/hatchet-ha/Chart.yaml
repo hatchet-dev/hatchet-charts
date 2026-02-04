@@ -2,7 +2,7 @@ apiVersion: v2
 name: hatchet-ha
 description: A Helm chart for deploying Hatchet in a high-availability configuration
 type: application
-version: 0.10.2
+version: 0.10.3
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
@@ -10,27 +10,27 @@ dependencies:
   - name: "hatchet-api"
     condition: api.enabled
     repository: "file://../hatchet-api"
-    version: "0.10.2"
+    version: "0.10.3"
     alias: api
   - name: "hatchet-api"
     condition: grpc.enabled
     repository: "file://../hatchet-api"
-    version: "0.10.2"
+    version: "0.10.3"
     alias: grpc
   - name: "hatchet-api"
     condition: controllers.enabled
     repository: "file://../hatchet-api"
-    version: "0.10.2"
+    version: "0.10.3"
     alias: controllers
   - name: "hatchet-api"
     condition: scheduler.enabled
     repository: "file://../hatchet-api"
-    version: "0.10.2"
+    version: "0.10.3"
     alias: scheduler
   - name: "hatchet-frontend"
     condition: frontend.enabled
     repository: "file://../hatchet-frontend"
-    version: "0.10.2"
+    version: "0.10.3"
     alias: frontend
   - name: "postgresql"
     condition: postgres.enabled
