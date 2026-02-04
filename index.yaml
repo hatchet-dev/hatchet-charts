@@ -2,6 +2,18 @@ apiVersion: v1
 entries:
   hatchet-api:
   - apiVersion: v2
+    created: "2026-02-04T16:27:34.22233882Z"
+    description: A Helm chart for deploying Hatchet API components on Kubernetes.
+    digest: f6c3a66a4a8b356d26de9de51063a56af6438425cebbb75fc9c04a9f030654a1
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-api
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-api-0.10.3/hatchet-api-0.10.3.tgz
+    version: 0.10.3
+  - apiVersion: v2
     created: "2026-01-09T18:40:38.879198653Z"
     description: A Helm chart for deploying Hatchet API components on Kubernetes.
     digest: 4381938fcaf5813dffa5cdc7c95b1d83cf6e4493e4aef131826b24af155952d6
@@ -231,6 +243,18 @@ entries:
     version: 0.1.0
   hatchet-frontend:
   - apiVersion: v2
+    created: "2026-02-04T16:27:34.408970824Z"
+    description: A Helm chart for deploying a frontend static file server on Kubernetes.
+    digest: bded7cc32a28471289bb152a71fd2c21bb50370d5361d6a45b03753584e408c7
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-frontend
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.10.3/hatchet-frontend-0.10.3.tgz
+    version: 0.10.3
+  - apiVersion: v2
     created: "2026-01-09T18:40:39.041385843Z"
     description: A Helm chart for deploying a frontend static file server on Kubernetes.
     digest: 6e2e15082ad89f05d35d4bdfe3e7e48bb73e9c7648cde9bd958ba4dcaedc69b0
@@ -447,6 +471,54 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.1.0/hatchet-frontend-0.1.0.tgz
     version: 0.1.0
   hatchet-ha:
+  - apiVersion: v2
+    created: "2026-02-04T16:27:34.619195926Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.10.3
+    - alias: grpc
+      condition: grpc.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.10.3
+    - alias: controllers
+      condition: controllers.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.10.3
+    - alias: scheduler
+      condition: scheduler.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.10.3
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: 0.10.3
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.7.27
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.14
+    description: A Helm chart for deploying Hatchet in a high-availability configuration
+    digest: 7f95641cf3034d0bccacc5d998644a8b81e1141dc9aada3ae3ba439d7de8402c
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-ha
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-ha-0.10.3/hatchet-ha-0.10.3.tgz
+    version: 0.10.3
   - apiVersion: v2
     created: "2026-01-09T18:40:39.196670667Z"
     dependencies:
@@ -989,6 +1061,45 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-lite-0.1.0/hatchet-lite-0.1.0.tgz
     version: 0.1.0
   hatchet-stack:
+  - apiVersion: v2
+    created: "2026-02-04T16:27:34.802596563Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.10.3
+    - alias: engine
+      condition: engine.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.10.3
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: 0.10.3
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.7.27
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.14
+    description: A Helm chart for deploying Hatchet on Kubernetes together with a
+      PostgreSQL database and RabbitMQ.
+    digest: 596102c656bb9b81ad9aa40b25b2d99662c48bd36d0ec44f4c85accfd6f4d6a0
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-stack
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.10.3/hatchet-stack-0.10.3.tgz
+    version: 0.10.3
   - apiVersion: v2
     created: "2026-01-09T18:40:39.331690345Z"
     dependencies:
@@ -1730,4 +1841,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.1.0/hatchet-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2026-01-09T18:40:39.331986779Z"
+generated: "2026-02-04T16:27:34.802851626Z"
