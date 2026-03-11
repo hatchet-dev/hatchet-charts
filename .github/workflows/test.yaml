@@ -120,7 +120,7 @@ jobs:
         run: |
           ./hack/kind-stack-loadtest.sh
         env:
-          VERSION: v0.74.14
+          VERSION: v0.79.12
 
   loadtest-ha:
     runs-on: hatchet-arm64-2
@@ -156,7 +156,7 @@ jobs:
         run: |
           ./hack/kind-ha-loadtest.sh
         env:
-          VERSION: v0.74.14
+          VERSION: v0.79.12
 
   security-scan:
     runs-on: ubuntu-latest
