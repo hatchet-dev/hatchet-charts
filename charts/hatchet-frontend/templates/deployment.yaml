@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "hatchet.fullname" . }}
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+{{- if .Values.deployment.annotations }}
+  annotations:
+{{ toYaml .Values.deployment.annotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+{{- include "hatchet.selectorLabels" . | nindent 6 }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  template:
+    metadata:
+      annotations:
+{{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+{{- if .Values.deployment.annotations }}
+{{ toYaml .Values.deployment.annotations | indent 8 }}
+{{- end }}
+      labels:
+{{- include "hatchet.selectorLabels" . | nindent 8 }}
+{{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+{{- end }}
+{{- if .Values.deployment.labels }}
+{{ toYaml .Values.deployment.labels | indent 8 }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.image.tag) }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: {{ .Values.commandline.command }}
+        {{- if .Values.commandline.args }}
+        args:
+{{ toYaml .Values.commandline.args | indent 10 }}
+        {{- else }}
+        args: []
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+          readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+          runAsNonRoot: {{ .Values.containerSecurityContext.runAsNonRoot }}
+          capabilities:
+            drop:
+            {{- toYaml .Values.containerSecurityContext.capabilities.drop | nindent 14 }}
+          seccompProfile:
+            type: {{ .Values.containerSecurityContext.seccompProfileType }}
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.service.internalPort }}
+          name: "http"
+          protocol: TCP
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        volumeMounts:
+{{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 8 }}
+{{- end }}
+{{- range .Values.extraConfigMapMounts }}
+        - name: {{ .name }}
+          mountPath: {{ .mountPath }}
+          subPath: {{ .subPath }}
+{{- end }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.service.internalPort }}
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.service.internalPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+{{- with .Values.extraContainers }}
+{{ toYaml . | indent 6 }}
+{{- end }}
+    {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+    {{- end }}
+    {{- if .Values.affinity }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+    {{- end }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      securityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfileType }}
+      volumes:
+{{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 8 }}
+{{- end }}
+---
+{{- if .Values.podDisruptionBudget }}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "hatchet.fullname" . }}
+spec:
+  {{ toYaml .Values.podDisruptionBudget }}
+  selector:
+    matchLabels:
+  {{- include "hatchet.selectorLabels" . | nindent 6 }}
+{{- end }}

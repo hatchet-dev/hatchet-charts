@@ -1,0 +1,155 @@
+# sharedConfig is inherited by all backend services: api, grpc, controllers, scheduler
+sharedConfig:
+  # you can disable shared config by setting this to false
+  enabled: true
+
+  # if set, this image tag will be used for all Hatchet components (api, engine, frontend)
+  # individual component image.tag values will be used as fallbacks if this is not set
+  image:
+    tag: "v0.79.12"
+
+  # these are the most commonly configured values
+  serverUrl: "http://localhost:8080"
+  serverAuthCookieDomain: "localhost:8080" # the domain for the auth cookie
+  serverAuthCookieInsecure: "t" # allows cookies to be set over http
+  serverAuthSetEmailVerified: "t" # automatically sets email_verified to true for all users
+  serverAuthBasicAuthEnabled: "t" # allows login via basic auth (email/password)
+  grpcBroadcastAddress: "localhost:7070" # the endpoint for the gRPC server, exposed via the `grpc` service
+  grpcInsecure: "t" # allows gRPC to be served over http
+  defaultAdminEmail: "admin@example.com" # in exposed/production environments, change this to a valid email
+  defaultAdminPassword: "Admin123!!" # in exposed/production environments, change this to a secure password
+
+  # you can set additional environment variables here, which will override any defaults
+  env: {}
+
+api:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
+    tag: "v0.79.12"
+    pullPolicy: "IfNotPresent"
+  migrationJob:
+    image:
+      repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
+      tag: "v0.79.12"
+      pullPolicy: "IfNotPresent"
+  serviceAccount:
+    create: true
+    name: hatchet-api
+  envFrom:
+    - secretRef:
+        name: hatchet-shared-config
+  ingress:
+    enabled: false
+  health:
+    enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /api/live
+          port: 8080
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /api/ready
+          port: 8080
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
+engine:
+  enabled: true
+  nameOverride: engine
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
+    tag: "v0.79.12"
+    pullPolicy: "IfNotPresent"
+  setupJob:
+    enabled: false
+  service:
+    externalPort: 7070
+    internalPort: 7070
+  commandline:
+    command: ["/hatchet/hatchet-engine"]
+  deployment:
+    annotations:
+      app.kubernetes.io/name: hatchet-engine
+  serviceAccount:
+    create: true
+    name: hatchet-engine
+  envFrom:
+    - secretRef:
+        name: hatchet-shared-config
+  ingress:
+    enabled: false
+  health:
+    enabled: true
+    spec:
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 60
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 8733
+        periodSeconds: 5
+        initialDelaySeconds: 20
+
+frontend:
+  enabled: true
+  image:
+    repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
+    tag: "v0.79.12"
+    pullPolicy: "IfNotPresent"
+  service:
+    externalPort: 8080
+    internalPort: 80
+  ingress:
+    enabled: false
+
+postgres:
+  # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml for more options
+  enabled: true
+  image:
+    repository: "bitnamilegacy/postgresql"
+  global:
+    security:
+      allowInsecureImages: true
+  auth:
+    username: "hatchet"
+    password: "hatchet"
+    database: "hatchet"
+  tls:
+    enabled: false
+  primary:
+    resourcesPreset: "medium"
+    service:
+      ports:
+        postgresql: 5432
+
+rabbitmq:
+  # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml for more options
+  enabled: true
+  image:
+    repository: "bitnamilegacy/rabbitmq"
+  global:
+    security:
+      allowInsecureImages: true
+  auth:
+    username: "hatchet"
+    password: "hatchet"
+  service:
+    ports:
+      amqp: 5672
+
+caddy:
+  enabled: false
+  image:
+    repository: "caddy"
+    tag: "2.7.6-alpine"
+    pullPolicy: "IfNotPresent"
