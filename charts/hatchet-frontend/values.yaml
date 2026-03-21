@@ -103,7 +103,8 @@ revisionHistoryLimit: 3
 # podDisruptionBudget:
 #   maxUnavailable: 1
 
-# default security context
+# Legacy security context (deprecated — use podSecurityContext instead)
+# Kept for backward compatibility with existing values overrides
 securityContext:
   enabled: false
   allowPrivilegeEscalation: false
