@@ -107,12 +107,18 @@ spec:
     {{- end }}
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
+{{- if .Values.securityContext.enabled }}
+      securityContext:
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+{{- else }}
       securityContext:
         runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
         runAsUser: {{ .Values.podSecurityContext.runAsUser }}
         fsGroup: {{ .Values.podSecurityContext.fsGroup }}
         seccompProfile:
           type: {{ .Values.podSecurityContext.seccompProfileType }}
+{{- end }}
       volumes:
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 8 }}
