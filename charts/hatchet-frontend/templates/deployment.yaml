@@ -49,15 +49,10 @@ spec:
         {{- else }}
         args: []
         {{- end }}
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
-          readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
-          runAsNonRoot: {{ .Values.containerSecurityContext.runAsNonRoot }}
-          capabilities:
-            drop:
-            {{- toYaml .Values.containerSecurityContext.capabilities.drop | nindent 14 }}
-          seccompProfile:
-            type: {{ .Values.containerSecurityContext.seccompProfileType }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
@@ -111,13 +106,9 @@ spec:
       securityContext:
         runAsUser: {{ .Values.securityContext.runAsUser }}
         fsGroup: {{ .Values.securityContext.fsGroup }}
-{{- else }}
+{{- else if .Values.podSecurityContext }}
       securityContext:
-        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
-        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
-        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
-        seccompProfile:
-          type: {{ .Values.podSecurityContext.seccompProfileType }}
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
 {{- end }}
       volumes:
 {{- if .Values.extraVolumes }}
