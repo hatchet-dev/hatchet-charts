@@ -105,12 +105,17 @@ spec:
 {{- include "hatchet.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
       {{- if or $runInstallMigrations .Values.seedJob.enabled }}
+      securityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfileType }}
       initContainers:
       {{- if $runInstallMigrations }}
       - name: check-db-connection
@@ -128,6 +133,11 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
       {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
 
@@ -136,9 +146,14 @@ spec:
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
         imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
         securityContext:
+          allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+          readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+          runAsNonRoot: {{ .Values.containerSecurityContext.runAsNonRoot }}
           capabilities:
-            add:
-              - SYS_PTRACE
+            drop:
+            {{- toYaml .Values.containerSecurityContext.capabilities.drop | nindent 14 }}
+          seccompProfile:
+            type: {{ .Values.containerSecurityContext.seccompProfileType }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
@@ -156,9 +171,14 @@ spec:
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
         securityContext:
+          allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+          readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+          runAsNonRoot: {{ .Values.containerSecurityContext.runAsNonRoot }}
           capabilities:
-            add:
-              - SYS_PTRACE
+            drop:
+            {{- toYaml .Values.containerSecurityContext.capabilities.drop | nindent 14 }}
+          seccompProfile:
+            type: {{ .Values.containerSecurityContext.seccompProfileType }}
         env:
           - name: SERVER_DEFAULT_ENGINE_VERSION
             value: "V1"
@@ -180,9 +200,14 @@ spec:
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}", "--overwrite=false"]
         securityContext:
+          allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+          readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+          runAsNonRoot: {{ .Values.containerSecurityContext.runAsNonRoot }}
           capabilities:
-            add:
-              - SYS_PTRACE
+            drop:
+            {{- toYaml .Values.containerSecurityContext.capabilities.drop | nindent 14 }}
+          seccompProfile:
+            type: {{ .Values.containerSecurityContext.seccompProfileType }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
@@ -216,11 +241,16 @@ spec:
 {{- include "hatchet.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
+      securityContext:
+        runAsNonRoot: {{ .Values.podSecurityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfileType }}
       initContainers:
       - name: check-db-connection
         image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
@@ -236,6 +266,11 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         envFrom:
 {{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
 {{- if .Values.envFrom }}
@@ -248,9 +283,14 @@ spec:
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "create-worker-token", "--namespace", "{{ .Release.Namespace }}"]
         securityContext:
+          allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+          readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+          runAsNonRoot: {{ .Values.containerSecurityContext.runAsNonRoot }}
           capabilities:
-            add:
-              - SYS_PTRACE
+            drop:
+            {{- toYaml .Values.containerSecurityContext.capabilities.drop | nindent 14 }}
+          seccompProfile:
+            type: {{ .Values.containerSecurityContext.seccompProfileType }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"

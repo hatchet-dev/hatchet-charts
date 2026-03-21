@@ -110,6 +110,25 @@ securityContext:
   runAsUser: 1000
   fsGroup: 2000
 
+# Pod-level security context (applied to all pods)
+# To run as non-root, set runAsNonRoot: true and runAsUser: 1000
+# (requires Hatchet images with the hatchet user created, see hatchet-dev/hatchet#3356)
+podSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  fsGroup: 0
+  seccompProfileType: RuntimeDefault
+
+# Container-level security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfileType: RuntimeDefault
+
 extraConfigMapMounts: []
 
 initContainers: []
