@@ -178,9 +178,12 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
+shareProcessNamespace: false
+
 # Container-level security context (applied to each container)
 containerSecurityContext:
   allowPrivilegeEscalation: false
+  # readOnlyRootFilesystem defaults to false because upstream hatchet images write to the filesystem
   readOnlyRootFilesystem: false
   capabilities:
     drop:
