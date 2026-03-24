@@ -110,6 +110,7 @@ spec:
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
       {{- if or $runInstallMigrations .Values.seedJob.enabled }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -131,11 +132,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
       {{- end }}
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
 
@@ -228,6 +228,7 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -247,11 +248,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
 {{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
 {{- if .Values.envFrom }}
