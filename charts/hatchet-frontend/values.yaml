@@ -112,24 +112,27 @@ securityContext:
   fsGroup: 2000
 
 # Pod-level security context (applied to the pod spec)
-# Default only sets seccompProfile. To run as non-root, add:
-#   runAsNonRoot: true
-#   runAsUser: 1000   # must match Dockerfile USER (see hatchet-dev/hatchet#3356)
-#   runAsGroup: 1000
-#   fsGroup: 1000
-podSecurityContext:
-  seccompProfile:
-    type: RuntimeDefault
+# Empty by default for backward compatibility. For PSA restricted compliance, set:
+#   podSecurityContext:
+#     runAsNonRoot: true
+#     runAsUser: 1000
+#     runAsGroup: 1000
+#     fsGroup: 1000
+#     seccompProfile:
+#       type: RuntimeDefault
+podSecurityContext: {}
 
 # Container-level security context (applied to each container)
-containerSecurityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false
-  capabilities:
-    drop:
-      - ALL
-  seccompProfile:
-    type: RuntimeDefault
+# Empty by default for backward compatibility. For PSA restricted compliance, set:
+#   containerSecurityContext:
+#     allowPrivilegeEscalation: false
+#     readOnlyRootFilesystem: false
+#     capabilities:
+#       drop:
+#         - ALL
+#     seccompProfile:
+#       type: RuntimeDefault
+containerSecurityContext: {}
 
 extraConfigMapMounts: []
 
