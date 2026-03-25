@@ -42,10 +42,14 @@ spec:
 {{- include "hatchet.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
       {{- if .Values.migrationJob.enabled }}
@@ -64,6 +68,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
       {{- end }}
+        {{- with .Values.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
 {{ toYaml .Values.envFrom | indent 10 }}
 
@@ -71,10 +79,10 @@ spec:
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
         imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          capabilities:
-            add:
-              - SYS_PTRACE
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
@@ -91,10 +99,10 @@ spec:
         imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          capabilities:
-            add:
-              - SYS_PTRACE
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
           - name: SERVER_DEFAULT_ENGINE_VERSION
             value: "V1"
@@ -117,10 +125,10 @@ spec:
         imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "quickstart", "--namespace", "{{ .Release.Namespace }}", "--overwrite=false"]
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          capabilities:
-            add:
-              - SYS_PTRACE
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
@@ -135,6 +143,10 @@ spec:
       - name: empty
         image: "alpine:3.14"
         command: ["sh", "-c", "echo 'No setup job configured'"]
+        {{- with .Values.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 {{- end }}
 ---
 {{- if .Values.workerTokenJob.enabled }}
@@ -154,10 +166,14 @@ spec:
 {{- include "hatchet.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
       - name: check-db-connection
@@ -174,6 +190,10 @@ spec:
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
+        {{- with .Values.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         envFrom:
 {{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
 {{- if .Values.envFrom }}
@@ -185,10 +205,10 @@ spec:
         imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
         # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "k8s", "create-worker-token", "--namespace", "{{ .Release.Namespace }}"]
+        {{- with .Values.containerSecurityContext }}
         securityContext:
-          capabilities:
-            add:
-              - SYS_PTRACE
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
