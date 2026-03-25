@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Configurable `podSecurityContext` and `containerSecurityContext` values for Kubernetes Pod Security Standards compliance.
+
 ## [0.10.4] - 2026-03-11
 
 - Updates the default Hatchet image to [`v0.79.12`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.79.12).
