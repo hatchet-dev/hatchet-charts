@@ -143,6 +143,10 @@ spec:
       - name: empty
         image: "alpine:3.14"
         command: ["sh", "-c", "echo 'No setup job configured'"]
+        {{- with .Values.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
 {{- end }}
 ---
 {{- if .Values.workerTokenJob.enabled }}
