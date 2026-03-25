@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Configurable `podSecurityContext` and `containerSecurityContext` values for Kubernetes Pod Security Standards compliance.
+
 ## [0.11.0] - 2026-05-19
 
 - Chart version bump only; no template changes in this release.
