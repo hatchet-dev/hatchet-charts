@@ -178,7 +178,8 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
-shareProcessNamespace: false
+# Kept as true for backward compatibility. Set to false for PSA restricted compliance.
+shareProcessNamespace: true
 
 # Container-level security context (applied to each container)
 containerSecurityContext:
