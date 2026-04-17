@@ -1,11 +1,11 @@
 # sharedConfig (typically passed from parent chart)
 sharedConfig:
   image:
-    tag: "v0.79.12"
+    tag: "v0.83.23"
 
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-  tag: "v0.79.12"
+  tag: "v0.83.23"
   pullPolicy: "IfNotPresent"
 
 commandline:
@@ -40,6 +40,23 @@ ingress:
   #     - example.mydomain.com
   # servicePort: service-port
   pathType: ImplementationSpecific
+
+health:
+  enabled: true
+  spec:
+    livenessProbe:
+      httpGet:
+        # Override if env.BASE_PATH set
+        path: /
+        # port: defaults to service.internalPort
+      periodSeconds: 5
+      initialDelaySeconds: 60
+    readinessProbe:
+      httpGet:
+        path: / # override if env.BASE_PATH set
+        # port: defaults to service.internalPort
+      periodSeconds: 5
+      initialDelaySeconds: 20
 
 persistence:
   size: 5Gi

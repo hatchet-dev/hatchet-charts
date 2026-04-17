@@ -69,18 +69,12 @@ spec:
           mountPath: {{ .mountPath }}
           subPath: {{ .subPath }}
 {{- end }}
-        livenessProbe:
-          httpGet:
-            path: /
-            port: {{ .Values.service.internalPort }}
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /
-            port: {{ .Values.service.internalPort }}
-          initialDelaySeconds: 5
-          periodSeconds: 10
+{{- if .Values.health.enabled }}
+{{- $probes := deepCopy .Values.health.spec }}
+{{- $_ := set $probes.livenessProbe.httpGet "port" (coalesce $probes.livenessProbe.httpGet.port .Values.service.internalPort | int) }}
+{{- $_ := set $probes.readinessProbe.httpGet "port" (coalesce $probes.readinessProbe.httpGet.port .Values.service.internalPort | int) }}
+{{ toYaml $probes | indent 8 }}
+{{- end }}
 {{- with .Values.extraContainers }}
 {{ toYaml . | indent 6 }}
 {{- end }}
