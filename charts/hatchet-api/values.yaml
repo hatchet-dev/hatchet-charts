@@ -22,6 +22,8 @@ setupJob:
 
 migrationJob:
   enabled: true
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
     tag: "v0.84.0"
@@ -54,7 +56,7 @@ cloudSQLSidecar:
       cpu: 500m
       memory: 512Mi
 
-retainFailedHooks: false
+retainFailedHooks: true
 
 env: {}
 

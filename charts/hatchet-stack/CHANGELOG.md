@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Run API database migrations as a Helm pre-upgrade hook so failed migrations block new application pods from rolling out.
+
 ## [0.10.5] - 2026-05-01
 
 - Updates the default Hatchet image to [`v0.84.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.84.0).

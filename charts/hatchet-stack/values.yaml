@@ -29,7 +29,11 @@ api:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
     tag: "v0.84.0"
     pullPolicy: "IfNotPresent"
+  retainFailedHooks: true
   migrationJob:
+    enabled: true
+    backoffLimit: 1
+    activeDeadlineSeconds: 900
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
       tag: "v0.84.0"
@@ -67,6 +71,8 @@ engine:
     tag: "v0.84.0"
     pullPolicy: "IfNotPresent"
   setupJob:
+    enabled: false
+  migrationJob:
     enabled: false
   service:
     externalPort: 7070
