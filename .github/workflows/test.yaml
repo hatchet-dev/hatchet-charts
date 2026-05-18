@@ -99,6 +99,22 @@ jobs:
             echo "✓ Template rendering successful for $chart_name"
           done
 
+      - name: Assert pre-upgrade migration hook renders
+        run: |
+          helm template test-release charts/hatchet-api --is-upgrade \
+            | grep -q '"helm.sh/hook": pre-upgrade' \
+              || { echo "missing pre-upgrade hook in hatchet-api"; exit 1; }
+
+          helm template test-release charts/hatchet-ha --is-upgrade \
+            | grep -c '"helm.sh/hook": pre-upgrade' \
+            | grep -qx 1 \
+              || { echo "expected exactly one pre-upgrade hook in hatchet-ha"; exit 1; }
+
+          helm template test-release charts/hatchet-stack --is-upgrade \
+            | grep -c '"helm.sh/hook": pre-upgrade' \
+            | grep -qx 1 \
+              || { echo "expected exactly one pre-upgrade hook in hatchet-stack"; exit 1; }
+
   loadtest-stack:
     runs-on: ubuntu-latest
     steps:
