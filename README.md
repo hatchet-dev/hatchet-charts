@@ -10,3 +10,12 @@ For detailed changes to individual charts, see:
 - **[Hatchet API](charts/hatchet-api/CHANGELOG.md)** - API service chart
 - **[Hatchet Frontend](charts/hatchet-frontend/CHANGELOG.md)** - Frontend service chart
 - **[Hatchet HA](charts/hatchet-ha/CHANGELOG.md)** - High availability deployment chart
+
+## Local validation
+
+Unit tests use the [helm-unittest](https://github.com/helm-unittest/helm-unittest) plugin, pinned to the same version CI runs:
+
+```bash
+helm plugin install https://github.com/helm-unittest/helm-unittest --version 1.1.0
+helm unittest charts/hatchet-api
+```
