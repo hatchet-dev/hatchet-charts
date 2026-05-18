@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add configurable `migrationJob.activeDeadlineSeconds` and `migrationJob.backoffLimit` values.
 - Retain failed migration hook Jobs by default for debugging.
 - Fix setup Job template rendering invalid YAML on upgrade when both `migrationJob.enabled=true` (the install-time path is skipped on upgrade) and `seedJob.enabled=false`: omit `initContainers:` instead of emitting a bare `[]` at the wrong indentation.
+- Honor `migrationJob.activeDeadlineSeconds` and `migrationJob.backoffLimit` on the install-time setup Job as well; previously those values only applied to the pre-upgrade hook Job and the install-time Job used hardcoded values (15-minute ceiling).
 
 ## [0.10.5] - 2026-05-01
 

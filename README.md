@@ -11,6 +11,36 @@ For detailed changes to individual charts, see:
 - **[Hatchet Frontend](charts/hatchet-frontend/CHANGELOG.md)** - Frontend service chart
 - **[Hatchet HA](charts/hatchet-ha/CHANGELOG.md)** - High availability deployment chart
 
+## Long-running migrations
+
+The `hatchet-api` chart runs schema migrations in two places, both controlled by the same value:
+
+- On `helm install` — as an init container inside the setup Job.
+- On `helm upgrade` — as a dedicated `pre-upgrade` hook Job. If the hook fails, the upgrade fails before any new application pods roll out.
+
+Both Jobs default to `migrationJob.activeDeadlineSeconds: 900` (15 minutes). If you expect a migration to take longer (e.g. a large table rewrite on an established database), raise the value **and** raise the Helm client `--timeout` so it covers migration time plus the rollout that follows. A safe margin is `--timeout` ≈ `activeDeadlineSeconds / 60 + 5` minutes.
+
+Standalone `hatchet-api` chart:
+
+```bash
+helm upgrade hatchet-api charts/hatchet-api \
+  --set migrationJob.activeDeadlineSeconds=1800 \
+  --wait --timeout=35m
+```
+
+Umbrella `hatchet-stack` / `hatchet-ha` charts (the value is nested under `api.`):
+
+```bash
+helm upgrade hatchet charts/hatchet-stack \
+  --set api.migrationJob.activeDeadlineSeconds=1800 \
+  --wait --timeout=35m
+```
+
+Related knobs:
+
+- `migrationJob.backoffLimit` (default `1`) — retries before the migration Job is marked failed.
+- `retainFailedHooks` (default `true`) — keeps the failed pre-upgrade hook Job around so you can `kubectl logs job/<release>-migration` to debug.
+
 ## Local validation
 
 Unit tests use the [helm-unittest](https://github.com/helm-unittest/helm-unittest) plugin, pinned to the same version CI runs:
