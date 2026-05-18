@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run database migrations as a Helm pre-upgrade hook so failed migrations block new application pods from rolling out.
 - Add configurable `migrationJob.activeDeadlineSeconds` and `migrationJob.backoffLimit` values.
 - Retain failed migration hook Jobs by default for debugging.
+- Fix setup Job template rendering invalid YAML on upgrade when both `migrationJob.enabled=true` (the install-time path is skipped on upgrade) and `seedJob.enabled=false`: omit `initContainers:` instead of emitting a bare `[]` at the wrong indentation.
 
 ## [0.10.5] - 2026-05-01
 

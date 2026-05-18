@@ -110,6 +110,7 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
+      {{- if or $runInstallMigrations .Values.seedJob.enabled }}
       initContainers:
       {{- if $runInstallMigrations }}
       - name: check-db-connection
@@ -170,8 +171,6 @@ spec:
 {{ toYaml .Values.envFrom | indent 10 }}
         {{- end }}
       {{- end }}
-      {{- if and (not $runInstallMigrations) (not .Values.seedJob.enabled) }}
-      []
       {{- end }}
       containers:
 {{- if .Values.quickstartJob.enabled }}
