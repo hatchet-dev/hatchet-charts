@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-19
+
+- Run database migrations as a Helm pre-upgrade hook so failed migrations block new application pods from rolling out.
+- Add configurable `migrationJob.activeDeadlineSeconds` and `migrationJob.backoffLimit` values.
+- Retain failed migration hook Jobs by default for debugging.
+- Fix setup Job template rendering invalid YAML on upgrade when both `migrationJob.enabled=true` (the install-time path is skipped on upgrade) and `seedJob.enabled=false`: omit `initContainers:` instead of emitting a bare `[]` at the wrong indentation.
+- Honor `migrationJob.activeDeadlineSeconds` and `migrationJob.backoffLimit` on the install-time setup Job as well; previously those values only applied to the pre-upgrade hook Job and the install-time Job used hardcoded values (15-minute ceiling).
+
 ## [0.10.5] - 2026-05-01
 
 - Updates the default Hatchet image to [`v0.84.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.84.0).
@@ -69,7 +77,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.10.4...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.11.0...HEAD
+[0.11.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.11.0
+[0.10.5]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.10.5
 [0.10.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.10.4
 [0.10.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.10.3
 [0.10.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.10.2

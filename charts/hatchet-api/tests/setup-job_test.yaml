@@ -1,0 +1,129 @@
+suite: setup-job migration hook
+templates:
+  - setup-job.yaml
+release:
+  name: test-release
+tests:
+  - it: does not render the pre-upgrade migration hook on install
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+          filterAware: true
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+          matchMany: true
+          skipEmptyTemplates: true
+
+  - it: install setup Job runs migrations as an init container
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+      seedJob.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: migration-job
+          any: true
+        documentSelector:
+          path: kind
+          value: Job
+
+  - it: renders the pre-upgrade migration hook on upgrade with default annotations
+    release:
+      upgrade: true
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - isAPIVersion:
+          of: batch/v1
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-5"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: spec.backoffLimit
+          value: 1
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 900
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
+  - it: includes hook-failed in the delete-policy when retainFailedHooks is false
+    release:
+      upgrade: true
+    set:
+      retainFailedHooks: false
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded,hook-failed
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
+  - it: propagates custom backoffLimit and activeDeadlineSeconds to the hook Job
+    release:
+      upgrade: true
+    set:
+      migrationJob.backoffLimit: 3
+      migrationJob.activeDeadlineSeconds: 3600
+    asserts:
+      - equal:
+          path: spec.backoffLimit
+          value: 3
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: spec.activeDeadlineSeconds
+          value: 3600
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
+  - it: does not render the pre-upgrade migration hook when migrationJob.enabled is false
+    release:
+      upgrade: true
+    set:
+      migrationJob.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+          filterAware: true
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+          matchMany: true
+          skipEmptyTemplates: true

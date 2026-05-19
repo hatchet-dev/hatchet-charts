@@ -22,6 +22,10 @@ setupJob:
 
 migrationJob:
   enabled: true
+  # Number of retries before the migration Job is marked failed.
+  backoffLimit: 1
+  # Hard timeout (seconds) for the migration Job; raise for long-running schema changes.
+  activeDeadlineSeconds: 900
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
     tag: "v0.84.0"
@@ -54,7 +58,8 @@ cloudSQLSidecar:
       cpu: 500m
       memory: 512Mi
 
-retainFailedHooks: false
+# Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
+retainFailedHooks: true
 
 env: {}
 

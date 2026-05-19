@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-19
+
+- Run API database migrations as a Helm pre-upgrade hook so failed migrations block new application pods from rolling out.
+
 ## [0.10.5] - 2026-05-01
 
 - Updates the default Hatchet image to [`v0.84.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.84.0).
@@ -70,7 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.10.4...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.11.0...HEAD
+[0.11.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.11.0
+[0.10.5]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.10.5
 [0.10.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.10.4
 [0.10.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.10.3
 [0.10.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.10.2

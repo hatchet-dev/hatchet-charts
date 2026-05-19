@@ -1,3 +1,66 @@
+{{- $runInstallMigrations := and .Values.migrationJob.enabled .Release.IsInstall -}}
+{{- if and .Values.migrationJob.enabled .Release.IsUpgrade }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "hatchet.fullname" . }}-migration
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    {{- if .Values.retainFailedHooks }}
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- else }}
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+    {{- end }}
+spec:
+  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
+  template:
+    metadata:
+      name: {{ template "hatchet.fullname" . }}-migration
+      labels:
+{{- include "hatchet.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      initContainers:
+      - name: check-db-connection
+        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
+        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
+        command: ['/bin/sh','-lc']
+        args:
+          - |
+            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
+              echo "waiting for database"; sleep 2
+            done
+            psql "$DATABASE_URL" -c "SELECT 1"
+        env:
+      {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+      {{- end }}
+        envFrom:
+{{ toYaml .Values.envFrom | indent 10 }}
+      containers:
+      - name: migration-job
+        image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
+        imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
+        env:
+        {{- range $key, $value := .Values.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+        {{- end }}
+        {{- if .Values.envFrom }}
+        envFrom:
+{{ toYaml .Values.envFrom | indent 10 }}
+        {{- end }}
+---
+{{- end }}
 {{- if .Values.setupJob.enabled }}
 # create a role and rolebinding to write to the configmap
 apiVersion: rbac.authorization.k8s.io/v1
@@ -33,8 +96,8 @@ metadata:
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
 spec:
-  backoffLimit: 1
-  activeDeadlineSeconds: 900
+  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -47,8 +110,9 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
+      {{- if or $runInstallMigrations .Values.seedJob.enabled }}
       initContainers:
-      {{- if .Values.migrationJob.enabled }}
+      {{- if $runInstallMigrations }}
       - name: check-db-connection
         image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
         imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
@@ -107,8 +171,6 @@ spec:
 {{ toYaml .Values.envFrom | indent 10 }}
         {{- end }}
       {{- end }}
-      {{- if and (not .Values.migrationJob.enabled) (not .Values.seedJob.enabled) }}
-      []
       {{- end }}
       containers:
 {{- if .Values.quickstartJob.enabled }}
