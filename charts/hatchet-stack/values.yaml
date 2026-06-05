@@ -162,3 +162,16 @@ caddy:
     repository: "caddy"
     tag: "2.7.6-alpine"
     pullPolicy: "IfNotPresent"
+  # Caddy site address (the top line of the generated Caddyfile block). The
+  # default http://localhost:8080 matches the documented `kubectl port-forward`
+  # workflow, where Caddy only needs to serve requests with Host: localhost. Set
+  # to ":8080" to serve any Host instead, e.g. when fronting Caddy with an
+  # ingress, service mesh, or VPN overlay (Tailscale) where the request Host is
+  # not localhost.
+  address: "http://localhost:8080"
+  service:
+    # Service type for the Caddy reverse proxy. Defaults to LoadBalancer
+    # (unchanged behaviour). Set to ClusterIP to front Caddy with your own
+    # ingress, service mesh, or VPN overlay (e.g. Tailscale) instead of
+    # provisioning a cloud load balancer.
+    type: LoadBalancer
