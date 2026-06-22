@@ -249,6 +249,7 @@ rabbitmq:
 
 caddy:
   enabled: false
+  listenAddress: ":8080"  # use ":8080" to accept any Host, or "http://localhost:8080" for localhost only
   image:
     repository: "caddy"
     tag: "2.7.6-alpine"
