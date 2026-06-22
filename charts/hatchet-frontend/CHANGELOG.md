@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-06-22
+
+- Move `PodDisruptionBudget` to its own template (`pdb.yaml`) and bump apiVersion from `policy/v1beta1` to `policy/v1`. The v1beta1 API was removed in Kubernetes 1.25.
+
 ## [0.11.0] - 2026-05-19
 
 - Chart version bump only; no template changes in this release.
