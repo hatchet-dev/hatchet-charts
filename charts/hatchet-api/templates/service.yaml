@@ -25,7 +25,8 @@ spec:
   clusterIP: {{ .Values.service.clusterIP }}
   {{- end }}
   ports:
-    - port: {{ .Values.service.externalPort }}
+    - name: http
+      port: {{ .Values.service.externalPort }}
       targetPort: {{ .Values.service.internalPort }}
       protocol: TCP
 {{ if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
@@ -33,6 +34,9 @@ spec:
 {{ end }}
 {{- if .Values.service.portName }}
       name: {{ .Values.service.portName }}
+{{- end }}
+{{- if .Values.service.extraPorts }}
+{{ toYaml .Values.service.extraPorts | indent 4 }}
 {{- end }}
 {{- if .Values.service.externalIPs }}
   externalIPs:

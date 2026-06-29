@@ -1,0 +1,317 @@
+name: test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  charts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.21.0
+
+      - name: Install helm-unittest plugin
+        run: |
+          helm plugin install https://github.com/helm-unittest/helm-unittest --version 1.1.0
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.12.0
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Lint all charts
+        run: |
+          for chart in charts/*/; do
+            echo "Linting $chart"
+            helm lint "$chart"
+          done
+
+      - name: Run helm unit tests
+        run: |
+          helm unittest charts/hatchet-api
+
+      - name: Install and test hatchet-api chart
+        run: |
+          helm install hatchet-api-test charts/hatchet-api \
+            --set-json 'deploymentEnvFrom=[]' \
+            --set setupJob.enabled=false \
+            --set migrationJob.enabled=false \
+            --set seedJob.enabled=false \
+            --set quickstartJob.enabled=false \
+            --set workerTokenJob.enabled=false \
+            --set ingress.enabled=false \
+            --timeout=1m
+
+          kubectl get pods -l app.kubernetes.io/name=hatchet-api
+          helm test hatchet-api-test || true
+          helm uninstall hatchet-api-test
+
+      - name: Install and test hatchet-frontend chart
+        run: |
+          helm install hatchet-frontend-test charts/hatchet-frontend \
+            --set ingress.enabled=false \
+            --timeout=1m
+
+          kubectl get pods -l app.kubernetes.io/name=hatchet-frontend
+          helm test hatchet-frontend-test || true
+          helm uninstall hatchet-frontend-test
+
+      - name: Install and test hatchet-stack chart
+        run: |
+          helm dependency build charts/hatchet-stack
+
+          helm install hatchet-stack-test charts/hatchet-stack \
+            --set postgres.enabled=false \
+            --set rabbitmq.enabled=false \
+            --timeout=1m
+
+          kubectl get pods
+          helm test hatchet-stack-test || true
+
+          helm uninstall hatchet-stack-test || true
+      - name: Template test all charts
+        run: |
+          helm dependency build charts/hatchet-stack
+          helm dependency build charts/hatchet-api
+          helm dependency build charts/hatchet-frontend
+          helm dependency build charts/hatchet-ha
+
+          for chart in charts/*/; do
+            chart_name=$(basename "$chart")
+            echo "Testing template rendering for $chart_name"
+
+            case "$chart_name" in
+              "hatchet-stack")
+                helm template test-release "$chart" > /dev/null
+                ;;
+              "hatchet-api"|"hatchet-frontend")
+                helm template test-release "$chart" > /dev/null
+                ;;
+              "hatchet-ha")
+                helm template test-release "$chart" > /dev/null
+                ;;
+            esac
+
+            echo "✓ Template rendering successful for $chart_name"
+          done
+
+  migration-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.21.0
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.14.0
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Install postgres
+        run: |
+          helm install pg bitnami/postgresql \
+            --set image.repository=bitnamilegacy/postgresql \
+            --set global.security.allowInsecureImages=true \
+            --set auth.username=hatchet \
+            --set auth.password=hatchet \
+            --set auth.database=hatchet \
+            --set tls.enabled=false \
+            --set primary.extendedConfiguration="timezone = 'UTC'" \
+            --wait --timeout=5m
+
+      - name: Pre-create hatchet-config Secret with server-level config
+        run: |
+          # The chart's default deploymentEnvFrom points at "hatchet-config".
+          # When installed via hatchet-stack this Secret is rendered for you;
+          # standalone we supply it here. The setup Job (quickstartJob,
+          # enabled by default) will UPDATE this Secret in-place via
+          # `hatchet-admin k8s quickstart` to add the random
+          # SERVER_AUTH_COOKIE_SECRETS and Tink SERVER_ENCRYPTION_* keysets.
+          # SERVER_MSGQUEUE_KIND=postgres swaps the default rabbitmq message
+          # queue for the postgres-backed one, so we don't have to install
+          # RabbitMQ just to bring the API up.
+          kubectl create secret generic hatchet-config \
+            --from-literal=DATABASE_URL='postgres://hatchet:hatchet@pg-postgresql:5432/hatchet?sslmode=disable' \
+            --from-literal=SERVER_URL='http://localhost:8080' \
+            --from-literal=SERVER_AUTH_COOKIE_DOMAIN='localhost' \
+            --from-literal=SERVER_AUTH_COOKIE_INSECURE='t' \
+            --from-literal=SERVER_AUTH_SET_EMAIL_VERIFIED='t' \
+            --from-literal=SERVER_AUTH_BASIC_AUTH_ENABLED='t' \
+            --from-literal=SERVER_GRPC_BROADCAST_ADDRESS='localhost:7070' \
+            --from-literal=SERVER_GRPC_INSECURE='t' \
+            --from-literal=SERVER_MSGQUEUE_KIND='postgres' \
+            --from-literal=ADMIN_EMAIL='admin@example.com' \
+            --from-literal=ADMIN_PASSWORD='Admin123!!'
+
+      - name: Install hatchet-api with migrations enabled
+        run: |
+          # envFrom is wired into the Jobs (the migration init container needs
+          # DATABASE_URL); deploymentEnvFrom is wired into the Deployment.
+          # Both target hatchet-config so they pick up the keys the setup Job
+          # writes back.
+          helm install hatchet-api-test charts/hatchet-api \
+            --set-json 'envFrom=[{"secretRef":{"name":"hatchet-config"}}]' \
+            --set seedJob.enabled=false \
+            --set workerTokenJob.enabled=false \
+            --set ingress.enabled=false \
+            --wait --timeout=10m
+
+      - name: Assert install-time migration completed
+        run: |
+          kubectl wait --for=condition=complete \
+            job -l app.kubernetes.io/instance=hatchet-api-test \
+            --timeout=5m
+
+      - name: Assert API Deployment is Ready
+        run: |
+          kubectl rollout status deploy/hatchet-api-test --timeout=5m
+
+      - name: Helm upgrade (triggers pre-upgrade migration hook)
+        # `helm upgrade --wait` synchronously runs the pre-upgrade migration
+        # hook Job. If the hook fails, the upgrade fails. On success the hook
+        # Job is deleted per its hook-delete-policy (hook-succeeded), so we
+        # do NOT `kubectl wait` for it afterward — the upgrade returning 0
+        # is the assertion that the hook ran and migrations applied.
+        run: |
+          helm upgrade hatchet-api-test charts/hatchet-api \
+            --set-json 'envFrom=[{"secretRef":{"name":"hatchet-config"}}]' \
+            --set seedJob.enabled=false \
+            --set workerTokenJob.enabled=false \
+            --set ingress.enabled=false \
+            --wait --timeout=10m
+
+      - name: Assert API Deployment is Ready after upgrade
+        run: |
+          kubectl rollout status deploy/hatchet-api-test --timeout=5m
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get pods,jobs -A
+          kubectl describe deploy/hatchet-api-test || true
+          kubectl describe job/hatchet-api-test-migration || true
+          kubectl logs deploy/hatchet-api-test --tail=200 || true
+          kubectl logs deploy/hatchet-api-test --previous --tail=200 || true
+          kubectl logs -l job-name=hatchet-api-test-migration --all-containers=true --tail=200 || true
+
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.latest.outputs.version }}
+    steps:
+      - name: Resolve latest Hatchet release tag
+        id: latest
+        run: |
+          VERSION=$(curl -sSfL \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/hatchet-dev/hatchet/releases/latest \
+            | jq -r '.tag_name')
+          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+            echo "Failed to resolve latest Hatchet release tag" >&2
+            exit 1
+          fi
+          echo "Latest Hatchet release tag: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  loadtest-stack:
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.14.0
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Run load test
+        run: |
+          ./hack/kind-stack-loadtest.sh
+        env:
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+
+  loadtest-ha:
+    needs: resolve-version
+    runs-on: hatchet-arm64-2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Create kind config
+        run: |
+          cat <<EOF > kind-config.yaml
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+            - role: worker
+            - role: worker
+          EOF
+
+      - name: Set up kind
+        uses: helm/kind-action@v1.14.0
+        with:
+          config: kind-config.yaml
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Run load test
+        run: |
+          ./hack/kind-ha-loadtest.sh
+        env:
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run Checkov action
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: charts/
+          framework: kubernetes
+          output_format: sarif
+          output_file_path: reports/results.sarif
+          skip_check: CKV_K8S_40,CKV_K8S_43
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: reports/results.sarif

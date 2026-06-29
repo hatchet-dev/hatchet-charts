@@ -1,28 +1,42 @@
+# sharedConfig (typically passed from parent chart)
+sharedConfig:
+  image:
+    tag: "v0.84.0"
+
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-  tag: "v0.58.0"
-  pullPolicy: "Always"
+  tag: "v0.84.0"
+  pullPolicy: "IfNotPresent"
+
+postgresImage:
+  repository: "postgres"
+  tag: "latest"
+  pullPolicy: "IfNotPresent"
 
 setupJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.84.0"
+    pullPolicy: "IfNotPresent"
 
 migrationJob:
   enabled: true
+  # Number of retries before the migration Job is marked failed.
+  backoffLimit: 1
+  # Hard timeout (seconds) for the migration Job; raise for long-running schema changes.
+  activeDeadlineSeconds: 900
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.84.0"
+    pullPolicy: "IfNotPresent"
 
 seedJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.58.0"
-    pullPolicy: "Always"
+    tag: "v0.84.0"
+    pullPolicy: "IfNotPresent"
 
 quickstartJob:
   enabled: true
@@ -44,7 +58,8 @@ cloudSQLSidecar:
       cpu: 500m
       memory: 512Mi
 
-retainFailedHooks: false
+# Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
+retainFailedHooks: true
 
 env: {}
 
@@ -60,6 +75,7 @@ deployment:
   annotations:
     app.kubernetes.io/name: hatchet-api
   labels: {}
+  extraPorts: []
 
 persistence:
   size: 5Gi
@@ -80,6 +96,7 @@ service:
   # loadBalancerSourceRanges: []
   selector: {}
   # portName: service-port
+  extraPorts: []
 
 ingress:
   enabled: true
@@ -89,11 +106,12 @@ ingress:
   annotations: {}
   # kubernetes.io/ingress.class: nginx
   # kubernetes.io/tls-acme: "true"
-  hosts:
+  hosts: []
   # - host: example.mydomain.com
   #   paths:
   #     - path: /
-  tls:
+  #       pathType: Prefix
+  tls: []
   # - secretName: example.mydomain.com
   #   hosts:
   #     - example.mydomain.com

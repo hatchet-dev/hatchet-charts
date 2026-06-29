@@ -1,4 +1,4 @@
-name: Release Charts
+name: release
 
 on:
   push:
@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -22,7 +24,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Add Helm repo
         run: helm repo add bitnami https://charts.bitnami.com/bitnami

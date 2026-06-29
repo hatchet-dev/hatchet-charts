@@ -40,7 +40,7 @@ spec:
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.image.repository }}:{{ required "Please set a value for .Values.image.tag" .Values.image.tag }}"
+        image: "{{ .Values.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.image.tag) }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: {{ .Values.commandline.command }}
         {{- if .Values.commandline.args }}
