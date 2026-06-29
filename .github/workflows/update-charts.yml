@@ -26,37 +26,10 @@ jobs:
         uses: azure/setup-helm@v5
 
       - name: Determine new chart release version and branch
-        run: |
-          RAW_TAG="${{ inputs.version }}"
-          if ! echo "$RAW_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\-\.]+)?$'; then
-            echo "Invalid release tag format: $RAW_TAG" >&2
-            exit 1
-          fi
-          RELEASE_TAG="$RAW_TAG"
-
-          # The chart version is independent of the Hatchet app version and is
-          # bumped by one minor for every release (e.g. 0.11.0 -> 0.12.0).
-          CURRENT_VERSION=$(grep -m1 '^version:' charts/hatchet-stack/Chart.yaml | awk '{print $2}' | tr -d '"')
-          if ! echo "$CURRENT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Could not parse current chart version: '$CURRENT_VERSION'" >&2
-            exit 1
-          fi
-          IFS='.' read -r MAJOR MINOR _ <<< "$CURRENT_VERSION"
-          CHART_VERSION="${MAJOR}.$((MINOR + 1)).0"
-          RELEASE_BRANCH="release-${CHART_VERSION}"
-
-          echo "Hatchet image tag:     $RELEASE_TAG"
-          echo "Current chart version: $CURRENT_VERSION"
-          echo "New chart version:     $CHART_VERSION"
-          echo "Release branch:        $RELEASE_BRANCH"
-
-          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
-          echo "CHART_VERSION=$CHART_VERSION" >> "$GITHUB_ENV"
-          echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> "$GITHUB_ENV"
+        run: bash hack/prepare-release.sh "${{ inputs.version }}"
 
       - name: Create release branch
-        run: |
-          git checkout -b "$RELEASE_BRANCH"
+        run: git checkout -b "$RELEASE_BRANCH"
 
       - name: Update chart values with new release tag
         run: |
@@ -67,25 +40,4 @@ jobs:
       - name: Commit, push, and open pull request
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-          if git diff --quiet; then
-            echo "No changes to commit; skipping pull request"
-            exit 0
-          fi
-
-          git add .
-          git commit -m "Release ${CHART_VERSION}: update charts to ${RELEASE_TAG}"
-          git push -u origin "$RELEASE_BRANCH"
-
-          gh pr create \
-            --base main \
-            --head "$RELEASE_BRANCH" \
-            --title "Release ${CHART_VERSION}: update charts to ${RELEASE_TAG}" \
-            --body "Automated chart release.
-
-          - Bumps chart versions to \`${CHART_VERSION}\`
-          - Updates Hatchet image tags to \`${RELEASE_TAG}\`" \
-            --reviewer hatchet-dev/builders
+        run: bash hack/open-release-pr.sh
