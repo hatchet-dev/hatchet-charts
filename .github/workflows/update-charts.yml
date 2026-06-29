@@ -15,6 +15,9 @@ concurrency:
 jobs:
   update-charts:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -22,7 +25,7 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v5
 
-      - name: Update chart values with new release tag
+      - name: Determine new chart release version and branch
         run: |
           RAW_TAG="${{ inputs.version }}"
           if ! echo "$RAW_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\-\.]+)?$'; then
@@ -30,23 +33,59 @@ jobs:
             exit 1
           fi
           RELEASE_TAG="$RAW_TAG"
-          VERSION_NUMBER="${RELEASE_TAG#v}"
+
+          # The chart version is independent of the Hatchet app version and is
+          # bumped by one minor for every release (e.g. 0.11.0 -> 0.12.0).
+          CURRENT_VERSION=$(grep -m1 '^version:' charts/hatchet-stack/Chart.yaml | awk '{print $2}' | tr -d '"')
+          if ! echo "$CURRENT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Could not parse current chart version: '$CURRENT_VERSION'" >&2
+            exit 1
+          fi
+          IFS='.' read -r MAJOR MINOR _ <<< "$CURRENT_VERSION"
+          CHART_VERSION="${MAJOR}.$((MINOR + 1)).0"
+          RELEASE_BRANCH="release-${CHART_VERSION}"
+
+          echo "Hatchet image tag:     $RELEASE_TAG"
+          echo "Current chart version: $CURRENT_VERSION"
+          echo "New chart version:     $CHART_VERSION"
+          echo "Release branch:        $RELEASE_BRANCH"
+
           echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
+          echo "CHART_VERSION=$CHART_VERSION" >> "$GITHUB_ENV"
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> "$GITHUB_ENV"
 
-          echo "Updating charts to use release tag: $RELEASE_TAG (version: $VERSION_NUMBER)"
+      - name: Create release branch
+        run: |
+          git checkout -b "$RELEASE_BRANCH"
 
+      - name: Update chart values with new release tag
+        run: |
+          echo "Updating image tags to $RELEASE_TAG and chart versions to $CHART_VERSION"
           bash hack/update-version.sh image-tags "$RELEASE_TAG"
-          bash hack/update-version.sh chart-versions "$VERSION_NUMBER"
+          bash hack/update-version.sh chart-versions "$CHART_VERSION"
 
-      - name: Commit and push changes
+      - name: Commit, push, and open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
           if git diff --quiet; then
-            echo "No changes to commit"
-          else
-            git add .
-            git commit -m "Update charts to use $RELEASE_TAG"
-            git push
+            echo "No changes to commit; skipping pull request"
+            exit 0
           fi
+
+          git add .
+          git commit -m "Release ${CHART_VERSION}: update charts to ${RELEASE_TAG}"
+          git push -u origin "$RELEASE_BRANCH"
+
+          gh pr create \
+            --base main \
+            --head "$RELEASE_BRANCH" \
+            --title "Release ${CHART_VERSION}: update charts to ${RELEASE_TAG}" \
+            --body "Automated chart release.
+
+          - Bumps chart versions to \`${CHART_VERSION}\`
+          - Updates Hatchet image tags to \`${RELEASE_TAG}\`" \
+            --reviewer hatchet-dev/builders
