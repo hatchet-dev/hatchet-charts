@@ -1,0 +1,43 @@
+name: Update Charts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Hatchet version to build (e.g., v0.72.0)"
+        required: true
+        type: string
+
+concurrency:
+  group: update-charts
+  cancel-in-progress: false
+
+jobs:
+  update-charts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v5
+
+      - name: Determine new chart release version and branch
+        run: bash hack/prepare-release.sh "${{ inputs.version }}"
+
+      - name: Create release branch
+        run: git checkout -b "$RELEASE_BRANCH"
+
+      - name: Update chart values with new release tag
+        run: |
+          echo "Updating image tags to $RELEASE_TAG and chart versions to $CHART_VERSION"
+          bash hack/update-version.sh image-tags "$RELEASE_TAG"
+          bash hack/update-version.sh chart-versions "$CHART_VERSION"
+
+      - name: Commit, push, and open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash hack/open-release-pr.sh
