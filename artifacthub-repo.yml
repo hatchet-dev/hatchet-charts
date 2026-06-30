@@ -1,0 +1,5 @@
+# Artifact Hub repository metadata.
+# Served next to index.yaml (https://hatchet-dev.github.io/hatchet-charts/artifacthub-repo.yml),
+# this file grants the "Verified Publisher" badge by proving repository ownership.
+# Docs: https://artifacthub.io/docs/topics/repositories/
+repositoryID: 9dce667c-e3af-417e-8354-503886ae196b
