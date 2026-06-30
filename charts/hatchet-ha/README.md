@@ -10,7 +10,7 @@ the [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/tree/main/char
 ## Getting started
 
 To view the docs for setting up this chart, see
-[Kubernetes High-Availability](https://docs.hatchet.run/self-hosting/kubernetes-ha).
+[Kubernetes High-Availability](https://docs.hatchet.run/self-hosting/high-availability).
 
 ## TL;DR
 
