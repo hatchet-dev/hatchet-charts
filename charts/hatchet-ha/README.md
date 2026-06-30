@@ -1,23 +1,16 @@
 # hatchet-ha
 
 A Helm chart that deploys [Hatchet](https://hatchet.run) in a **high-availability**
-configuration on Kubernetes, along with PostgreSQL and RabbitMQ.
+configuration on Kubernetes, along with PostgreSQL and RabbitMQ. It runs the backend
+as separately scalable components so each can be sized and scaled independently.
 
-Unlike [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack), the backend is split into separately
-scalable components — `api`, `grpc`, `controllers` and `scheduler` — each backed by
-the [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) chart.
+For a simpler single-node deployment, use
+[`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack) instead.
 
 ## Getting started
 
 To view the docs for setting up this chart, see
 [Kubernetes High-Availability](https://docs.hatchet.run/self-hosting/high-availability).
-
-## TL;DR
-
-```bash
-helm dependency build ./charts/hatchet-ha
-helm install hatchet ./charts/hatchet-ha
-```
 
 ## Prerequisites
 
@@ -27,14 +20,15 @@ helm install hatchet ./charts/hatchet-ha
 ## Installing the chart
 
 ```bash
-helm dependency build ./charts/hatchet-ha
-helm install my-release ./charts/hatchet-ha
+helm repo add hatchet https://hatchet-dev.github.io/hatchet-charts
+helm repo update
+helm install my-hatchet-ha hatchet/hatchet-ha
 ```
 
 ## Uninstalling the chart
 
 ```bash
-helm uninstall my-release
+helm uninstall my-hatchet-ha
 ```
 
 ## Dependencies
@@ -121,7 +115,7 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 > the bundled ones:
 >
 > ```bash
-> helm install my-release ./charts/hatchet-ha \
+> helm install my-hatchet-ha hatchet/hatchet-ha \
 >   --set postgres.enabled=false \
 >   --set rabbitmq.enabled=false \
 >   --set sharedConfig.env.DATABASE_URL='postgres://user:pass@my-db:5432/hatchet?sslmode=require' \

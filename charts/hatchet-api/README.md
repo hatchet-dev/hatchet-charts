@@ -2,8 +2,8 @@
 
 A Helm chart for deploying the [Hatchet](https://hatchet.run) API on Kubernetes.
 
-> [!IMPORTANT]
-> **This is an internal building block, not a chart you install directly.**
+> **⚠️ Important — this is an internal building block, not a chart you install directly.**
+>
 > It is a dependency of the [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
 > and [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha)
 > umbrella charts, where it is aliased as the `api`, `grpc`, `controllers`,

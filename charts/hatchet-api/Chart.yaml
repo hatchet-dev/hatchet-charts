@@ -3,6 +3,18 @@ name: hatchet-api
 description: A Helm chart for deploying Hatchet API components on Kubernetes.
 type: application
 version: 0.12.1
+home: https://hatchet.run
+sources:
+  - https://github.com/hatchet-dev/hatchet-charts
+  - https://github.com/hatchet-dev/hatchet
+keywords:
+  - hatchet
+  - workflow
+  - workflows
+  - task-queue
+  - orchestration
+  - durable-execution
+  - background-jobs
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run

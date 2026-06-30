@@ -4,20 +4,13 @@ A Helm chart that deploys [Hatchet](https://hatchet.run) on Kubernetes together 
 a PostgreSQL database and RabbitMQ. This is the main umbrella chart and the
 recommended starting point for self-hosting Hatchet.
 
-The backend runs as two components — `api` and `engine` (the engine bundles the gRPC
-server, controllers and scheduler). For a horizontally-scaled split of those engine roles, use
+For a horizontally-scaled, high-availability deployment, use
 [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha) instead.
 
 ## Getting started
 
 To view the docs for setting up this chart, see
 [Kubernetes Quickstart](https://docs.hatchet.run/self-hosting/kubernetes-quickstart).
-
-## TL;DR
-
-```bash
-helm install hatchet ./charts/hatchet-stack
-```
 
 ## Prerequisites
 
@@ -27,13 +20,15 @@ helm install hatchet ./charts/hatchet-stack
 ## Installing the chart
 
 ```bash
-helm install my-release ./charts/hatchet-stack
+helm repo add hatchet https://hatchet-dev.github.io/hatchet-charts
+helm repo update
+helm install my-hatchet-stack hatchet/hatchet-stack
 ```
 
 ## Uninstalling the chart
 
 ```bash
-helm uninstall my-release
+helm uninstall my-hatchet-stack
 ```
 
 ## Dependencies
@@ -112,7 +107,7 @@ Inherited by all backend services (`api`, `engine`).
 > deployment you own end-to-end), then disable the bundled ones:
 >
 > ```bash
-> helm install my-release ./charts/hatchet-stack \
+> helm install my-hatchet-stack hatchet/hatchet-stack \
 >   --set postgres.enabled=false \
 >   --set rabbitmq.enabled=false \
 >   --set sharedConfig.env.DATABASE_URL='postgres://user:pass@my-db:5432/hatchet?sslmode=require' \

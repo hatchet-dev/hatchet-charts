@@ -3,6 +3,16 @@ name: hatchet-frontend
 description: A Helm chart for deploying a frontend static file server on Kubernetes.
 type: application
 version: 0.12.1
+home: https://hatchet.run
+sources:
+  - https://github.com/hatchet-dev/hatchet-charts
+  - https://github.com/hatchet-dev/hatchet
+keywords:
+  - hatchet
+  - workflow
+  - dashboard
+  - frontend
+  - ui
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
