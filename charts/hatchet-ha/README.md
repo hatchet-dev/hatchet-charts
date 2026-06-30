@@ -77,7 +77,7 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `sharedConfig.enabled` | bool | `true` | Enable shared config. |
-| `sharedConfig.image.tag` | string | `"v0.84.0"` | Image tag applied to all Hatchet components (fallback to per-component `image.tag`). |
+| `sharedConfig.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Image tag applied to all Hatchet components (fallback to per-component `image.tag`). |
 | `sharedConfig.serverUrl` | string | `"http://localhost:8080"` | Public server URL. |
 | `sharedConfig.serverAuthCookieDomain` | string | `"localhost:8080"` | Domain for the auth cookie. |
 | `sharedConfig.serverAuthCookieInsecure` | string | `"t"` | Allow cookies to be set over http. |

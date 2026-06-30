@@ -41,9 +41,9 @@ supplied values against it on `install`, `upgrade`, `template` and `lint`.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `sharedConfig.image.tag` | string | `"v0.84.0"` | Image tag inherited from a parent chart. |
+| `sharedConfig.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Image tag inherited from a parent chart. |
 | `image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-frontend"` | Frontend image repository. |
-| `image.tag` | string | `"v0.84.0"` | Frontend image tag. |
+| `image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Frontend image tag. |
 | `image.pullPolicy` | string | `"IfNotPresent"` | Frontend image pull policy. |
 
 ### Container runtime

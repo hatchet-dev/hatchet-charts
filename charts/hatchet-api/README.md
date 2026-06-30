@@ -73,9 +73,9 @@ applied to the cluster.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `sharedConfig.image.tag` | string | `"v0.84.0"` | Image tag inherited from a parent chart. |
+| `sharedConfig.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Image tag inherited from a parent chart. |
 | `image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-api"` | API image repository. |
-| `image.tag` | string | `"v0.84.0"` | API image tag. |
+| `image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | API image tag. |
 | `image.pullPolicy` | string | `"IfNotPresent"` | API image pull policy. |
 | `postgresImage.repository` | string | `"postgres"` | Postgres client image repository (used by helper Jobs). |
 | `postgresImage.tag` | string | `"latest"` | Postgres client image tag. |
@@ -87,17 +87,17 @@ applied to the cluster.
 |-----|------|---------|-------------|
 | `setupJob.enabled` | bool | `true` | Enable the setup Job that bootstraps the database and configuration. |
 | `setupJob.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-admin"` | Setup Job image repository. |
-| `setupJob.image.tag` | string | `"v0.84.0"` | Setup Job image tag. |
+| `setupJob.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Setup Job image tag. |
 | `setupJob.image.pullPolicy` | string | `"IfNotPresent"` | Setup Job image pull policy. |
 | `migrationJob.enabled` | bool | `true` | Enable database migrations (init container on install, `pre-upgrade` hook on upgrade). |
 | `migrationJob.backoffLimit` | int | `1` | Number of retries before the migration Job is marked failed. |
 | `migrationJob.activeDeadlineSeconds` | int | `900` | Hard timeout (seconds) for the migration Job; raise for long-running schema changes. |
 | `migrationJob.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-migrate"` | Migration Job image repository. |
-| `migrationJob.image.tag` | string | `"v0.84.0"` | Migration Job image tag. |
+| `migrationJob.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Migration Job image tag. |
 | `migrationJob.image.pullPolicy` | string | `"IfNotPresent"` | Migration Job image pull policy. |
 | `seedJob.enabled` | bool | `true` | Enable the Job that seeds the database with default data. |
 | `seedJob.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-admin"` | Seed Job image repository. |
-| `seedJob.image.tag` | string | `"v0.84.0"` | Seed Job image tag. |
+| `seedJob.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Seed Job image tag. |
 | `seedJob.image.pullPolicy` | string | `"IfNotPresent"` | Seed Job image pull policy. |
 | `quickstartJob.enabled` | bool | `true` | Enable the Job that generates cookie/encryption secrets via `hatchet-admin quickstart`. |
 | `workerTokenJob.enabled` | bool | `true` | Enable the Job that generates a worker API token. |
