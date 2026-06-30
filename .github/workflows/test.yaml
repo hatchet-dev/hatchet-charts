@@ -324,3 +324,81 @@ jobs:
         if: always()
         with:
           sarif_file: reports/results.sarif
+
+  upgrade-e2e:
+    # Install the latest published chart, then upgrade to the chart in this PR
+    # and assert nothing breaks (the pre-upgrade migration hook runs and all
+    # workloads come back Ready).
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chart:
+          - hatchet-stack
+          - hatchet-ha
+    env:
+      RELEASE: upgrade-test
+      NAMESPACE: upgrade-test
+      VALUES: charts/${{ matrix.chart }}/ci/ct-values.yaml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.21.0
+
+      - name: Set up kind
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add hatchet https://hatchet-dev.github.io/hatchet-charts
+          helm repo update
+
+      - name: Install previously released ${{ matrix.chart }}
+        run: |
+          PREV=$(helm search repo "hatchet/${{ matrix.chart }}" --output json | jq -r '.[0].version')
+          if [[ -z "$PREV" || "$PREV" == "null" ]]; then
+            echo "Could not resolve a published version of ${{ matrix.chart }}" >&2
+            exit 1
+          fi
+          echo "Installing previously released version: $PREV"
+          helm install "$RELEASE" "hatchet/${{ matrix.chart }}" \
+            --version "$PREV" \
+            --namespace "$NAMESPACE" --create-namespace \
+            -f "$VALUES" \
+            --wait --timeout=10m
+
+      - name: Build local chart dependencies
+        run: helm dependency build "charts/${{ matrix.chart }}"
+
+      - name: Upgrade to the chart in this PR
+        # --wait runs the pre-upgrade migration hook synchronously and blocks
+        # until every workload is Ready again; a non-zero exit fails the job.
+        run: |
+          helm upgrade "$RELEASE" "charts/${{ matrix.chart }}" \
+            --namespace "$NAMESPACE" \
+            -f "$VALUES" \
+            --wait --timeout=10m
+
+      - name: Assert all workloads are Ready after upgrade
+        run: |
+          for d in $(kubectl get deploy -n "$NAMESPACE" -o name); do
+            kubectl rollout status "$d" -n "$NAMESPACE" --timeout=5m
+          done
+          for s in $(kubectl get statefulset -n "$NAMESPACE" -o name); do
+            kubectl rollout status "$s" -n "$NAMESPACE" --timeout=5m
+          done
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get pods,jobs,deploy,statefulset -n "$NAMESPACE" -o wide || true
+          kubectl get events -n "$NAMESPACE" --sort-by=.lastTimestamp | tail -50 || true
+          for p in $(kubectl get pods -n "$NAMESPACE" -o name); do
+            echo "=== logs $p ==="
+            kubectl logs "$p" -n "$NAMESPACE" --all-containers=true --tail=100 || true
+          done
