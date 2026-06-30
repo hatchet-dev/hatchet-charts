@@ -1,0 +1,16 @@
+# Values used by `ct install` in CI (see .github/workflows/lint-test.yaml).
+# Keep the bundled Postgres for a real database (Hatchet requires its timezone
+# to be UTC), but drop RabbitMQ and use the Postgres-backed message queue to
+# keep the kind footprint small.
+postgres:
+  primary:
+    extendedConfiguration: "timezone='UTC'"
+    resources:
+      limits:
+        memory: 1Gi
+        cpu: 500m
+rabbitmq:
+  enabled: false
+sharedConfig:
+  env:
+    SERVER_MSGQUEUE_KIND: postgres
