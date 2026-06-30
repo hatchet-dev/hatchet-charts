@@ -3,32 +3,17 @@
 A Helm chart for deploying the [Hatchet](https://hatchet.run) frontend static file
 server on Kubernetes.
 
-It is also used as a building block by the [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack) and
-[`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha) umbrella charts, where it is aliased as the `frontend`
-component.
-
-## TL;DR
-
-```bash
-helm install hatchet-frontend ./charts/hatchet-frontend
-```
-
-## Prerequisites
-
-- Kubernetes 1.18+
-- Helm 3.8+
-
-## Installing the chart
-
-```bash
-helm install my-release ./charts/hatchet-frontend
-```
-
-## Uninstalling the chart
-
-```bash
-helm uninstall my-release
-```
+> [!IMPORTANT]
+> **This is an internal building block, not a chart you install directly.**
+> It is a dependency of the [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
+> and [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha)
+> umbrella charts, where it is aliased as the `frontend` component. **To
+> self-host Hatchet, install
+> [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
+> (single-node) or [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha)
+> (high-availability) instead.** On its own this chart only serves the static
+> frontend assets — it needs the Hatchet API and engine to be useful — so the
+> rest of this document is reference material for the umbrella charts.
 
 ## Values validation
 

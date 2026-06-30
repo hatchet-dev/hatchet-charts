@@ -5,8 +5,7 @@ a PostgreSQL database and RabbitMQ. This is the main umbrella chart and the
 recommended starting point for self-hosting Hatchet.
 
 The backend runs as two components — `api` and `engine` (the engine bundles the gRPC
-server, controllers and scheduler) — each backed by the [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api)
-chart. For a horizontally-scaled split of those engine roles, use
+server, controllers and scheduler). For a horizontally-scaled split of those engine roles, use
 [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha) instead.
 
 ## Getting started
@@ -17,7 +16,6 @@ To view the docs for setting up this chart, see
 ## TL;DR
 
 ```bash
-helm dependency build ./charts/hatchet-stack
 helm install hatchet ./charts/hatchet-stack
 ```
 
@@ -29,7 +27,6 @@ helm install hatchet ./charts/hatchet-stack
 ## Installing the chart
 
 ```bash
-helm dependency build ./charts/hatchet-stack
 helm install my-release ./charts/hatchet-stack
 ```
 

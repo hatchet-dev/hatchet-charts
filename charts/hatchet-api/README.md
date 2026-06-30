@@ -17,40 +17,6 @@ A Helm chart for deploying the [Hatchet](https://hatchet.run) API on Kubernetes.
 This chart deploys the `hatchet-api` Deployment together with the helper Jobs that
 bootstrap the database (setup, migration, seed, quickstart and worker-token Jobs).
 
-## TL;DR
-
-> Most users should install [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
-> or [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha),
-> not this chart directly.
-
-```bash
-helm install hatchet-api ./charts/hatchet-api
-```
-
-> The bare command above does **not** provide the Postgres connection and server
-> secrets the API needs to actually start. See the
-> [repository README](https://github.com/hatchet-dev/hatchet-charts/blob/main/README.md#local-validation) for a complete, runnable
-> single-chart install recipe.
-
-## Prerequisites
-
-- Kubernetes 1.18+
-- Helm 3.8+
-- A reachable PostgreSQL database (timezone **must** be `UTC`)
-- A `hatchet-config` Secret with server-level config (or override `deploymentEnvFrom`)
-
-## Installing the chart
-
-```bash
-helm install my-release ./charts/hatchet-api
-```
-
-## Uninstalling the chart
-
-```bash
-helm uninstall my-release
-```
-
 ## Long-running migrations
 
 The chart runs schema migrations both as an init container in the setup Job (on
