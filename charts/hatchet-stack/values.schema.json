@@ -1,9 +1,9 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "hatchet-stack values",
   "description": "Values schema for the hatchet-stack umbrella Helm chart. Component sections (api, engine, frontend) accept all hatchet-api/hatchet-frontend subchart values; postgres and rabbitmq accept all Bitnami subchart values.",
   "type": "object",
-  "definitions": {
+  "$defs": {
     "image": {
       "type": "object",
       "additionalProperties": true,
@@ -24,7 +24,7 @@
       "properties": {
         "enabled": { "type": "boolean", "description": "Enable this component." },
         "replicaCount": { "type": "integer", "minimum": 0, "description": "Number of replicas." },
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     }
   },
@@ -35,7 +35,7 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean", "description": "Enable shared config." },
-        "image": { "$ref": "#/definitions/image" },
+        "image": { "$ref": "#/$defs/image" },
         "serverUrl": { "type": "string", "description": "Public server URL." },
         "serverAuthCookieDomain": { "type": "string", "description": "Domain for the auth cookie." },
         "serverAuthCookieInsecure": { "type": "string", "description": "Allow cookies over http (\"t\"/\"f\")." },
@@ -48,15 +48,15 @@
         "env": { "type": "object", "description": "Additional environment variables." }
       }
     },
-    "api": { "$ref": "#/definitions/component", "description": "API component." },
-    "engine": { "$ref": "#/definitions/component", "description": "Engine component (gRPC, controllers, scheduler combined)." },
+    "api": { "$ref": "#/$defs/component", "description": "API component." },
+    "engine": { "$ref": "#/$defs/component", "description": "Engine component (gRPC, controllers, scheduler combined)." },
     "frontend": {
       "type": "object",
       "description": "Frontend component (delegates to the hatchet-frontend subchart).",
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     },
     "postgres": {
@@ -81,7 +81,7 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     }
   }

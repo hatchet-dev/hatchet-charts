@@ -2,13 +2,26 @@
 
 A Helm chart for deploying the [Hatchet](https://hatchet.run) API on Kubernetes.
 
+> [!IMPORTANT]
+> **This is an internal building block, not a chart you install directly.**
+> It is a dependency of the [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
+> and [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha)
+> umbrella charts, where it is aliased as the `api`, `grpc`, `controllers`,
+> `scheduler` and `engine` components. **To self-host Hatchet, install
+> [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
+> (single-node) or [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha)
+> (high-availability) instead.** Installing this chart on its own requires
+> wiring up Postgres, secrets and message-queue config by hand — the rest of
+> this document is reference material for that and for the umbrella charts.
+
 This chart deploys the `hatchet-api` Deployment together with the helper Jobs that
 bootstrap the database (setup, migration, seed, quickstart and worker-token Jobs).
-It is also used as a building block by the [`hatchet-stack`](../hatchet-stack) and
-[`hatchet-ha`](../hatchet-ha) umbrella charts, where it is aliased as the `api`,
-`grpc`, `controllers`, `scheduler` and `engine` components.
 
 ## TL;DR
+
+> Most users should install [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack)
+> or [`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha),
+> not this chart directly.
 
 ```bash
 helm install hatchet-api ./charts/hatchet-api
@@ -16,7 +29,7 @@ helm install hatchet-api ./charts/hatchet-api
 
 > The bare command above does **not** provide the Postgres connection and server
 > secrets the API needs to actually start. See the
-> [repository README](../../README.md#local-validation) for a complete, runnable
+> [repository README](https://github.com/hatchet-dev/hatchet-charts/blob/main/README.md#local-validation) for a complete, runnable
 > single-chart install recipe.
 
 ## Prerequisites
@@ -43,13 +56,13 @@ helm uninstall my-release
 The chart runs schema migrations both as an init container in the setup Job (on
 install) and as a `pre-upgrade` hook Job (on upgrade), controlled by `migrationJob`.
 Both default to a 15-minute timeout. See the
-[repository README](../../README.md#long-running-migrations) for tuning
+[repository README](https://github.com/hatchet-dev/hatchet-charts/blob/main/README.md#long-running-migrations) for tuning
 `migrationJob.activeDeadlineSeconds`, `migrationJob.backoffLimit` and the Helm
 `--timeout` flag.
 
 ## Values validation
 
-This chart ships a [`values.schema.json`](values.schema.json). Helm validates your
+This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/values.schema.json). Helm validates your
 supplied values against it on `install`, `upgrade`, `template` and `lint`, so type
 errors (e.g. a string where an integer is expected) are caught before anything is
 applied to the cluster.
@@ -176,4 +189,4 @@ applied to the cluster.
 
 ## License
 
-Apache-2.0. See [LICENSE](../../LICENSE).
+MIT. See [LICENSE](https://github.com/hatchet-dev/hatchet-charts/blob/main/LICENSE).

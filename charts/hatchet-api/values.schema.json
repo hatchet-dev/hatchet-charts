@@ -1,9 +1,9 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "hatchet-api values",
   "description": "Values schema for the hatchet-api Helm chart.",
   "type": "object",
-  "definitions": {
+  "$defs": {
     "image": {
       "type": "object",
       "additionalProperties": true,
@@ -38,15 +38,15 @@
       "description": "Shared configuration, typically passed from a parent (umbrella) chart.",
       "additionalProperties": true,
       "properties": {
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     },
     "image": {
-      "allOf": [{ "$ref": "#/definitions/image" }],
+      "allOf": [{ "$ref": "#/$defs/image" }],
       "description": "Image used for the hatchet-api Deployment."
     },
     "postgresImage": {
-      "allOf": [{ "$ref": "#/definitions/image" }],
+      "allOf": [{ "$ref": "#/$defs/image" }],
       "description": "Postgres client image used by helper jobs."
     },
     "setupJob": {
@@ -55,7 +55,7 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     },
     "migrationJob": {
@@ -74,7 +74,7 @@
           "minimum": 1,
           "description": "Hard timeout (seconds) for the migration Job."
         },
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     },
     "seedJob": {
@@ -83,7 +83,7 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/definitions/image" }
+        "image": { "$ref": "#/$defs/image" }
       }
     },
     "quickstartJob": {
@@ -118,7 +118,7 @@
       "properties": {
         "enabled": { "type": "boolean" },
         "address": { "type": "string" },
-        "resources": { "$ref": "#/definitions/resources" }
+        "resources": { "$ref": "#/$defs/resources" }
       }
     },
     "retainFailedHooks": {
@@ -207,7 +207,7 @@
     "extraVolumeMounts": { "type": "array", "description": "Additional volume mounts." },
     "extraVolumes": { "type": "array", "description": "Additional volumes." },
     "resources": {
-      "allOf": [{ "$ref": "#/definitions/resources" }],
+      "allOf": [{ "$ref": "#/$defs/resources" }],
       "description": "Compute resources for the main container."
     },
     "priorityClassName": {

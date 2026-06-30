@@ -3,8 +3,8 @@
 A Helm chart for deploying the [Hatchet](https://hatchet.run) frontend static file
 server on Kubernetes.
 
-It is also used as a building block by the [`hatchet-stack`](../hatchet-stack) and
-[`hatchet-ha`](../hatchet-ha) umbrella charts, where it is aliased as the `frontend`
+It is also used as a building block by the [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack) and
+[`hatchet-ha`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-ha) umbrella charts, where it is aliased as the `frontend`
 component.
 
 ## TL;DR
@@ -32,7 +32,7 @@ helm uninstall my-release
 
 ## Values validation
 
-This chart ships a [`values.schema.json`](values.schema.json). Helm validates your
+This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/values.schema.json). Helm validates your
 supplied values against it on `install`, `upgrade`, `template` and `lint`.
 
 ## Parameters
@@ -111,4 +111,4 @@ supplied values against it on `install`, `upgrade`, `template` and `lint`.
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+MIT. See [LICENSE](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/LICENSE).

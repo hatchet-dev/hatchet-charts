@@ -3,9 +3,9 @@
 A Helm chart that deploys [Hatchet](https://hatchet.run) in a **high-availability**
 configuration on Kubernetes, along with PostgreSQL and RabbitMQ.
 
-Unlike [`hatchet-stack`](../hatchet-stack), the backend is split into separately
+Unlike [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack), the backend is split into separately
 scalable components — `api`, `grpc`, `controllers` and `scheduler` — each backed by
-the [`hatchet-api`](../hatchet-api) chart.
+the [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) chart.
 
 ## Getting started
 
@@ -41,16 +41,16 @@ helm uninstall my-release
 
 | Component | Subchart | Alias | Condition |
 |-----------|----------|-------|-----------|
-| API | [hatchet-api](../hatchet-api) | `api` | `api.enabled` |
-| gRPC engine | [hatchet-api](../hatchet-api) | `grpc` | `grpc.enabled` |
-| Controllers engine | [hatchet-api](../hatchet-api) | `controllers` | `controllers.enabled` |
-| Scheduler engine | [hatchet-api](../hatchet-api) | `scheduler` | `scheduler.enabled` |
-| Frontend | [hatchet-frontend](../hatchet-frontend) | `frontend` | `frontend.enabled` |
+| API | [hatchet-api](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) | `api` | `api.enabled` |
+| gRPC engine | [hatchet-api](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) | `grpc` | `grpc.enabled` |
+| Controllers engine | [hatchet-api](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) | `controllers` | `controllers.enabled` |
+| Scheduler engine | [hatchet-api](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) | `scheduler` | `scheduler.enabled` |
+| Frontend | [hatchet-frontend](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-frontend) | `frontend` | `frontend.enabled` |
 | PostgreSQL | [bitnami/postgresql](https://github.com/bitnami/charts/tree/main/bitnami/postgresql) | `postgres` | `postgres.enabled` |
 | RabbitMQ | [bitnami/rabbitmq](https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq) | `rabbitmq` | `rabbitmq.enabled` |
 
-Each Hatchet component accepts the full set of [`hatchet-api`](../hatchet-api#parameters)
-or [`hatchet-frontend`](../hatchet-frontend#parameters) values under its alias key
+Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters)
+or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key
 (e.g. `api.resources`, `grpc.replicaCount`). The `postgres` and `rabbitmq` sections
 accept all values of their respective Bitnami subcharts.
 
@@ -65,7 +65,7 @@ Values flow into the components two ways:
 
 ## Values validation
 
-This chart ships a [`values.schema.json`](values.schema.json). Helm validates your
+This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-ha/values.schema.json). Helm validates your
 supplied values against it on `install`, `upgrade`, `template` and `lint`.
 
 ## Parameters
@@ -107,9 +107,9 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 | `frontend.enabled` | bool | `true` | Enable the frontend component. |
 | `frontend.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-frontend"` | Frontend image repository. |
 
-> See [`hatchet-api`](../hatchet-api#parameters) for the full set of values available
+> See [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) for the full set of values available
 > under `api`, `grpc`, `controllers` and `scheduler`, and
-> [`hatchet-frontend`](../hatchet-frontend#parameters) for `frontend`.
+> [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) for `frontend`.
 
 ### Bundled PostgreSQL & RabbitMQ
 
@@ -165,4 +165,4 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 
 ## License
 
-Apache-2.0. See [LICENSE](../../LICENSE).
+MIT. See [LICENSE](https://github.com/hatchet-dev/hatchet-charts/blob/main/LICENSE).
