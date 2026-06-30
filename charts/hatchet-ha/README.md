@@ -1,16 +1,12 @@
 # hatchet-ha
 
-A Helm chart that deploys [Hatchet](https://hatchet.run) in a **high-availability**
-configuration on Kubernetes, along with PostgreSQL and RabbitMQ. It runs the backend
-as separately scalable components so each can be sized and scaled independently.
+A Helm chart that deploys [Hatchet](https://hatchet.run) in a **high-availability** configuration on Kubernetes. It runs the backend as separately scalable components so each can be sized and scaled independently.
 
-For a simpler single-node deployment, use
-[`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack) instead.
+For a simpler single-node deployment, use [`hatchet-stack`](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-stack) instead.
 
 ## Getting started
 
-To view the docs for setting up this chart, see
-[Kubernetes High-Availability](https://docs.hatchet.run/self-hosting/high-availability).
+To view the docs for setting up this chart, see [Kubernetes High-Availability](https://docs.hatchet.run/self-hosting/high-availability).
 
 ## Prerequisites
 
@@ -43,24 +39,16 @@ helm uninstall my-hatchet-ha
 | PostgreSQL | [bitnami/postgresql](https://github.com/bitnami/charts/tree/main/bitnami/postgresql) | `postgres` | `postgres.enabled` |
 | RabbitMQ | [bitnami/rabbitmq](https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq) | `rabbitmq` | `rabbitmq.enabled` |
 
-Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters)
-or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key
-(e.g. `api.resources`, `grpc.replicaCount`). The `postgres` and `rabbitmq` sections
-accept all values of their respective Bitnami subcharts.
+Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key (e.g. `api.resources`, `grpc.replicaCount`). The `postgres` and `rabbitmq` sections accept all values of their respective Bitnami subcharts.
 
 Values flow into the components two ways:
 
-1. **Per-component overrides** are passed straight through by Helm — anything under
-   `api.*`, `grpc.*`, `controllers.*`, `scheduler.*` or `frontend.*` overrides the
-   corresponding subchart value.
-2. **`sharedConfig`** is rendered by this chart into a `hatchet-shared-config` Secret,
-   which every backend component loads via `envFrom`. This is how settings like the
-   server URL, gRPC address and admin credentials reach all components at once.
+1. **Per-component overrides** are passed straight through by Helm — anything under `api.*`, `grpc.*`, `controllers.*`, `scheduler.*` or `frontend.*` overrides the corresponding subchart value.
+2. **`sharedConfig`** is rendered by this chart into a `hatchet-shared-config` Secret, which every backend component loads via `envFrom`. This is how settings like the server URL, gRPC address and admin credentials reach all components at once.
 
 ## Values validation
 
-This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-ha/values.schema.json). Helm validates your
-supplied values against it on `install`, `upgrade`, `template` and `lint`.
+This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-ha/values.schema.json). Helm validates your supplied values against it on `install`, `upgrade`, `template` and `lint`.
 
 ## Parameters
 
@@ -101,18 +89,11 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 | `frontend.enabled` | bool | `true` | Enable the frontend component. |
 | `frontend.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-frontend"` | Frontend image repository. |
 
-> See [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) for the full set of values available
-> under `api`, `grpc`, `controllers` and `scheduler`, and
-> [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) for `frontend`.
+> See [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) for the full set of values available under `api`, `grpc`, `controllers` and `scheduler`, and [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) for `frontend`.
 
 ### Bundled PostgreSQL & RabbitMQ
 
-> ⚠️ **The bundled `postgres` and `rabbitmq` subcharts are intended for development
-> and staging only.** They are single-instance, store data on default storage, and
-> are not configured for backups, high availability or monitoring — which defeats the
-> purpose of an HA deployment. **For production, run PostgreSQL and RabbitMQ yourself**
-> (a managed service, or a self-hosted deployment you own end-to-end), then disable
-> the bundled ones:
+> ⚠️ **The bundled `postgres` and `rabbitmq` subcharts are intended for development and staging only.** They are single-instance, store data on default storage, and are not configured for backups, high availability or monitoring — which defeats the purpose of an HA deployment. **For production, run PostgreSQL and RabbitMQ yourself** (a managed service, or a self-hosted deployment you own end-to-end), then disable the bundled ones:
 >
 > ```bash
 > helm install my-hatchet-ha hatchet/hatchet-ha \
@@ -122,10 +103,7 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 >   --set sharedConfig.env.SERVER_MSGQUEUE_RABBITMQ_URL='amqp://user:pass@my-broker:5672/'
 > ```
 >
-> When `postgres`/`rabbitmq` are disabled, the chart no longer renders `DATABASE_URL`
-> / `SERVER_MSGQUEUE_RABBITMQ_URL` into the `hatchet-shared-config` Secret, so you
-> must supply them yourself (via `sharedConfig.env` as above, or your own Secret
-> referenced through each component's `envFrom`).
+> When `postgres`/`rabbitmq` are disabled, the chart no longer renders `DATABASE_URL` / `SERVER_MSGQUEUE_RABBITMQ_URL` into the `hatchet-shared-config` Secret, so you must supply them yourself (via `sharedConfig.env` as above, or your own Secret referenced through each component's `envFrom`).
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -143,10 +121,7 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 | `rabbitmq.auth.password` | string | `"hatchet"` | RabbitMQ password. |
 | `rabbitmq.service.ports.amqp` | int | `5672` | RabbitMQ AMQP service port. |
 
-> Both sections accept the full set of values for the upstream Bitnami
-> [postgresql](https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml)
-> and [rabbitmq](https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml)
-> charts.
+> Both sections accept the full set of values for the upstream Bitnami [postgresql](https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml) and [rabbitmq](https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml) charts.
 
 ### Caddy (optional)
 
