@@ -14,7 +14,7 @@ These are intended for DEVELOPMENT and STAGING only. For production, run your ow
 PostgreSQL and RabbitMQ (a managed service or a deployment you operate end-to-end)
 and disable the bundled ones:
 
-  helm upgrade {{ .Release.Name }} <chart> \
+  helm upgrade {{ .Release.Name }} hatchet/hatchet-stack \
     --set postgres.enabled=false \
     --set rabbitmq.enabled=false \
     --set sharedConfig.env.DATABASE_URL='postgres://user:pass@host:5432/hatchet?sslmode=require' \
