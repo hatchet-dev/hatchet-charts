@@ -1,0 +1,44 @@
+# Values used by `ct install` (.github/workflows/lint-test.yaml) and the
+# upgrade-e2e job (.github/workflows/test.yaml).
+# Trims the footprint so a full install fits on a single-node kind cluster:
+# bundled Postgres (with the UTC timezone Hatchet requires) but no RabbitMQ
+# (Postgres-backed queue), single replicas and small resource requests.
+# Valid for both the previously released chart and the chart in this PR.
+rabbitmq:
+  enabled: false
+postgres:
+  primary:
+    extendedConfiguration: "timezone='UTC'"
+    resourcesPreset: "small"
+sharedConfig:
+  env:
+    SERVER_MSGQUEUE_KIND: postgres
+api:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+grpc:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+controllers:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+scheduler:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+frontend:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi

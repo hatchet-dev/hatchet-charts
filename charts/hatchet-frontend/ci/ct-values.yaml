@@ -1,0 +1,5 @@
+# Values used by `ct install` in CI (see .github/workflows/lint-test.yaml).
+# The default ingress.enabled=true with no hosts renders an Ingress with no
+# rules, which the API server rejects. Disable it for the install smoke test.
+ingress:
+  enabled: false

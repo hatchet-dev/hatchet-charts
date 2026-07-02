@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "hatchet-api values",
+  "description": "Values schema for the hatchet-api Helm chart.",
+  "type": "object",
+  "$defs": {
+    "image": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository."
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag."
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "Never", "IfNotPresent"],
+          "description": "Image pull policy."
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "limits": { "type": "object" },
+        "requests": { "type": "object" }
+      }
+    }
+  },
+  "properties": {
+    "sharedConfig": {
+      "type": "object",
+      "description": "Shared configuration, typically passed from a parent (umbrella) chart.",
+      "additionalProperties": true,
+      "properties": {
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "image": {
+      "allOf": [{ "$ref": "#/$defs/image" }],
+      "description": "Image used for the hatchet-api Deployment."
+    },
+    "postgresImage": {
+      "allOf": [{ "$ref": "#/$defs/image" }],
+      "description": "Postgres client image used by helper jobs."
+    },
+    "setupJob": {
+      "type": "object",
+      "description": "Setup Job that bootstraps the database and configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "migrationJob": {
+      "type": "object",
+      "description": "Database migration Job (runs as an init container on install and as a pre-upgrade hook on upgrade).",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "backoffLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of retries before the migration Job is marked failed."
+        },
+        "activeDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Hard timeout (seconds) for the migration Job."
+        },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "seedJob": {
+      "type": "object",
+      "description": "Job that seeds the database with default data.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "quickstartJob": {
+      "type": "object",
+      "description": "Job that generates cookie/encryption secrets via hatchet-admin quickstart.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "workerTokenJob": {
+      "type": "object",
+      "description": "Job that generates a worker API token.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "commandline": {
+      "type": "object",
+      "description": "Container entrypoint command and arguments.",
+      "additionalProperties": true,
+      "properties": {
+        "command": { "type": "array", "items": { "type": "string" } },
+        "args": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "cloudSQLSidecar": {
+      "type": "object",
+      "description": "Optional Google Cloud SQL Auth Proxy sidecar.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "address": { "type": "string" },
+        "resources": { "$ref": "#/$defs/resources" }
+      }
+    },
+    "retainFailedHooks": {
+      "type": "boolean",
+      "description": "Retain failed Helm hook Jobs (e.g. the pre-upgrade migration hook) so logs survive for debugging."
+    },
+    "env": {
+      "type": "object",
+      "description": "Additional environment variables injected into the Deployment.",
+      "additionalProperties": true
+    },
+    "deploymentEnvFrom": {
+      "type": "array",
+      "description": "envFrom sources wired into the Deployment only.",
+      "items": { "type": "object" }
+    },
+    "envFrom": {
+      "type": "array",
+      "description": "envFrom sources wired into both the Deployment and helper Jobs.",
+      "items": { "type": "object" }
+    },
+    "files": {
+      "type": "object",
+      "description": "Files mounted into the container via a ConfigMap.",
+      "additionalProperties": true
+    },
+    "deployment": {
+      "type": "object",
+      "description": "Deployment-level metadata and extra ports.",
+      "additionalProperties": true,
+      "properties": {
+        "annotations": { "type": "object" },
+        "labels": { "type": "object" },
+        "extraPorts": { "type": "array" }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "description": "Persistent volume configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "size": { "type": "string" }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Service configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]
+        },
+        "externalPort": { "type": "integer" },
+        "internalPort": { "type": "integer" },
+        "annotations": { "type": "object" },
+        "labels": { "type": "object" },
+        "selector": { "type": "object" },
+        "extraPorts": { "type": "array" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "labels": { "type": "object" },
+        "annotations": { "type": "object" },
+        "hosts": { "type": ["array", "null"] },
+        "tls": { "type": ["array", "null"] },
+        "pathType": { "type": "string" }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "description": "Service account configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "create": { "type": "boolean" },
+        "name": { "type": ["string", "null"] },
+        "annotations": { "type": "object" }
+      }
+    },
+    "extraContainers": { "type": "array", "description": "Additional sidecar containers." },
+    "extraVolumeMounts": { "type": "array", "description": "Additional volume mounts." },
+    "extraVolumes": { "type": "array", "description": "Additional volumes." },
+    "resources": {
+      "allOf": [{ "$ref": "#/$defs/resources" }],
+      "description": "Compute resources for the main container."
+    },
+    "priorityClassName": {
+      "type": "string",
+      "description": "Pod priority class name."
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules for pod assignment."
+    },
+    "tolerations": {
+      "type": "array",
+      "description": "Tolerations for pod assignment."
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node labels for pod assignment."
+    },
+    "podAnnotations": {
+      "type": "object",
+      "description": "Common annotations for all pods."
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of replicas."
+    },
+    "revisionHistoryLimit": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of old ReplicaSets to retain."
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "description": "Pod disruption budget configuration."
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Pod/container security context.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "allowPrivilegeEscalation": { "type": "boolean" },
+        "runAsUser": { "type": "integer" },
+        "fsGroup": { "type": "integer" }
+      }
+    },
+    "extraConfigMapMounts": { "type": "array", "description": "Additional ConfigMap mounts." },
+    "initContainers": { "type": "array", "description": "Additional init containers." },
+    "extraManifests": { "type": "array", "description": "Additional raw Kubernetes manifests to render." },
+    "securityGroupPolicy": {
+      "type": "object",
+      "description": "AWS security groups for pods.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "groupIds": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "health": {
+      "type": "object",
+      "description": "Liveness/readiness probe configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "spec": { "type": "object" }
+      }
+    }
+  }
+}
