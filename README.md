@@ -2,12 +2,9 @@
 
 This repository contains Helm charts for [Hatchet](https://hatchet.run).
 
+We publish our official charts to ArtifactHub. [Click here](https://artifacthub.io/packages/search?repo=hatchet) to visit our repo to learn more.
+
 To view the docs for setting up these charts, see [Kubernetes Quickstart](https://docs.hatchet.run/self-hosting/kubernetes-quickstart).
-
-For detailed changes to individual charts, see:
-
-- **[Hatchet Stack](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-stack/CHANGELOG.md)** - Main umbrella chart containing all components
-- **[Hatchet HA](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-ha/CHANGELOG.md)** - High availability deployment chart
 
 ## Long-running migrations
 
