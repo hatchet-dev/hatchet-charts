@@ -2,6 +2,30 @@ apiVersion: v1
 entries:
   hatchet-api:
   - apiVersion: v2
+    created: "2026-07-05T20:04:53.491308757Z"
+    description: A Helm chart for deploying Hatchet API components on Kubernetes.
+    digest: 16b4d248eddfcb433399baef589efb5a8d5f08e15aefea101c59757902895ccc
+    home: https://hatchet.run
+    keywords:
+    - hatchet
+    - workflow
+    - workflows
+    - task-queue
+    - orchestration
+    - durable-execution
+    - background-jobs
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-api
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-api-0.12.1/hatchet-api-0.12.1.tgz
+    version: 0.12.1
+  - apiVersion: v2
     created: "2026-06-30T16:32:20.924417637Z"
     description: A Helm chart for deploying Hatchet API components on Kubernetes.
     digest: 9de10d256f5e08e6ff74da3ae3961408a34dadc2e21ef05687456e776b29fc09
@@ -291,6 +315,28 @@ entries:
     version: 0.1.0
   hatchet-frontend:
   - apiVersion: v2
+    created: "2026-07-05T20:04:53.647028651Z"
+    description: A Helm chart for deploying a frontend static file server on Kubernetes.
+    digest: b0fe57e7d48e27bfb15ef96f4a8a7ad1366dc84cbf3be6849290558454bf41a8
+    home: https://hatchet.run
+    keywords:
+    - hatchet
+    - workflow
+    - dashboard
+    - frontend
+    - ui
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-frontend
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.12.1/hatchet-frontend-0.12.1.tgz
+    version: 0.12.1
+  - apiVersion: v2
     created: "2026-06-30T16:32:21.053599964Z"
     description: A Helm chart for deploying a frontend static file server on Kubernetes.
     digest: 29d82ada45aed800a6b41754ea9c7f87cec188c7104ab1b81a2a0be8402c93ca
@@ -567,6 +613,67 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.1.0/hatchet-frontend-0.1.0.tgz
     version: 0.1.0
   hatchet-ha:
+  - apiVersion: v2
+    created: "2026-07-05T20:04:53.793076481Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.12.1
+    - alias: grpc
+      condition: grpc.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.12.1
+    - alias: controllers
+      condition: controllers.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.12.1
+    - alias: scheduler
+      condition: scheduler.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.12.1
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: 0.12.1
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.7.27
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.14
+    description: A Helm chart for deploying Hatchet in a high-availability configuration
+    digest: 7bd504af3fb30fe3585eddd9fa1e191c09010bedabf9546f42d4b67bc5b419e0
+    home: https://hatchet.run
+    keywords:
+    - hatchet
+    - workflow
+    - workflows
+    - task-queue
+    - orchestration
+    - durable-execution
+    - background-jobs
+    - high-availability
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-ha
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-ha-0.12.1/hatchet-ha-0.12.1.tgz
+    version: 0.12.1
   - apiVersion: v2
     created: "2026-06-30T16:32:21.216819375Z"
     dependencies:
@@ -1349,6 +1456,56 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-lite-0.1.0/hatchet-lite-0.1.0.tgz
     version: 0.1.0
   hatchet-stack:
+  - apiVersion: v2
+    created: "2026-07-05T20:04:53.962322299Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.12.1
+    - alias: engine
+      condition: engine.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.12.1
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: 0.12.1
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.7.27
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.14
+    description: A Helm chart for deploying Hatchet on Kubernetes.
+    digest: 0f01d2dd27ab77a99af1fc96d0cfe2023061479e5b71ee304c3602325e78f77c
+    home: https://hatchet.run
+    keywords:
+    - hatchet
+    - workflow
+    - workflows
+    - task-queue
+    - orchestration
+    - durable-execution
+    - background-jobs
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-stack
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.12.1/hatchet-stack-0.12.1.tgz
+    version: 0.12.1
   - apiVersion: v2
     created: "2026-06-30T16:32:21.432195816Z"
     dependencies:
@@ -2285,4 +2442,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.1.0/hatchet-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-30T16:32:21.43267527Z"
+generated: "2026-07-05T20:04:53.962678662Z"
