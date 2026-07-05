@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "hatchet-ha values",
+  "description": "Values schema for the hatchet-ha umbrella Helm chart. Component sections (api, grpc, controllers, scheduler, frontend) accept all hatchet-api/hatchet-frontend subchart values; postgres and rabbitmq accept all Bitnami subchart values.",
+  "type": "object",
+  "$defs": {
+    "image": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "repository": { "type": "string", "description": "Container image repository." },
+        "tag": { "type": "string", "description": "Container image tag." },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "Never", "IfNotPresent"],
+          "description": "Image pull policy."
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "description": "A Hatchet backend component (delegates to the hatchet-api subchart).",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "description": "Enable this component." },
+        "replicaCount": { "type": "integer", "minimum": 0, "description": "Number of replicas." },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    }
+  },
+  "properties": {
+    "sharedConfig": {
+      "type": "object",
+      "description": "Configuration inherited by all backend services (api, grpc, controllers, scheduler).",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "description": "Enable shared config." },
+        "image": { "$ref": "#/$defs/image" },
+        "serverUrl": { "type": "string", "description": "Public server URL." },
+        "serverAuthCookieDomain": { "type": "string", "description": "Domain for the auth cookie." },
+        "serverAuthCookieInsecure": { "type": "string", "description": "Allow cookies over http (\"t\"/\"f\")." },
+        "serverAuthSetEmailVerified": { "type": "string", "description": "Auto-verify user emails (\"t\"/\"f\")." },
+        "serverAuthBasicAuthEnabled": { "type": "string", "description": "Enable email/password login (\"t\"/\"f\")." },
+        "grpcBroadcastAddress": { "type": "string", "description": "gRPC server endpoint." },
+        "grpcInsecure": { "type": "string", "description": "Serve gRPC over http (\"t\"/\"f\")." },
+        "defaultAdminEmail": { "type": "string", "description": "Default admin email." },
+        "defaultAdminPassword": { "type": "string", "description": "Default admin password." },
+        "env": { "type": "object", "description": "Additional environment variables." }
+      }
+    },
+    "api": { "$ref": "#/$defs/component", "description": "API component." },
+    "grpc": { "$ref": "#/$defs/component", "description": "gRPC engine component." },
+    "controllers": { "$ref": "#/$defs/component", "description": "Controllers engine component." },
+    "scheduler": { "$ref": "#/$defs/component", "description": "Scheduler engine component." },
+    "frontend": {
+      "type": "object",
+      "description": "Frontend component (delegates to the hatchet-frontend subchart).",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "postgres": {
+      "type": "object",
+      "description": "Bundled PostgreSQL (Bitnami postgresql subchart). Accepts all subchart values.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "rabbitmq": {
+      "type": "object",
+      "description": "Bundled RabbitMQ (Bitnami rabbitmq subchart). Accepts all subchart values.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "caddy": {
+      "type": "object",
+      "description": "Optional Caddy reverse proxy.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "image": { "$ref": "#/$defs/image" }
+      }
+    }
+  }
+}
