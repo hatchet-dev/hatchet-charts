@@ -2,7 +2,8 @@ apiVersion: v2
 name: hatchet-stack
 description: A Helm chart for deploying Hatchet on Kubernetes.
 type: application
-version: 0.12.1
+icon: https://hatchet.run/brand/logomark-white-bg.svg
+version: 0.12.2
 home: https://hatchet.run
 sources:
   - https://github.com/hatchet-dev/hatchet-charts
@@ -18,21 +19,25 @@ keywords:
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
+annotations:
+  artifacthub.io/signKey: |
+    fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+    url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
 dependencies:
   - name: "hatchet-api"
     condition: api.enabled
     repository: "file://../hatchet-api"
-    version: "0.12.1"
+    version: "0.12.2"
     alias: api
   - name: "hatchet-api"
     condition: engine.enabled
     repository: "file://../hatchet-api"
-    version: "0.12.1"
+    version: "0.12.2"
     alias: engine
   - name: "hatchet-frontend"
     condition: frontend.enabled
     repository: "file://../hatchet-frontend"
-    version: "0.12.1"
+    version: "0.12.2"
     alias: frontend
   - name: "postgresql"
     condition: postgres.enabled

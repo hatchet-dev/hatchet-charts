@@ -29,6 +29,16 @@ jobs:
       - name: Add Helm repo
         run: helm repo add bitnami https://charts.bitnami.com/bitnami
 
+      - name: Import GPG signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.HELM_GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.HELM_GPG_PASSPHRASE }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --batch --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+            --export-secret-keys > /tmp/secring.gpg
+          printf '%s' "$GPG_PASSPHRASE" > /tmp/passphrase
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
         env:

@@ -1,1 +1,5 @@
 pages-branch: release
+sign: true
+key: "alexander@hatchet.run"
+keyring: /tmp/secring.gpg
+passphrase-file: /tmp/passphrase
