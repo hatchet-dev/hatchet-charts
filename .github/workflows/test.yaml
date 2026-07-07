@@ -72,6 +72,9 @@ jobs:
         run: |
           helm unittest charts/hatchet-api
 
+      - name: Assert hatchet-ha pins SERVER_SERVICES per role
+        run: ./hack/test-ha-server-services.sh
+
       - name: Install and test hatchet-api chart
         run: |
           helm install hatchet-api-test charts/hatchet-api \
