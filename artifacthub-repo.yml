@@ -3,3 +3,6 @@
 # this file grants the "Verified Publisher" badge by proving repository ownership.
 # Docs: https://artifacthub.io/docs/topics/repositories/
 repositoryID: 9dce667c-e3af-417e-8354-503886ae196b
+owners:
+  - name: Hatchet Engineering
+    email: alexander@hatchet.run

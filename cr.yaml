@@ -1,1 +1,5 @@
 pages-branch: release
+sign: true
+key: "E087E4C6368DB465CB6A75BE779CE2A7829DEA1A"
+keyring: /tmp/secring.gpg
+passphrase-file: /tmp/passphrase
