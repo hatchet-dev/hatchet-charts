@@ -34,7 +34,7 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.HELM_GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.HELM_GPG_PASSPHRASE }}
         run: |
-          umask 077; trap 'rm -f /tmp/secring.gpg /tmp/passphrase' EXIT
+          umask 077
           printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --batch --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
             --export-secret-keys > /tmp/secring.gpg
