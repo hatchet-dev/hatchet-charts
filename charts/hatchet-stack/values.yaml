@@ -1,3 +1,11 @@
+global:
+  # Name of the Secret rendered from sharedConfig and loaded by every backend
+  # component via envFrom. Kept as "hatchet-shared-config" for backwards
+  # compatibility. Set it to a release-scoped value (the string is passed
+  # through `tpl`, so `{{ .Release.Name }}-shared-config` works) to run
+  # multiple releases in the same namespace without a name collision.
+  sharedConfigSecretName: hatchet-shared-config
+
 # sharedConfig is inherited by all backend services: api, grpc, controllers, scheduler
 sharedConfig:
   # you can disable shared config by setting this to false
@@ -46,7 +54,7 @@ api:
     name: hatchet-api
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -90,7 +98,7 @@ engine:
     name: hatchet-engine
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:

@@ -44,13 +44,19 @@ Each Hatchet component accepts the full set of [`hatchet-api`](https://github.co
 Values flow into the components two ways:
 
 1. **Per-component overrides** are passed straight through by Helm — anything under `api.*`, `grpc.*`, `controllers.*`, `scheduler.*` or `frontend.*` overrides the corresponding subchart value.
-2. **`sharedConfig`** is rendered by this chart into a `hatchet-shared-config` Secret, which every backend component loads via `envFrom`. This is how settings like the server URL, gRPC address and admin credentials reach all components at once.
+2. **`sharedConfig`** is rendered by this chart into a `hatchet-shared-config` Secret (rename via `global.sharedConfigSecretName`), which every backend component loads via `envFrom`. This is how settings like the server URL, gRPC address and admin credentials reach all components at once.
 
 ## Values validation
 
 This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-ha/values.schema.json). Helm validates your supplied values against it on `install`, `upgrade`, `template` and `lint`.
 
 ## Parameters
+
+### Global
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `global.sharedConfigSecretName` | string | `"hatchet-shared-config"` | Name of the Secret rendered from `sharedConfig` and loaded by every backend component via `envFrom`. The value is passed through `tpl`, so set it to something release-scoped such as `'{{ .Release.Name }}-shared-config'` to run multiple releases in the same namespace without a name collision. |
 
 ### Shared config
 
@@ -90,6 +96,8 @@ Inherited by all backend services (`api`, `grpc`, `controllers`, `scheduler`).
 | `frontend.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-frontend"` | Frontend image repository. |
 
 > See [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) for the full set of values available under `api`, `grpc`, `controllers` and `scheduler`, and [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) for `frontend`.
+
+> The `envFrom` (and `deploymentEnvFrom`) values on each backend component are rendered through `tpl`, so you can reference release values inside secret/configmap names — e.g. `name: '{{ .Release.Name }}-postgres-secret'`.
 
 ### Bundled PostgreSQL & RabbitMQ
 
