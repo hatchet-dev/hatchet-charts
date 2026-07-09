@@ -29,6 +29,17 @@
     }
   },
   "properties": {
+    "global": {
+      "type": "object",
+      "description": "Values shared with all subcharts.",
+      "additionalProperties": true,
+      "properties": {
+        "sharedConfigSecretName": {
+          "type": "string",
+          "description": "Name of the Secret rendered from sharedConfig and loaded by every backend component via envFrom. Defaults to \"hatchet-shared-config\". Passed through tpl, so a value such as \"{{ .Release.Name }}-shared-config\" scopes it per release for multi-instance deployments in one namespace."
+        }
+      }
+    },
     "sharedConfig": {
       "type": "object",
       "description": "Configuration inherited by all backend services (api, engine).",

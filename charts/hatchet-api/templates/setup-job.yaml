@@ -45,7 +45,7 @@ spec:
             value: "{{ $value }}"
       {{- end }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
       containers:
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
@@ -57,7 +57,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
 ---
 {{- end }}
@@ -129,7 +129,7 @@ spec:
             value: "{{ $value }}"
       {{- end }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
 
       # Run migrations as an initContainer
       - name: migration-job
@@ -146,7 +146,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
       {{- end }}
       {{- if .Values.seedJob.enabled }}
@@ -168,7 +168,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
       {{- end }}
       {{- end }}
@@ -190,7 +190,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
 {{- else }}
       # Write an empty container to avoid a syntax error
@@ -237,9 +237,9 @@ spec:
             value: "{{ $value }}"
         {{- end }}
         envFrom:
-{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
-{{ toYaml .Values.envFrom | nindent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
 {{- end }}
       containers:
       - name: setup-worker-token
@@ -257,9 +257,9 @@ spec:
             value: "{{ $value }}"
         {{- end }}
         envFrom:
-{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
-{{ toYaml .Values.envFrom | nindent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
 {{- end }}
 {{- end }}
 {{- end }}

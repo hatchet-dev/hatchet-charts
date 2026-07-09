@@ -55,9 +55,9 @@ spec:
           value: "{{ $value }}"
         {{- end }}
         envFrom:
-{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
-{{ toYaml .Values.envFrom | nindent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
 {{- end }}
         ports:
         - containerPort: {{ .Values.service.internalPort }}
