@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Configurable `podSecurityContext` and `containerSecurityContext` values for Kubernetes Pod Security Standards compliance.
+- `shareProcessNamespace` as a configurable value (default: `true` for backward compatibility).
+
+### Removed
+- Hardcoded `SYS_PTRACE` capability from migration, seed, and setup job containers.
+
+### Changed
+- Init container (`check-db-connection`) security context is now values-driven, matching other containers.
+
 ## [0.11.0] - 2026-05-19
 
 - Run database migrations as a Helm pre-upgrade hook so failed migrations block new application pods from rolling out.
