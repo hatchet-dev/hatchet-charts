@@ -6,6 +6,35 @@ entries:
         fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
         url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
     apiVersion: v2
+    created: "2026-07-14T16:57:51.130156754Z"
+    description: A Helm chart for deploying Hatchet API components on Kubernetes.
+    digest: b7617a88269b9e59613dc0c0c8853cfd091c83f1fc8845da75f039f6d2a18c3f
+    home: https://hatchet.run
+    icon: https://hatchet.run/brand/logomark-white-bg.svg
+    keywords:
+    - hatchet
+    - workflow
+    - workflows
+    - task-queue
+    - orchestration
+    - durable-execution
+    - background-jobs
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-api
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-api-0.13.0/hatchet-api-0.13.0.tgz
+    version: 0.13.0
+  - annotations:
+      artifacthub.io/signKey: |
+        fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+        url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
+    apiVersion: v2
     created: "2026-07-09T10:33:10.09753394Z"
     description: A Helm chart for deploying Hatchet API components on Kubernetes.
     digest: d352feb0757d7623d330c4fd1285cb674b58744cee9b91852e194f59a89bbafe
@@ -406,6 +435,33 @@ entries:
         fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
         url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
     apiVersion: v2
+    created: "2026-07-14T16:57:51.292392172Z"
+    description: A Helm chart for deploying a frontend static file server on Kubernetes.
+    digest: fd706b6d87faec05a2a4951ae4c22934d7b079f10abe9f0eabf5e3fe5788ed18
+    home: https://hatchet.run
+    icon: https://hatchet.run/brand/logomark-white-bg.svg
+    keywords:
+    - hatchet
+    - workflow
+    - dashboard
+    - frontend
+    - ui
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-frontend
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.13.0/hatchet-frontend-0.13.0.tgz
+    version: 0.13.0
+  - annotations:
+      artifacthub.io/signKey: |
+        fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+        url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
+    apiVersion: v2
     created: "2026-07-09T10:33:10.233481781Z"
     description: A Helm chart for deploying a frontend static file server on Kubernetes.
     digest: 01da8af47bafb0f95d2b1a88c3fb9bb5b207d244ed06ed8bebf1c1a640ec33c1
@@ -781,6 +837,72 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-frontend-0.1.0/hatchet-frontend-0.1.0.tgz
     version: 0.1.0
   hatchet-ha:
+  - annotations:
+      artifacthub.io/signKey: |
+        fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+        url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
+    apiVersion: v2
+    created: "2026-07-14T16:57:51.476926332Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.13.0
+    - alias: grpc
+      condition: grpc.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.13.0
+    - alias: controllers
+      condition: controllers.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.13.0
+    - alias: scheduler
+      condition: scheduler.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.13.0
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: 0.13.0
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.7.27
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.14
+    description: A Helm chart for deploying Hatchet in a high-availability configuration
+    digest: 37e63057a3c94e7f093c983a6251e853a12c287bcc7ad449fd7927ba3e1078b5
+    home: https://hatchet.run
+    icon: https://hatchet.run/brand/logomark-white-bg.svg
+    keywords:
+    - hatchet
+    - workflow
+    - workflows
+    - task-queue
+    - orchestration
+    - durable-execution
+    - background-jobs
+    - high-availability
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-ha
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-ha-0.13.0/hatchet-ha-0.13.0.tgz
+    version: 0.13.0
   - annotations:
       artifacthub.io/signKey: |
         fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
@@ -1822,6 +1944,61 @@ entries:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-lite-0.1.0/hatchet-lite-0.1.0.tgz
     version: 0.1.0
   hatchet-stack:
+  - annotations:
+      artifacthub.io/signKey: |
+        fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+        url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
+    apiVersion: v2
+    created: "2026-07-14T16:57:51.659283102Z"
+    dependencies:
+    - alias: api
+      condition: api.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.13.0
+    - alias: engine
+      condition: engine.enabled
+      name: hatchet-api
+      repository: file://../hatchet-api
+      version: 0.13.0
+    - alias: frontend
+      condition: frontend.enabled
+      name: hatchet-frontend
+      repository: file://../hatchet-frontend
+      version: 0.13.0
+    - alias: postgres
+      condition: postgres.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.7.27
+    - alias: rabbitmq
+      condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.14
+    description: A Helm chart for deploying Hatchet on Kubernetes.
+    digest: 36f4ce6f9623a86c732582da96a6e45c099ae855e688fc24dad75467d36c2b11
+    home: https://hatchet.run
+    icon: https://hatchet.run/brand/logomark-white-bg.svg
+    keywords:
+    - hatchet
+    - workflow
+    - workflows
+    - task-queue
+    - orchestration
+    - durable-execution
+    - background-jobs
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: hatchet-stack
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/hatchet
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.13.0/hatchet-stack-0.13.0.tgz
+    version: 0.13.0
   - annotations:
       artifacthub.io/signKey: |
         fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
@@ -2973,4 +3150,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.1.0/hatchet-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2026-07-09T10:33:10.559893003Z"
+generated: "2026-07-14T16:57:51.659704797Z"
