@@ -72,7 +72,8 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `cloudSQLSidecar.enabled` | bool | `false` | Enable the Google Cloud SQL Auth Proxy sidecar. |
-| `cloudSQLSidecar.address` | string | `""` | Cloud SQL instance connection address. |
+| `cloudSQLSidecar.address` | string | `""` | Cloud SQL instance connection address (appended as the final proxy argument). |
+| `cloudSQLSidecar.args` | list | `["--private-ip", "--structured-logs", "--port=5432"]` | Flags passed to the proxy before the address. Override to add flags such as `--auto-iam-authn`. |
 | `cloudSQLSidecar.resources` | object | see `values.yaml` | Resources for the Cloud SQL sidecar. |
 
 ### Deployment

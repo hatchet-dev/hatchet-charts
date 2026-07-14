@@ -118,6 +118,7 @@
       "properties": {
         "enabled": { "type": "boolean" },
         "address": { "type": "string" },
+        "args": { "type": "array", "items": { "type": "string" } },
         "resources": { "$ref": "#/$defs/resources" }
       }
     },
