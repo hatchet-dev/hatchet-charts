@@ -95,9 +95,21 @@ echo "VERSION: $VERSION"
 
 helm dependency build charts/hatchet-ha
 
+# Create the namespace up front so the in-cluster OTel collector (Jaeger) and the
+# engine share it, and the collector is reachable before the engine starts exporting.
+kubectl create namespace loadtest --dry-run=client -o yaml | kubectl apply -f -
+
+echo "Deploying in-cluster Jaeger (OTLP trace sink)..."
+kubectl apply -n loadtest -f hack/loadtest-otel.yaml
+kubectl rollout status deployment/jaeger -n loadtest --timeout=120s || echo "WARNING: Jaeger not ready; engine traces may be unavailable"
+
 helm install hatchet-ha-test charts/hatchet-ha \
     --create-namespace \
     --namespace loadtest \
+    --set-string sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=jaeger:4317 \
+    --set-string sharedConfig.env.SERVER_OTEL_INSECURE=true \
+    --set-string sharedConfig.env.SERVER_OTEL_SERVICE_NAME=hatchet \
+    --set-string sharedConfig.env.SERVER_OTEL_TRACE_ID_RATIO=1 \
     --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
     --set postgres.primary.resources.limits.memory=1Gi \
     --set postgres.primary.resources.limits.cpu=500m \
@@ -241,6 +253,53 @@ else
             LOAD_TEST_EXIT_CODE=1
         fi
     fi
+fi
+
+# --- Export engine traces + KPI summary as CI artifacts (best-effort) ---
+# Runs regardless of pass/fail (traces matter most on failure) and BEFORE the
+# cleanup trap deletes the namespace.
+echo "Exporting engine traces from Jaeger..."
+# Give the engine's OTLP BatchSpanProcessor time to flush before we query.
+sleep 8
+kubectl port-forward -n loadtest svc/jaeger 16686:16686 > /dev/null 2>&1 &
+JAEGER_PF_PID=$!
+sleep 3
+curl -sS "http://localhost:16686/api/traces?service=hatchet&limit=500&lookback=1h" \
+    -o /tmp/loadtest-traces.json || echo "WARNING: failed to export traces from Jaeger"
+kill "$JAEGER_PF_PID" 2>/dev/null || true
+if [[ -s /tmp/loadtest-traces.json ]]; then
+    TRACE_COUNT=$(grep -o '"traceID"' /tmp/loadtest-traces.json | wc -l | tr -d ' ' || true)
+else
+    TRACE_COUNT=0
+fi
+echo "Exported ~${TRACE_COUNT} trace references to /tmp/loadtest-traces.json"
+
+# Parse the loadtest binary's own summary lines into a machine-readable summary.
+AVG_DURATION=$(grep -oE 'final average duration per executed event: .*' /tmp/loadtest-logs.txt | tail -1 | sed 's/.*event: //' || echo "")
+AVG_SCHEDULING=$(grep -oE 'final average scheduling time per event: .*' /tmp/loadtest-logs.txt | tail -1 | sed 's/.*event: //' || echo "")
+COUNTS_LINE=$(grep -oE 'pushed [0-9]+, executed [0-9]+, uniques [0-9]+[^)]*\)' /tmp/loadtest-logs.txt | tail -1 || echo "")
+cat > /tmp/loadtest-summary.json <<JSON
+{
+  "scenario": "ha",
+  "version": "${VERSION}",
+  "result": "${LOAD_TEST_STATUS}",
+  "averageDuration": "${AVG_DURATION}",
+  "averageScheduling": "${AVG_SCHEDULING}",
+  "counts": "${COUNTS_LINE}"
+}
+JSON
+echo "Wrote /tmp/loadtest-summary.json:"
+cat /tmp/loadtest-summary.json
+
+# One-line summary for the GitHub Actions run summary (no-op locally).
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+    {
+        echo "### Loadtest (ha) — ${VERSION}"
+        echo ""
+        echo "| Result | Avg duration | Avg scheduling | Counts |"
+        echo "| --- | --- | --- | --- |"
+        echo "| ${LOAD_TEST_STATUS} | ${AVG_DURATION:-n/a} | ${AVG_SCHEDULING:-n/a} | ${COUNTS_LINE:-n/a} |"
+    } >> "$GITHUB_STEP_SUMMARY"
 fi
 
 # Clean up pod
