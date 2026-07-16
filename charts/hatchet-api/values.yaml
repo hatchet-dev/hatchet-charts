@@ -51,6 +51,10 @@ commandline:
 cloudSQLSidecar:
   enabled: false
   address: ""
+  args:
+    - "--private-ip"
+    - "--structured-logs"
+    - "--port=5432"
   resources:
     limits:
       memory: 512Mi

@@ -84,9 +84,9 @@ spec:
       - name: cloud-sql-proxy
         image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
         args:
-        - "--private-ip"
-        - "--structured-logs"
-        - "--port=5432"
+{{- range .Values.cloudSQLSidecar.args }}
+        - "{{ . }}"
+{{- end }}
         - "{{ .Values.cloudSQLSidecar.address }}"
         securityContext:
           runAsNonRoot: true
