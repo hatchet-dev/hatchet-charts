@@ -260,11 +260,19 @@ fi
 # cleanup trap deletes the namespace.
 echo "Exporting engine traces from Jaeger..."
 # Give the engine's OTLP BatchSpanProcessor time to flush before we query.
-sleep 8
-kubectl port-forward -n loadtest svc/jaeger 16686:16686 > /dev/null 2>&1 &
+sleep 10
+kubectl port-forward -n loadtest svc/jaeger 16686:16686 > /tmp/jaeger-pf.log 2>&1 &
 JAEGER_PF_PID=$!
-sleep 3
-curl -sS "http://localhost:16686/api/traces?service=hatchet&limit=500&lookback=1h" \
+# Wait (up to ~30s) for the port-forward tunnel to actually accept connections —
+# a fixed sleep races against a busy CI runner and silently drops the export.
+for _ in $(seq 1 30); do
+    if curl -sf "http://localhost:16686/api/services" > /dev/null 2>&1; then break; fi
+    sleep 1
+done
+echo "Jaeger services recorded (expect 'hatchet' if the engine exported):"
+curl -sS --max-time 15 "http://localhost:16686/api/services" || echo "  (failed to list services)"
+echo
+curl -sS --max-time 30 "http://localhost:16686/api/traces?service=hatchet&limit=1000&lookback=1h" \
     -o /tmp/loadtest-traces.json || echo "WARNING: failed to export traces from Jaeger"
 kill "$JAEGER_PF_PID" 2>/dev/null || true
 if [[ -s /tmp/loadtest-traces.json ]]; then
