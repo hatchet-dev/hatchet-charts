@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-07-16
+
 - Move all bootstrap work into Helm lifecycle hooks instead of a standing setup `Job`. Migration and `seed` (admin user + default tenant) now run as `pre-install,pre-upgrade` hooks, `quickstart` (writes the generated cookie + encryption keys to `hatchet-config`) as a `pre-install` hook, and `create-worker-token` as a `post-install,post-upgrade` hook. Each is gated on its existing `*.enabled` flag.
 - Completed bootstrap pods are now cleaned up automatically via `helm.sh/hook-delete-policy: hook-succeeded` (failed hooks are retained when `retainFailedHooks` is set), and any failed bootstrap step now aborts the release instead of leaving the cluster half-deployed.
 - The `quickstart` and `create-worker-token` hooks now use a dedicated `<release>-bootstrap` ServiceAccount/Role/RoleBinding (created as `pre-install,pre-upgrade` hooks) to patch the `hatchet-config` Secret, instead of the API Deployment's ServiceAccount.
@@ -112,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.13.1...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.13.2...HEAD
+[0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.1
 [0.13.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.0
 [0.12.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.4
