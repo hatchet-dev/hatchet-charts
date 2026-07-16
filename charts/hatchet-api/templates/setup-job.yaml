@@ -1,74 +1,25 @@
-{{- $runInstallMigrations := and .Values.migrationJob.enabled .Release.IsInstall -}}
-{{- if and .Values.migrationJob.enabled .Release.IsUpgrade }}
-apiVersion: batch/v1
-kind: Job
+{{- if or .Values.quickstartJob.enabled .Values.workerTokenJob.enabled }}
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: {{ template "hatchet.fullname" . }}-migration
+  name: {{ template "hatchet.bootstrap.serviceAccountName" . }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "-5"
-    {{- if .Values.retainFailedHooks }}
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    {{- else }}
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-    {{- end }}
-spec:
-  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
-  activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
-  template:
-    metadata:
-      name: {{ template "hatchet.fullname" . }}-migration
-      labels:
-{{- include "hatchet.labels" . | nindent 8 }}
-    spec:
-      restartPolicy: Never
-      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
-      {{- if .Values.priorityClassName }}
-      priorityClassName: "{{ .Values.priorityClassName }}"
-      {{- end }}
-      initContainers:
-      - name: check-db-connection
-        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
-        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
-        command: ['/bin/sh','-lc']
-        args:
-          - |
-            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
-              echo "waiting for database"; sleep 2
-            done
-            psql "$DATABASE_URL" -c "SELECT 1"
-        env:
-      {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-      {{- end }}
-        envFrom:
-{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
-      containers:
-      - name: migration-job
-        image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
-        imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
-        env:
-        {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-        {{- end }}
-        {{- if .Values.envFrom }}
-        envFrom:
-{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
-        {{- end }}
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation
 ---
-{{- end }}
-{{- if .Values.setupJob.enabled }}
-# create a role and rolebinding to write to the configmap
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ template "hatchet.fullname" . }}
+  name: {{ template "hatchet.bootstrap.serviceAccountName" . }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation
 rules:
 - apiGroups: [""]
   resources: ["configmaps", "secrets"]
@@ -77,24 +28,34 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ template "hatchet.fullname" . }}
+  name: {{ template "hatchet.bootstrap.serviceAccountName" . }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ template "hatchet.fullname" . }}
+  name: {{ template "hatchet.bootstrap.serviceAccountName" . }}
 subjects:
 - kind: ServiceAccount
-  name: {{ template "hatchet.serviceAccountName" . }}
+  name: {{ template "hatchet.bootstrap.serviceAccountName" . }}
   namespace: {{ .Release.Namespace }}
 ---
+{{- end }}
+{{- if .Values.migrationJob.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}"
+  name: {{ template "hatchet.fullname" . }}-migration
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": {{ include "hatchet.bootstrap.hookDeletePolicy" . }}
 spec:
   backoffLimit: {{ .Values.migrationJob.backoffLimit }}
   activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
@@ -105,73 +66,96 @@ spec:
 {{- include "hatchet.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
-      shareProcessNamespace: true
-      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
-      {{- if or $runInstallMigrations .Values.seedJob.enabled }}
       initContainers:
-      {{- if $runInstallMigrations }}
-      - name: check-db-connection
-        image: "{{ .Values.postgresImage.repository }}:{{ required "Please set a value for .Values.postgresImage.tag" .Values.postgresImage.tag }}"
-        imagePullPolicy: {{ .Values.postgresImage.pullPolicy }}
-        command: ['/bin/sh','-lc']
-        args:
-          - |
-            until pg_isready -q -t 5 -d "$DATABASE_URL"; do
-              echo "waiting for database"; sleep 2
-            done
-            psql "$DATABASE_URL" -c "SELECT 1"
-        env:
-      {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-      {{- end }}
-        envFrom:
-{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
-
-      # Run migrations as an initContainer
+{{- include "hatchet.bootstrap.checkDb" . | nindent 6 }}
+      containers:
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
         imagePullPolicy: {{ .Values.migrationJob.image.pullPolicy }}
-        securityContext:
-          capabilities:
-            add:
-              - SYS_PTRACE
         env:
-        {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-        {{- end }}
+{{- include "hatchet.bootstrap.envItems" . | nindent 8 }}
         {{- if .Values.envFrom }}
         envFrom:
 {{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
+---
+{{- end }}
+{{- if .Values.seedJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "hatchet.fullname" . }}-seed
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-4"
+    "helm.sh/hook-delete-policy": {{ include "hatchet.bootstrap.hookDeletePolicy" . }}
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
+  template:
+    metadata:
+      name: {{ template "hatchet.fullname" . }}-seed
+      labels:
+{{- include "hatchet.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      shareProcessNamespace: true
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
-      {{- if .Values.seedJob.enabled }}
+      initContainers:
+{{- include "hatchet.bootstrap.checkDb" . | nindent 6 }}
+      containers:
       - name: seed-job
         image: "{{ .Values.seedJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.seedJob.image.tag) }}"
         imagePullPolicy: {{ .Values.seedJob.image.pullPolicy }}
-        # this command requires read-write access on the hatchet-config configmap
         command: ["/hatchet/hatchet-admin", "quickstart", "--skip", "certs", "--skip", "keys"]
         securityContext:
           capabilities:
             add:
               - SYS_PTRACE
         env:
-        {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-        {{- end }}
+{{- include "hatchet.bootstrap.envItems" . | nindent 8 }}
         {{- if .Values.envFrom }}
         envFrom:
 {{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
-      {{- end }}
-      {{- end }}
-      containers:
+---
+{{- end }}
 {{- if .Values.quickstartJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "hatchet.fullname" . }}-quickstart
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-3"
+    "helm.sh/hook-delete-policy": {{ include "hatchet.bootstrap.hookDeletePolicy" . }}
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
+  template:
+    metadata:
+      name: {{ template "hatchet.fullname" . }}-quickstart
+      labels:
+{{- include "hatchet.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      shareProcessNamespace: true
+      serviceAccountName: {{ template "hatchet.bootstrap.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      initContainers:
+{{- include "hatchet.bootstrap.checkDb" . | nindent 6 }}
+      containers:
       - name: setup-job
         image: "{{ .Values.setupJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.setupJob.image.tag) }}"
         imagePullPolicy: {{ .Values.setupJob.image.pullPolicy }}
@@ -182,40 +166,36 @@ spec:
             add:
               - SYS_PTRACE
         env:
-        {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-        {{- end }}
+{{- include "hatchet.bootstrap.envItems" . | nindent 8 }}
         {{- if .Values.envFrom }}
         envFrom:
 {{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
-{{- else }}
-      # Write an empty container to avoid a syntax error
-      - name: empty
-        image: "alpine:3.14"
-        command: ["sh", "-c", "echo 'No setup job configured'"]
-{{- end }}
 ---
+{{- end }}
 {{- if .Values.workerTokenJob.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}-worker-token"
+  name: {{ template "hatchet.fullname" . }}-worker-token
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": {{ include "hatchet.bootstrap.hookDeletePolicy" . }}
 spec:
   backoffLimit: 1
   activeDeadlineSeconds: 900
   template:
     metadata:
-      name: {{ template "hatchet.fullname" . }}-migration
+      name: {{ template "hatchet.fullname" . }}-worker-token
       labels:
 {{- include "hatchet.labels" . | nindent 8 }}
     spec:
       restartPolicy: Never
       shareProcessNamespace: true
-      serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      serviceAccountName: {{ template "hatchet.bootstrap.serviceAccountName" . }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
@@ -230,10 +210,7 @@ spec:
               echo "waiting for database"; sleep 2
             done
         env:
-        {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-        {{- end }}
+{{- include "hatchet.bootstrap.envItems" . | nindent 8 }}
         envFrom:
 {{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
@@ -250,14 +227,10 @@ spec:
             add:
               - SYS_PTRACE
         env:
-        {{- range $key, $value := .Values.env }}
-          - name: "{{ $key }}"
-            value: "{{ $value }}"
-        {{- end }}
+{{- include "hatchet.bootstrap.envItems" . | nindent 8 }}
         envFrom:
 {{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
 {{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
-{{- end }}
 {{- end }}
 {{- end }}
