@@ -65,6 +65,12 @@ cloudSQLSidecar:
 # Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
 retainFailedHooks: true
 
+# Delete the setup and worker-token Jobs (and their Completed pods) this many
+# seconds after they finish, via the Kubernetes TTL-after-finished controller,
+# so Completed bootstrap pods don't accumulate in the namespace. Set to null to
+# keep finished Jobs around indefinitely (previous behaviour).
+jobTTLSecondsAfterFinished: 600
+
 env: {}
 
 deploymentEnvFrom:

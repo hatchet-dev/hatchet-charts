@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.13.2] - 2026-07-16
-
-- The bundled `hatchet-api` subcharts now run all bootstrap work (migration, seed, quickstart, create-worker-token) through Helm install/upgrade hooks: completed bootstrap pods are cleaned up automatically and a failed bootstrap step aborts the release. Bootstrap Jobs also move to stable names (`<release>-migration`, `-seed`, `-quickstart`, `-worker-token`). See the `hatchet-api` changelog for details.
+- The bundled `hatchet-api` subcharts now clean up their setup and `create-worker-token` Jobs automatically via `jobTTLSecondsAfterFinished` (default `600`), so Completed bootstrap pods no longer accumulate. See the `hatchet-api` changelog for details.
 
 ## [0.13.1] - 2026-07-16
 

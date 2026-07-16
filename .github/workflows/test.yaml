@@ -196,13 +196,11 @@ jobs:
             --from-literal=ADMIN_PASSWORD='Admin123!!'
 
       - name: Install hatchet-api with migrations enabled
-        # envFrom is wired into the bootstrap hook Jobs (they need DATABASE_URL);
-        # deploymentEnvFrom is wired into the Deployment. Both target
-        # hatchet-config so the Deployment picks up the keys the quickstart hook
-        # writes back. Migration + quickstart run as pre-install hooks, so a
-        # `helm install --wait` that returns 0 already means both succeeded
-        # before the API pods were created.
         run: |
+          # envFrom is wired into the Jobs (the migration init container needs
+          # DATABASE_URL); deploymentEnvFrom is wired into the Deployment.
+          # Both target hatchet-config so they pick up the keys the setup Job
+          # writes back.
           helm install hatchet-api-test charts/hatchet-api \
             --set-json 'envFrom=[{"secretRef":{"name":"hatchet-config"}}]' \
             --set seedJob.enabled=false \
@@ -210,19 +208,11 @@ jobs:
             --set ingress.enabled=false \
             --wait --timeout=10m
 
-      - name: Assert bootstrap hook Jobs were cleaned up
-        # The pre-install migration + quickstart hooks are removed on success by
-        # helm.sh/hook-delete-policy: hook-succeeded. Assert none linger in
-        # Completed state — this is the "automatic pod cleanup" the hooks buy us.
+      - name: Assert install-time migration completed
         run: |
-          leftover=$(kubectl get jobs \
-            -l app.kubernetes.io/instance=hatchet-api-test \
-            -o name 2>/dev/null | wc -l | tr -d ' ')
-          if [ "$leftover" != "0" ]; then
-            echo "expected bootstrap hook Jobs to be deleted, found $leftover" >&2
-            kubectl get jobs -l app.kubernetes.io/instance=hatchet-api-test
-            exit 1
-          fi
+          kubectl wait --for=condition=complete \
+            job -l app.kubernetes.io/instance=hatchet-api-test \
+            --timeout=5m
 
       - name: Assert API Deployment is Ready
         run: |
