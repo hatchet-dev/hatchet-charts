@@ -1,43 +1,10 @@
-suite: setup-job migration hook
+suite: setup-job bootstrap hooks
 templates:
   - setup-job.yaml
 release:
   name: test-release
 tests:
-  - it: does not render the pre-upgrade migration hook on install
-    release:
-      upgrade: false
-    set:
-      workerTokenJob.enabled: false
-    asserts:
-      - hasDocuments:
-          count: 0
-          filterAware: true
-        documentSelector:
-          path: metadata.name
-          value: test-release-hatchet-api-migration
-          matchMany: true
-          skipEmptyTemplates: true
-
-  - it: install setup Job runs migrations as an init container
-    release:
-      upgrade: false
-    set:
-      workerTokenJob.enabled: false
-      seedJob.enabled: false
-    asserts:
-      - contains:
-          path: spec.template.spec.initContainers
-          content:
-            name: migration-job
-          any: true
-        documentSelector:
-          path: kind
-          value: Job
-
-  - it: renders the pre-upgrade migration hook on upgrade with default annotations
-    release:
-      upgrade: true
+  - it: renders the migration hook as a pre-install/pre-upgrade hook with default annotations
     asserts:
       - isKind:
           of: Job
@@ -51,7 +18,7 @@ tests:
           value: test-release-hatchet-api-migration
       - equal:
           path: metadata.annotations["helm.sh/hook"]
-          value: pre-upgrade
+          value: pre-install,pre-upgrade
         documentSelector:
           path: metadata.name
           value: test-release-hatchet-api-migration
@@ -80,9 +47,26 @@ tests:
           path: metadata.name
           value: test-release-hatchet-api-migration
 
+  - it: runs the migration as a main container behind a check-db init container
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: migration-job
+          any: true
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: check-db-connection
+          any: true
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
   - it: includes hook-failed in the delete-policy when retainFailedHooks is false
-    release:
-      upgrade: true
     set:
       retainFailedHooks: false
     asserts:
@@ -93,9 +77,7 @@ tests:
           path: metadata.name
           value: test-release-hatchet-api-migration
 
-  - it: propagates custom backoffLimit and activeDeadlineSeconds to the hook Job
-    release:
-      upgrade: true
+  - it: propagates custom backoffLimit and activeDeadlineSeconds to the migration hook
     set:
       migrationJob.backoffLimit: 3
       migrationJob.activeDeadlineSeconds: 3600
@@ -113,9 +95,7 @@ tests:
           path: metadata.name
           value: test-release-hatchet-api-migration
 
-  - it: does not render the pre-upgrade migration hook when migrationJob.enabled is false
-    release:
-      upgrade: true
+  - it: does not render the migration hook when migrationJob.enabled is false
     set:
       migrationJob.enabled: false
     asserts:
@@ -125,5 +105,91 @@ tests:
         documentSelector:
           path: metadata.name
           value: test-release-hatchet-api-migration
+          matchMany: true
+          skipEmptyTemplates: true
+
+  - it: renders the seed hook as a pre-install/pre-upgrade hook
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-seed
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-4"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-seed
+
+  - it: renders the quickstart hook as a pre-install hook using the bootstrap service account
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-quickstart
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-3"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-quickstart
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: test-release-hatchet-api-bootstrap
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-quickstart
+
+  - it: renders the worker-token hook as a post-install/post-upgrade hook using the bootstrap service account
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-install,post-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: test-release-hatchet-api-bootstrap
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+
+  - it: renders the bootstrap RBAC as pre-install/pre-upgrade hooks that survive hook cleanup
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentSelector:
+          path: kind
+          value: ServiceAccount
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-10"
+        documentSelector:
+          path: kind
+          value: ServiceAccount
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation
+        documentSelector:
+          path: kind
+          value: ServiceAccount
+
+  - it: does not render the bootstrap RBAC when quickstart and worker-token are disabled
+    set:
+      quickstartJob.enabled: false
+      workerTokenJob.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+          filterAware: true
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-bootstrap
           matchMany: true
           skipEmptyTemplates: true
