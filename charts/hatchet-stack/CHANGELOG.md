@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-07-16
+
+- Remove the hardcoded `SERVER_DEFAULT_ENGINE_VERSION` key from the rendered `hatchet-shared-config` Secret.
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.13.1`.
+
+## [0.13.0] - 2026-07-14
+
+- Updates the default Hatchet image to [`v0.94.10`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.94.10).
+
+## [0.12.4] - 2026-07-09
+
+- Add `global.sharedConfigSecretName` to rename the `hatchet-shared-config` Secret (defaults to `hatchet-shared-config`). The value is passed through `tpl`, so a release-scoped name such as `'{{ .Release.Name }}-shared-config'` lets multiple releases run in the same namespace without a name collision.
+- Render each backend component's `envFrom` (and `deploymentEnvFrom`) through `tpl`, so secret/configmap names can reference release values.
+
+## [0.12.3] - 2026-07-07
+
+- Chart version bump only; no template changes in this release.
+
 ## [0.12.2] - 2026-07-06
 
 - Add icon for chart
@@ -88,7 +106,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.12.2...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.1...HEAD
+[0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.1
+[0.13.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.0
+[0.12.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.12.4
+[0.12.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.12.3
 [0.12.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.12.2
 [0.12.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.12.1
 [0.12.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.12.0
