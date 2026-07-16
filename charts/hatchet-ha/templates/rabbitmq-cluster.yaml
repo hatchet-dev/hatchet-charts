@@ -1,0 +1,38 @@
+{{- if .Values.rabbitmq.enabled }}
+# The RabbitMQ Cluster Operator generates the default-user Secret if it does not
+# already exist. We pre-create it with known credentials so the connection URL can
+# be composed deterministically at template time (see secret.yaml); the operator
+# adopts this Secret and provisions the broker's default user from it.
+apiVersion: v1
+kind: Secret
+metadata:
+  # No chart labels here: the RabbitMQ Cluster Operator adopts this Secret and
+  # manages its labels, which would conflict with Helm's server-side apply on upgrade.
+  name: {{ .Release.Name }}-rabbitmq-default-user
+type: Opaque
+stringData:
+  username: {{ .Values.rabbitmq.auth.username | quote }}
+  password: {{ .Values.rabbitmq.auth.password | quote }}
+  default_user.conf: |
+    default_user = {{ .Values.rabbitmq.auth.username }}
+    default_pass = {{ .Values.rabbitmq.auth.password }}
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: {{ .Release.Name }}-rabbitmq
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.rabbitmq.replicas }}
+  image: {{ .Values.rabbitmq.image }}
+  persistence:
+    storage: {{ .Values.rabbitmq.persistence.storage }}
+{{- with .Values.rabbitmq.persistence.storageClassName }}
+    storageClassName: {{ . }}
+{{- end }}
+{{- with .Values.rabbitmq.resources }}
+  resources:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}

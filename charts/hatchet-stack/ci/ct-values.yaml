@@ -1,15 +1,19 @@
 # Values used by `ct install` (.github/workflows/lint-test.yaml) and the
-# upgrade-e2e job (.github/workflows/test.yaml).
+# upgrade-e2e job (.github/workflows/test.yaml) for the chart in THIS PR.
 # Trims the footprint so a full install fits on a single-node kind cluster:
-# bundled Postgres (with the UTC timezone Hatchet requires) but no RabbitMQ
-# (Postgres-backed queue), single replicas and small resource requests.
-# Valid for both the previously released chart and the chart in this PR.
+# bundled Postgres (CloudNativePG, single instance; timezone UTC is forced by the
+# template) but no RabbitMQ (Postgres-backed queue), single replicas and small
+# resource requests. Requires the CloudNativePG operator (installed by CI before use).
 rabbitmq:
   enabled: false
 postgres:
-  primary:
-    extendedConfiguration: "timezone='UTC'"
-    resourcesPreset: "small"
+  instances: 1
+  storage:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
 sharedConfig:
   env:
     SERVER_MSGQUEUE_KIND: postgres

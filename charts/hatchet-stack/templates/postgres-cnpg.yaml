@@ -1,0 +1,48 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  # No chart labels here: CloudNativePG adopts this Secret and manages its labels,
+  # which would conflict with Helm's server-side apply on upgrade.
+  name: {{ .Release.Name }}-postgres-app
+type: kubernetes.io/basic-auth
+data:
+  username: {{ .Values.postgres.auth.username | b64enc | quote }}
+  password: {{ .Values.postgres.auth.password | b64enc | quote }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.postgres.instances }}
+  imageName: {{ .Values.postgres.image }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgres.auth.database }}
+      owner: {{ .Values.postgres.auth.username }}
+      secret:
+        name: {{ .Release.Name }}-postgres-app
+{{- with .Values.postgres.initExtensions }}
+      postInitApplicationSQL:
+{{ toYaml . | indent 8 }}
+{{- end }}
+  postgresql:
+    parameters:
+      # Hatchet refuses to start unless the server timezone is UTC.
+      timezone: "UTC"
+{{- with .Values.postgres.parameters }}
+{{ toYaml . | indent 6 }}
+{{- end }}
+  storage:
+    size: {{ .Values.postgres.storage.size }}
+{{- with .Values.postgres.storage.storageClass }}
+    storageClass: {{ . }}
+{{- end }}
+{{- with .Values.postgres.resources }}
+  resources:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}

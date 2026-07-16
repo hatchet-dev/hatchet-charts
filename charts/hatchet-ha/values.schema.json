@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "hatchet-ha values",
-  "description": "Values schema for the hatchet-ha umbrella Helm chart. Component sections (api, grpc, controllers, scheduler, frontend) accept all hatchet-api/hatchet-frontend subchart values; postgres and rabbitmq accept all Bitnami subchart values.",
+  "description": "Values schema for the hatchet-ha umbrella Helm chart. Component sections (api, grpc, controllers, scheduler, frontend) accept all hatchet-api/hatchet-frontend subchart values; postgres renders a CloudNativePG Cluster and rabbitmq renders a RabbitMQ Cluster Operator RabbitmqCluster (both operators must be installed in the cluster).",
   "type": "object",
   "$defs": {
     "image": {
@@ -74,18 +74,62 @@
     },
     "postgres": {
       "type": "object",
-      "description": "Bundled PostgreSQL (Bitnami postgresql subchart). Accepts all subchart values.",
+      "description": "Bundled PostgreSQL, rendered as a CloudNativePG Cluster (dev/staging only; requires the CloudNativePG operator). Disable and supply your own DATABASE_URL for production.",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" }
+        "enabled": { "type": "boolean", "description": "Deploy the bundled CloudNativePG Cluster." },
+        "auth": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "username": { "type": "string", "description": "Application role/owner name." },
+            "password": { "type": "string", "description": "Application role password." },
+            "database": { "type": "string", "description": "Application database name." }
+          }
+        },
+        "image": { "type": "string", "description": "CloudNativePG-compatible PostgreSQL image (e.g. ghcr.io/cloudnative-pg/postgresql:17.6)." },
+        "instances": { "type": "integer", "minimum": 1, "description": "Number of PostgreSQL instances (1 primary + N-1 replicas)." },
+        "storage": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "size": { "type": "string", "description": "PersistentVolume size for each instance." },
+            "storageClass": { "type": "string", "description": "StorageClass name (empty = cluster default)." }
+          }
+        },
+        "resources": { "type": "object", "description": "Pod resource requests/limits." },
+        "port": { "type": "integer", "description": "Port the read-write service listens on." },
+        "sslmode": { "type": "string", "description": "sslmode used in the composed DATABASE_URL." },
+        "parameters": { "type": "object", "description": "Extra postgresql.conf parameters (timezone=UTC is always forced)." },
+        "initExtensions": { "type": "array", "description": "SQL statements run once as superuser after bootstrap (e.g. CREATE EXTENSION)." }
       }
     },
     "rabbitmq": {
       "type": "object",
-      "description": "Bundled RabbitMQ (Bitnami rabbitmq subchart). Accepts all subchart values.",
+      "description": "Bundled RabbitMQ, rendered as a RabbitMQ Cluster Operator RabbitmqCluster (dev/staging only; requires the RabbitMQ Cluster Operator). Disable and supply your own SERVER_MSGQUEUE_RABBITMQ_URL for production.",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" }
+        "enabled": { "type": "boolean", "description": "Deploy the bundled RabbitmqCluster." },
+        "auth": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "username": { "type": "string", "description": "Default user name (provisioned via the operator's default-user Secret)." },
+            "password": { "type": "string", "description": "Default user password." }
+          }
+        },
+        "image": { "type": "string", "description": "RabbitMQ image (e.g. rabbitmq:4.1-management)." },
+        "replicas": { "type": "integer", "minimum": 1, "description": "Number of RabbitMQ nodes." },
+        "port": { "type": "integer", "description": "AMQP service port." },
+        "persistence": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "storage": { "type": "string", "description": "PersistentVolume size for each node." },
+            "storageClassName": { "type": "string", "description": "StorageClass name (empty = cluster default)." }
+          }
+        },
+        "resources": { "type": "object", "description": "Pod resource requests/limits." }
       }
     },
     "caddy": {
