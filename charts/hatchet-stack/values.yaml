@@ -130,51 +130,29 @@ frontend:
     enabled: false
 
 postgres:
-  # The bundled PostgreSQL is a CloudNativePG (CNPG) Cluster, for development/staging
-  # only. It requires the CloudNativePG operator to be installed in the cluster
-  # (see hack/install-operators.sh). For production, set enabled: false and point
-  # DATABASE_URL at a database you operate yourself (managed service or self-hosted
-  # with backups, HA and monitoring).
   enabled: true
   auth:
     username: "hatchet"
     password: "hatchet"
     database: "hatchet"
-  # CNPG-flavoured PostgreSQL image. Pinned to the PostgreSQL 17 line.
   image: "ghcr.io/cloudnative-pg/postgresql:17.6"
-  # Number of PostgreSQL instances (1 = single primary, no replicas).
   instances: 1
   storage:
     size: "8Gi"
     storageClass: ""
   resources: {}
-  # Port the CNPG read-write service listens on.
   port: 5432
-  # sslmode used in DATABASE_URL. CNPG always serves TLS, so "require" works
-  # in-cluster without CA verification.
   sslmode: "require"
-  # Extra postgresql.conf parameters merged into the Cluster (timezone=UTC is
-  # always forced by the template because Hatchet requires it).
   parameters: {}
-  # SQL run once, as superuser, in the application database after bootstrap.
-  # e.g. ["CREATE EXTENSION IF NOT EXISTS pgcrypto;"]
   initExtensions: []
 
 rabbitmq:
-  # The bundled RabbitMQ is a RabbitMQ Cluster Operator RabbitmqCluster, for
-  # development/staging only. It requires the RabbitMQ Cluster Operator to be
-  # installed in the cluster (see hack/install-operators.sh). The chart pre-creates
-  # the operator's default-user Secret with these credentials, so the broker uses
-  # them and SERVER_MSGQUEUE_RABBITMQ_URL is composed from them. For production, set
-  # enabled: false and point SERVER_MSGQUEUE_RABBITMQ_URL at a broker you operate
-  # yourself.
   enabled: true
   auth:
     username: "hatchet"
     password: "hatchet"
   image: "rabbitmq:4.1-management"
   replicas: 1
-  # Port the RabbitmqCluster AMQP service listens on.
   port: 5672
   persistence:
     storage: "8Gi"

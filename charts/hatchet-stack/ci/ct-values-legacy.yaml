@@ -1,7 +1,3 @@
-# Values for installing the PREVIOUS released hatchet-stack chart (Bitnami-based
-# bundled datastores) in the upgrade-e2e job, before upgrading to the chart in this
-# PR (see ct-values.yaml for the new, CloudNativePG-based schema).
-# Trims the footprint so a full install fits on a single-node kind cluster.
 rabbitmq:
   enabled: false
 postgres:

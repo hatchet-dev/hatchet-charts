@@ -385,9 +385,7 @@ jobs:
     env:
       RELEASE: upgrade-test
       NAMESPACE: upgrade-test
-      # Previously released chart still uses the Bitnami-based bundled datastores.
       VALUES_LEGACY: charts/${{ matrix.chart }}/ci/ct-values-legacy.yaml
-      # Chart in this PR uses the CloudNativePG-based bundled datastore.
       VALUES: charts/${{ matrix.chart }}/ci/ct-values.yaml
     steps:
       - name: Checkout
@@ -437,14 +435,7 @@ jobs:
             --wait --timeout=10m
 
       - name: Assert all workloads are Ready after upgrade
-        # NOTE: this upgrade crosses the Bitnami -> CloudNativePG cutover. The bundled
-        # database is NOT migrated in place: the old Bitnami StatefulSet is removed and
-        # a fresh CNPG cluster is bootstrapped (Hatchet re-runs its migrations against
-        # the empty database). This asserts the upgrade mechanics succeed and every
-        # workload comes back Ready; it does not assert data preservation (see the
-        # chart's migration guide for the documented dump/restore path).
         run: |
-          # CNPG manages plain Pods, not a StatefulSet, so wait on the Cluster directly.
           kubectl wait --for=condition=Ready \
             cluster.postgresql.cnpg.io/"$RELEASE"-postgres \
             -n "$NAMESPACE" --timeout=5m

@@ -1,13 +1,7 @@
 {{- if .Values.rabbitmq.enabled }}
-# The RabbitMQ Cluster Operator generates the default-user Secret if it does not
-# already exist. We pre-create it with known credentials so the connection URL can
-# be composed deterministically at template time (see secret.yaml); the operator
-# adopts this Secret and provisions the broker's default user from it.
 apiVersion: v1
 kind: Secret
 metadata:
-  # No chart labels here: the RabbitMQ Cluster Operator adopts this Secret and
-  # manages its labels, which would conflict with Helm's server-side apply on upgrade.
   name: {{ .Release.Name }}-rabbitmq-default-user
 type: Opaque
 stringData:

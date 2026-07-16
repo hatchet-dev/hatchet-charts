@@ -93,8 +93,6 @@ done
 echo "All required environment variables are set"
 echo "VERSION: $VERSION"
 
-# The bundled datastores are managed by the CloudNativePG and RabbitMQ Cluster
-# operators, which must be installed before the chart's custom resources.
 "$(dirname "$0")/install-operators.sh"
 
 helm dependency build charts/hatchet-stack

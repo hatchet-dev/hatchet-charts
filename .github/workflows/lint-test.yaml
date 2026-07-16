@@ -49,6 +49,10 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
         uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
 
+      - name: Install datastore operators
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ./hack/install-operators.sh
+
       - name: Install charts
         if: steps.list-changed.outputs.changed == 'true'
         # hatchet-api is excluded: standalone it requires an externally-managed

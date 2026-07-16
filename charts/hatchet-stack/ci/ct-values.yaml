@@ -1,9 +1,3 @@
-# Values used by `ct install` (.github/workflows/lint-test.yaml) and the
-# upgrade-e2e job (.github/workflows/test.yaml) for the chart in THIS PR.
-# Trims the footprint so a full install fits on a single-node kind cluster:
-# bundled Postgres (CloudNativePG, single instance; timezone UTC is forced by the
-# template) but no RabbitMQ (Postgres-backed queue), single replicas and small
-# resource requests. Requires the CloudNativePG operator (installed by CI before use).
 rabbitmq:
   enabled: false
 postgres:

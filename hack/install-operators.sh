@@ -2,20 +2,7 @@
 
 set -euo pipefail
 
-# Installs the operators the bundled datastores depend on:
-#   - CloudNativePG (Postgres)          https://cloudnative-pg.io
-#   - RabbitMQ Cluster Operator         https://www.rabbitmq.com/kubernetes/operator/operator-overview
-#
-# These are cluster-scoped prerequisites (CRDs + a controller Deployment) and only
-# need to be installed once per cluster. The hatchet-stack / hatchet-ha charts render
-# the Cluster / RabbitmqCluster custom resources these operators reconcile.
-#
-# Override versions via env if needed.
-
 CNPG_VERSION="${CNPG_VERSION:-1.30.0}"
-# Pinned to the latest RabbitMQ Cluster Operator release whose manifest is
-# self-contained. From v2.22.0 the bundled manifest requires cert-manager for its
-# webhook certificates; 2.21.0 self-signs, so it installs with no extra prerequisite.
 RABBITMQ_OPERATOR_VERSION="${RABBITMQ_OPERATOR_VERSION:-2.21.0}"
 
 cnpg_minor="release-$(echo "$CNPG_VERSION" | cut -d. -f1-2)"
