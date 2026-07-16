@@ -109,7 +109,7 @@ helm install hatchet-ha-test charts/hatchet-ha \
     --set-string sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=jaeger:4317 \
     --set-string sharedConfig.env.SERVER_OTEL_INSECURE=true \
     --set-string sharedConfig.env.SERVER_OTEL_SERVICE_NAME=hatchet \
-    --set-string sharedConfig.env.SERVER_OTEL_TRACE_ID_RATIO=1 \
+    --set-string sharedConfig.env.SERVER_OTEL_TRACE_ID_RATIO=0.5 \
     --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
     --set postgres.primary.resources.limits.memory=1Gi \
     --set postgres.primary.resources.limits.cpu=500m \
@@ -259,21 +259,34 @@ fi
 # Runs regardless of pass/fail (traces matter most on failure) and BEFORE the
 # cleanup trap deletes the namespace.
 echo "Exporting engine traces from Jaeger..."
-# Give the engine's OTLP BatchSpanProcessor time to flush before we query.
-sleep 10
 kubectl port-forward -n loadtest svc/jaeger 16686:16686 > /tmp/jaeger-pf.log 2>&1 &
 JAEGER_PF_PID=$!
-# Wait (up to ~30s) for the port-forward tunnel to actually accept connections —
-# a fixed sleep races against a busy CI runner and silently drops the export.
+# Wait (up to ~30s) for the port-forward tunnel to actually accept connections.
 for _ in $(seq 1 30); do
     if curl -sf "http://localhost:16686/api/services" > /dev/null 2>&1; then break; fi
     sleep 1
 done
-echo "Jaeger services recorded (expect 'hatchet' if the engine exported):"
+echo "Jaeger services recorded (expect 'hatchet' once the engine has exported):"
 curl -sS --max-time 15 "http://localhost:16686/api/services" || echo "  (failed to list services)"
 echo
-curl -sS --max-time 30 "http://localhost:16686/api/traces?service=hatchet&limit=1000&lookback=1h" \
-    -o /tmp/loadtest-traces.json || echo "WARNING: failed to export traces from Jaeger"
+# The engine's OTLP BatchSpanProcessor flushes to Jaeger asynchronously and can lag
+# the loadtest finishing by up to a minute, so poll the search until traces actually
+# appear rather than guessing a fixed sleep. Use a wide start/end window (micros) so
+# host/container clock skew can't hide the spans; /api/traces requires explicit bounds.
+NOW_US=$(( $(date +%s) * 1000000 ))
+START_US=$(( NOW_US - 24 * 3600 * 1000000 ))
+END_US=$(( NOW_US + 3600 * 1000000 ))
+TRACES_URL="http://localhost:16686/api/traces?service=hatchet&start=${START_US}&end=${END_US}&limit=1500"
+for attempt in $(seq 1 24); do
+    curl -sS --max-time 60 "$TRACES_URL" -o /tmp/loadtest-traces.json 2>/dev/null || true
+    SPAN_REFS=$(grep -o '"traceID"' /tmp/loadtest-traces.json 2>/dev/null | wc -l | tr -d ' ' || true)
+    if [[ "${SPAN_REFS:-0}" -gt 0 ]]; then
+        echo "Trace export succeeded on attempt ${attempt} (~${SPAN_REFS} span refs)"
+        break
+    fi
+    echo "Attempt ${attempt}: engine still flushing spans to Jaeger; retrying in 5s..."
+    sleep 5
+done
 kill "$JAEGER_PF_PID" 2>/dev/null || true
 if [[ -s /tmp/loadtest-traces.json ]]; then
     TRACE_COUNT=$(grep -o '"traceID"' /tmp/loadtest-traces.json | wc -l | tr -d ' ' || true)

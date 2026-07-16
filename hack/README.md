@@ -12,14 +12,17 @@ failing run can be inspected after the fact and compared across runs.
 2. The released Hatchet engine is pointed at it purely through Helm values —
    `--set sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=jaeger:4317` (plus
    `SERVER_OTEL_INSECURE`, `SERVER_OTEL_SERVICE_NAME=hatchet`,
-   `SERVER_OTEL_TRACE_ID_RATIO=1`). The chart range-renders `sharedConfig.env` into
-   the shared-config Secret every backend loads via `envFrom`, so no chart change
-   is needed. This captures engine-internal spans: `ingest-event` → scheduler
-   `handle-check-queue` → dispatcher `send-to-worker` → `otelpgx` DB queries,
-   stitched across services via the message-queue `otel_carrier`.
-3. After the loadtest pod completes, the script exports the traces and KPIs to the
-   runner filesystem **before** the namespace is torn down, and the workflow
-   uploads them as artifacts (`loadtest-stack-<version>` / `loadtest-ha-<version>`).
+   `SERVER_OTEL_TRACE_ID_RATIO=0.5` — head-sampled at 50%, so traces stay complete
+   while halving the volume the engine emits). The chart range-renders
+   `sharedConfig.env` into the shared-config Secret every backend loads via
+   `envFrom`, so no chart change is needed. This captures engine-internal spans:
+   `ingest-event` → scheduler `handle-check-queue` → dispatcher `send-to-worker` →
+   `otelpgx` DB queries, stitched across services via the message-queue `otel_carrier`.
+3. After the loadtest pod completes, the script **polls** Jaeger's search API until
+   the engine's async batch export has flushed spans in (it can lag the run by up to
+   a minute), then writes the trace JSON + KPI summary to the runner **before** the
+   namespace is torn down. The workflow uploads them as artifacts
+   (`loadtest-stack-<version>` / `loadtest-ha-<version>`).
 
 ## Artifacts
 
@@ -37,7 +40,7 @@ at-a-glance comparison.
 Download `loadtest-traces.json` from the run's artifacts, then:
 
 ```sh
-docker run --rm -p16686:16686 jaegertracing/all-in-one
+docker run --rm -p 16686:16686 jaegertracing/all-in-one
 ```
 
 Open <http://localhost:16686>, click **Upload** (JSON File) on the search page, and
