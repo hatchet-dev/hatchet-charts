@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- The bundled `hatchet-api` subcharts now clean up their setup and `create-worker-token` Jobs automatically via `jobTTLSecondsAfterFinished` (default `600`), so Completed bootstrap pods no longer accumulate. See the `hatchet-api` changelog for details.
+
 ## [0.13.1] - 2026-07-16
 
 - Remove the hardcoded `SERVER_DEFAULT_ENGINE_VERSION` key from the rendered `hatchet-shared-config` Secret.
@@ -106,7 +108,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.1...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.2...HEAD
+[0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.1
 [0.13.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.0
 [0.12.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.12.4

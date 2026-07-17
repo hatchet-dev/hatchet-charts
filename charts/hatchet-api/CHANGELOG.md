@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.2] - 2026-07-16
+
+- Automatically clean up the setup and `create-worker-token` Jobs (and their Completed pods) via a new `jobTTLSecondsAfterFinished` value (default `600`), so finished bootstrap pods no longer accumulate in the namespace. Set it to `null` to keep the previous behaviour of retaining finished Jobs indefinitely.
+
 ## [0.13.1] - 2026-07-16
 
 - Make the Cloud SQL Auth Proxy sidecar flags configurable via `cloudSQLSidecar.args` (defaults to `--private-ip`, `--structured-logs`, `--port=5432`); `cloudSQLSidecar.address` is still appended as the final proxy argument.
@@ -107,7 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.13.1...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.13.2...HEAD
+[0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.1
 [0.13.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.0
 [0.12.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.4

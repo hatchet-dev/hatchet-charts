@@ -98,6 +98,9 @@ metadata:
 spec:
   backoffLimit: {{ .Values.migrationJob.backoffLimit }}
   activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
+  {{- if .Values.jobTTLSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.jobTTLSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -207,6 +210,9 @@ metadata:
 spec:
   backoffLimit: 1
   activeDeadlineSeconds: 900
+  {{- if .Values.jobTTLSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.jobTTLSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
