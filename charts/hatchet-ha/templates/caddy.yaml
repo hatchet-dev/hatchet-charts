@@ -11,7 +11,7 @@ metadata:
 {{- end }}
 data:
   Caddyfile: |
-    http://localhost:8080 {
+    {{ .Values.caddy.listenAddress | default ":8080" }} {
         handle /api/* {
             reverse_proxy {{ .Release.Name }}-api:8080
         }
