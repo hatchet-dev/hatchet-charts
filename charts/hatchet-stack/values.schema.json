@@ -92,7 +92,15 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/$defs/image" }
+        "address": { "type": "string", "description": "Caddy site address (the top line of the generated Caddyfile block)." },
+        "image": { "$ref": "#/$defs/image" },
+        "service": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "type": { "type": "string", "description": "Service type for the Caddy reverse proxy." }
+          }
+        }
       }
     }
   }

@@ -110,7 +110,7 @@ service:
 
 ingress:
   enabled: true
-  # For k8s 1.18+
+  # For k8s 1.30+
   # ingressClassName:
   labels: {}
   annotations: {}
