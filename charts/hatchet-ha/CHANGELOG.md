@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Introduce a new parameter for Caddy and make it listen on the configured address regardless of the Host header
 
+- The bundled `hatchet-api` subcharts now clean up their setup and `create-worker-token` Jobs automatically via `jobTTLSecondsAfterFinished` (default `600`), so Completed bootstrap pods no longer accumulate. See the `hatchet-api` changelog for details.
+
 ## [0.13.1] - 2026-07-16
 
 - Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.13.1`.
@@ -90,7 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - 2024-11-22
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.13.1...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.13.2...HEAD
+[0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.13.1
 [0.13.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.13.0
 [0.12.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.12.4
