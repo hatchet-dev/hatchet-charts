@@ -25,6 +25,10 @@ spec:
     spec:
       restartPolicy: Never
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
@@ -45,7 +49,7 @@ spec:
             value: "{{ $value }}"
       {{- end }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
       containers:
       - name: migration-job
         image: "{{ .Values.migrationJob.image.repository }}:{{ required "Please set a value for .Values.image.tag" (coalesce .Values.sharedConfig.image.tag .Values.migrationJob.image.tag) }}"
@@ -57,7 +61,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
 ---
 {{- end }}
@@ -107,6 +111,10 @@ spec:
       restartPolicy: Never
       shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
@@ -129,7 +137,7 @@ spec:
             value: "{{ $value }}"
       {{- end }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
 
       # Run migrations as an initContainer
       - name: migration-job
@@ -146,7 +154,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
       {{- end }}
       {{- if .Values.seedJob.enabled }}
@@ -160,15 +168,13 @@ spec:
             add:
               - SYS_PTRACE
         env:
-          - name: SERVER_DEFAULT_ENGINE_VERSION
-            value: "V1"
         {{- range $key, $value := .Values.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
       {{- end }}
       {{- end }}
@@ -190,7 +196,7 @@ spec:
         {{- end }}
         {{- if .Values.envFrom }}
         envFrom:
-{{ toYaml .Values.envFrom | indent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | indent 10 }}
         {{- end }}
 {{- else }}
       # Write an empty container to avoid a syntax error
@@ -218,6 +224,10 @@ spec:
       restartPolicy: Never
       shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
@@ -237,9 +247,9 @@ spec:
             value: "{{ $value }}"
         {{- end }}
         envFrom:
-{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
-{{ toYaml .Values.envFrom | nindent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
 {{- end }}
       containers:
       - name: setup-worker-token
@@ -257,9 +267,9 @@ spec:
             value: "{{ $value }}"
         {{- end }}
         envFrom:
-{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
-{{ toYaml .Values.envFrom | nindent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
 {{- end }}
 {{- end }}
 {{- end }}

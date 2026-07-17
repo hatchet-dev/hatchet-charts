@@ -1,3 +1,11 @@
+global:
+  # Name of the Secret rendered from sharedConfig and loaded by every backend
+  # component via envFrom. Kept as "hatchet-shared-config" for backwards
+  # compatibility. Set it to a release-scoped value (the string is passed
+  # through `tpl`, so `{{ .Release.Name }}-shared-config` works) to run
+  # multiple releases in the same namespace without a name collision.
+  sharedConfigSecretName: hatchet-shared-config
+
 # sharedConfig is inherited by all backend services: api, grpc, controllers, scheduler
 sharedConfig:
   # you can disable shared config by setting this to false
@@ -6,7 +14,7 @@ sharedConfig:
   # if set, this image tag will be used for all Hatchet components (api, grpc, controllers, scheduler, frontend)
   # individual component image.tag values will be used as fallbacks if this is not set
   image:
-    tag: "v0.84.0"
+    tag: "v0.94.10"
 
   # these are the most commonly configured values
   serverUrl: "http://localhost:8080"
@@ -27,7 +35,7 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   # Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
   retainFailedHooks: true
@@ -39,14 +47,14 @@ api:
     activeDeadlineSeconds: 900
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-      tag: "v0.84.0"
+      tag: "v0.94.10"
       pullPolicy: "IfNotPresent"
   serviceAccount:
     create: true
     name: hatchet-api
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -72,7 +80,7 @@ grpc:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -89,9 +97,11 @@ grpc:
   serviceAccount:
     create: true
     name: hatchet-grpc
+  env:
+    SERVER_SERVICES: "grpc-api"
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -117,7 +127,7 @@ controllers:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -134,9 +144,11 @@ controllers:
   serviceAccount:
     create: true
     name: controllers
+  env:
+    SERVER_SERVICES: "controllers"
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -162,7 +174,7 @@ scheduler:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -179,9 +191,11 @@ scheduler:
   serviceAccount:
     create: true
     name: scheduler
+  env:
+    SERVER_SERVICES: "scheduler"
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -204,7 +218,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   service:
     externalPort: 8080
@@ -213,6 +227,9 @@ frontend:
     enabled: false
 
 postgres:
+  # The bundled PostgreSQL is for development/staging only. For production,
+  # set enabled: false and point DATABASE_URL at a database you operate
+  # yourself (managed service or self-hosted with backups, HA and monitoring).
   # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml for more options
   enabled: true
   image:
@@ -233,6 +250,9 @@ postgres:
         postgresql: 5432
 
 rabbitmq:
+  # The bundled RabbitMQ is for development/staging only. For production,
+  # set enabled: false and point SERVER_MSGQUEUE_RABBITMQ_URL at a broker you
+  # operate yourself (managed service or self-hosted with HA and monitoring).
   # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml for more options
   enabled: true
   image:

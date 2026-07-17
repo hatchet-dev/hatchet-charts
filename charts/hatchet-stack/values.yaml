@@ -1,3 +1,11 @@
+global:
+  # Name of the Secret rendered from sharedConfig and loaded by every backend
+  # component via envFrom. Kept as "hatchet-shared-config" for backwards
+  # compatibility. Set it to a release-scoped value (the string is passed
+  # through `tpl`, so `{{ .Release.Name }}-shared-config` works) to run
+  # multiple releases in the same namespace without a name collision.
+  sharedConfigSecretName: hatchet-shared-config
+
 # sharedConfig is inherited by all backend services: api, grpc, controllers, scheduler
 sharedConfig:
   # you can disable shared config by setting this to false
@@ -6,7 +14,7 @@ sharedConfig:
   # if set, this image tag will be used for all Hatchet components (api, engine, frontend)
   # individual component image.tag values will be used as fallbacks if this is not set
   image:
-    tag: "v0.84.0"
+    tag: "v0.94.10"
 
   # these are the most commonly configured values
   serverUrl: "http://localhost:8080"
@@ -27,7 +35,7 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   # Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
   retainFailedHooks: true
@@ -39,14 +47,14 @@ api:
     activeDeadlineSeconds: 900
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-      tag: "v0.84.0"
+      tag: "v0.94.10"
       pullPolicy: "IfNotPresent"
   serviceAccount:
     create: true
     name: hatchet-api
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -71,7 +79,7 @@ engine:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -90,7 +98,7 @@ engine:
     name: hatchet-engine
   envFrom:
     - secretRef:
-        name: hatchet-shared-config
+        name: '{{ tpl .Values.global.sharedConfigSecretName . }}'
   ingress:
     enabled: false
   health:
@@ -113,7 +121,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
   service:
     externalPort: 8080
@@ -122,6 +130,9 @@ frontend:
     enabled: false
 
 postgres:
+  # The bundled PostgreSQL is for development/staging only. For production,
+  # set enabled: false and point DATABASE_URL at a database you operate
+  # yourself (managed service or self-hosted with backups, HA and monitoring).
   # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml for more options
   enabled: true
   image:
@@ -142,6 +153,9 @@ postgres:
         postgresql: 5432
 
 rabbitmq:
+  # The bundled RabbitMQ is for development/staging only. For production,
+  # set enabled: false and point SERVER_MSGQUEUE_RABBITMQ_URL at a broker you
+  # operate yourself (managed service or self-hosted with HA and monitoring).
   # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml for more options
   enabled: true
   image:
@@ -163,3 +177,16 @@ caddy:
     repository: "caddy"
     tag: "2.7.6-alpine"
     pullPolicy: "IfNotPresent"
+  # Caddy site address (the top line of the generated Caddyfile block). The
+  # default http://localhost:8080 matches the documented `kubectl port-forward`
+  # workflow, where Caddy only needs to serve requests with Host: localhost. Set
+  # to ":8080" to serve any Host instead, e.g. when fronting Caddy with an
+  # ingress, service mesh, or VPN overlay (Tailscale) where the request Host is
+  # not localhost.
+  address: "http://localhost:8080"
+  service:
+    # Service type for the Caddy reverse proxy. Defaults to LoadBalancer
+    # (unchanged behaviour). Set to ClusterIP to front Caddy with your own
+    # ingress, service mesh, or VPN overlay (e.g. Tailscale) instead of
+    # provisioning a cloud load balancer.
+    type: LoadBalancer

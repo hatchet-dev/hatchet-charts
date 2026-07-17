@@ -55,9 +55,9 @@ spec:
           value: "{{ $value }}"
         {{- end }}
         envFrom:
-{{ toYaml .Values.deploymentEnvFrom | nindent 10 }}
+{{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}
-{{ toYaml .Values.envFrom | nindent 10 }}
+{{ tpl (toYaml .Values.envFrom) . | nindent 10 }}
 {{- end }}
         ports:
         - containerPort: {{ .Values.service.internalPort }}
@@ -84,9 +84,9 @@ spec:
       - name: cloud-sql-proxy
         image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
         args:
-        - "--private-ip"
-        - "--structured-logs"
-        - "--port=5432"
+{{- range .Values.cloudSQLSidecar.args }}
+        - "{{ . }}"
+{{- end }}
         - "{{ .Values.cloudSQLSidecar.address }}"
         securityContext:
           runAsNonRoot: true
@@ -118,16 +118,4 @@ spec:
       volumes:
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 8 }}
-{{- end }}
----
-{{- if .Values.podDisruptionBudget }}
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: {{ template "hatchet.fullname" . }}
-spec:
-  {{ toYaml .Values.podDisruptionBudget }}
-  selector:
-    matchLabels:
-  {{- include "hatchet.selectorLabels" . | nindent 6 }}
 {{- end }}

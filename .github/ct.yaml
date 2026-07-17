@@ -1,0 +1,18 @@
+# Configuration for chart-testing (ct), used by .github/workflows/lint-test.yaml.
+# https://github.com/helm/chart-testing
+target-branch: main
+chart-dirs:
+  - charts
+# Repositories needed to build chart dependencies (Bitnami postgresql/rabbitmq).
+chart-repos:
+  - bitnami=https://charts.bitnami.com/bitnami
+# Custom schema/lint config (the bundled defaults require Chart.yaml `home` and
+# treat maintainers as GitHub usernames, neither of which applies here).
+chart-schema: .github/chart_schema.yaml
+lint-conf: .github/lintconf.yaml
+validate-maintainers: false
+# Require a Chart.yaml version bump whenever a chart changes (chart-releaser
+# publishes a new chart version per change).
+check-version-increment: true
+# Give umbrella-chart installs (Postgres + full Hatchet) room to come up on kind.
+helm-extra-args: --timeout 900s
