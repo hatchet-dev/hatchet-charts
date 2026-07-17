@@ -10,7 +10,7 @@ To view the docs for setting up this chart, see [Kubernetes High-Availability](h
 
 ## Prerequisites
 
-- Kubernetes 1.18+
+- Kubernetes 1.30+
 - Helm 3.8+
 
 ## Installing the chart
