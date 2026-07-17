@@ -130,6 +130,8 @@ Inherited by all backend services (`api`, `engine`).
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `caddy.enabled` | bool | `false` | Enable the optional Caddy reverse proxy. |
+| `caddy.address` | string | `"http://localhost:8080"` | Caddy site address (the top line of the generated Caddyfile block). The default serves only requests with `Host: localhost`, matching the `kubectl port-forward` workflow. Set to `":8080"` to serve any `Host`, e.g. when fronting Caddy with an ingress. |
+| `caddy.service.type` | string | `"LoadBalancer"` | Service type for the Caddy reverse proxy. Set to `ClusterIP` to front Caddy with your own ingress instead of provisioning a cloud load balancer. |
 | `caddy.image.repository` | string | `"caddy"` | Caddy image repository. |
 | `caddy.image.tag` | string | `"2.7.6-alpine"` | Caddy image tag. |
 | `caddy.image.pullPolicy` | string | `"IfNotPresent"` | Caddy image pull policy. |

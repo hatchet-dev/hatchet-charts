@@ -269,8 +269,17 @@ rabbitmq:
 
 caddy:
   enabled: false
-  listenAddress: ":8080"  # use ":8080" to accept any Host, or "http://localhost:8080" for localhost only
+  # Caddy site address: the top line of the generated Caddyfile block. The
+  # default serves only requests with Host: localhost, which matches the
+  # documented `kubectl port-forward` workflow. Set to ":8080" to serve any
+  # Host, e.g. when fronting Caddy with an ingress, service mesh or VPN overlay
+  # (Tailscale), where the request Host is not localhost.
+  address: "http://localhost:8080"
   image:
     repository: "caddy"
     tag: "2.7.6-alpine"
     pullPolicy: "IfNotPresent"
+  service:
+    # Set to ClusterIP to front Caddy with your own ingress, service mesh or VPN
+    # overlay instead of provisioning a cloud load balancer.
+    type: LoadBalancer

@@ -4,7 +4,7 @@ kind: PodDisruptionBudget
 metadata:
   name: {{ template "hatchet.fullname" . }}
 spec:
-  {{ toYaml .Values.podDisruptionBudget }}
+  {{- toYaml .Values.podDisruptionBudget | nindent 2 }}
   selector:
     matchLabels:
   {{- include "hatchet.selectorLabels" . | nindent 6 }}

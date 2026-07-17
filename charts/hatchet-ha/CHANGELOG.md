@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Introduce a new parameter for Caddy and make it listen on the configured address regardless of the Host header
+
+## [0.13.3] - 2026-07-17
+
+- Add `caddy.address` to configure the Caddy site address (the top line of the generated Caddyfile). Defaults to `http://localhost:8080`, unchanged from previous releases, which serves only requests with `Host: localhost` and matches the documented `kubectl port-forward` workflow. Set it to `":8080"` to serve any `Host` instead, e.g. when fronting Caddy with an ingress, service mesh or VPN overlay such as Tailscale.
+- Add `caddy.service.type` to configure the Caddy Service type. Defaults to `LoadBalancer`, unchanged from previous releases. Set it to `ClusterIP` to front Caddy with your own ingress instead of provisioning a cloud load balancer.
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.13.3`: the PodDisruptionBudget moves to the `policy/v1` API version so it installs on Kubernetes 1.25+, and `image.pullSecrets` now reach the bootstrap Job pod specs. See those charts' changelogs for details.
+
+## [0.13.2] - 2026-07-16
 
 - The bundled `hatchet-api` subcharts now clean up their setup and `create-worker-token` Jobs automatically via `jobTTLSecondsAfterFinished` (default `600`), so Completed bootstrap pods no longer accumulate. See the `hatchet-api` changelog for details.
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.13.2`.
 
 ## [0.13.1] - 2026-07-16
 

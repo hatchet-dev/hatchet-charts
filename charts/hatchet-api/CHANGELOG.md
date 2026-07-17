@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3] - 2026-07-17
+
+- Move the PodDisruptionBudget out of `deployment.yaml` into its own `pdb.yaml` template, and bump it from the removed `policy/v1beta1` API version to `policy/v1`. Setting `podDisruptionBudget` previously failed to install on Kubernetes 1.25+, where `policy/v1beta1` no longer exists.
+- Propagate `image.pullSecrets` to the setup, `create-worker-token` and pre-upgrade migration Job pod specs. Previously only the Deployment received them, so on a private registry the Jobs failed to pull their image and the release never bootstrapped.
+- Fix the PodDisruptionBudget template rendering invalid YAML when `podDisruptionBudget` sets more than one key (for example `maxUnavailable` together with `unhealthyPodEvictionPolicy`).
+
 ## [0.13.2] - 2026-07-16
 
 - Automatically clean up the setup and `create-worker-token` Jobs (and their Completed pods) via a new `jobTTLSecondsAfterFinished` value (default `600`), so finished bootstrap pods no longer accumulate in the namespace. Set it to `null` to keep the previous behaviour of retaining finished Jobs indefinitely.
