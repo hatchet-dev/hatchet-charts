@@ -7,9 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.11.1] - 2026-06-22
+## [0.13.1] - 2026-07-16
 
-- Move `PodDisruptionBudget` to its own template (`pdb.yaml`) and bump apiVersion from `policy/v1beta1` to `policy/v1`. The v1beta1 API was removed in Kubernetes 1.25.
+- Make the Cloud SQL Auth Proxy sidecar flags configurable via `cloudSQLSidecar.args` (defaults to `--private-ip`, `--structured-logs`, `--port=5432`); `cloudSQLSidecar.address` is still appended as the final proxy argument.
+- Remove the hardcoded `SERVER_DEFAULT_ENGINE_VERSION=V1` environment variable from the setup Job.
+
+## [0.13.0] - 2026-07-14
+
+- Updates the default Hatchet image to [`v0.94.10`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.94.10).
+
+## [0.12.4] - 2026-07-09
+
+- Render `envFrom` and `deploymentEnvFrom` through `tpl` in the deployment and setup Job templates, so secret/configmap names can reference release values (e.g. `name: '{{ .Release.Name }}-postgres-secret'`).
+
+## [0.12.3] - 2026-07-07
+
+- Chart version bump only; no template changes in this release.
+
+## [0.12.2] - 2026-07-06
+
+- Add icon for chart
+- Enable signing of chart
+
+## [0.12.1] - 2026-07-05
+
+- Added JSON schema for values
+
+## [0.12.0] - 2026-06-30
+
+- Updates the default Hatchet image to [`v0.90.13`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.90.13).
 
 ## [0.11.0] - 2026-05-19
 
@@ -81,7 +107,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.11.0...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.13.1...HEAD
+[0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.1
+[0.13.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.0
+[0.12.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.4
+[0.12.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.3
+[0.12.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.2
+[0.12.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.1
+[0.12.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.12.0
 [0.11.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.11.0
 [0.10.5]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.10.5
 [0.10.4]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.10.4

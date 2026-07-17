@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "hatchet-frontend values",
+  "description": "Values schema for the hatchet-frontend Helm chart.",
+  "type": "object",
+  "$defs": {
+    "image": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "repository": { "type": "string", "description": "Container image repository." },
+        "tag": { "type": "string", "description": "Container image tag." },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "Never", "IfNotPresent"],
+          "description": "Image pull policy."
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "limits": { "type": "object" },
+        "requests": { "type": "object" }
+      }
+    }
+  },
+  "properties": {
+    "sharedConfig": {
+      "type": "object",
+      "description": "Shared configuration, typically passed from a parent (umbrella) chart.",
+      "additionalProperties": true,
+      "properties": {
+        "image": { "$ref": "#/$defs/image" }
+      }
+    },
+    "image": {
+      "allOf": [{ "$ref": "#/$defs/image" }],
+      "description": "Image used for the hatchet-frontend Deployment."
+    },
+    "commandline": {
+      "type": "object",
+      "description": "Container entrypoint command and arguments.",
+      "additionalProperties": true,
+      "properties": {
+        "command": { "type": "array", "items": { "type": "string" } },
+        "args": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "retainFailedHooks": {
+      "type": "boolean",
+      "description": "Retain failed Helm hook Jobs so logs survive for debugging."
+    },
+    "env": {
+      "type": "object",
+      "description": "Additional environment variables injected into the Deployment.",
+      "additionalProperties": true
+    },
+    "files": {
+      "type": "object",
+      "description": "Files mounted into the container via a ConfigMap.",
+      "additionalProperties": true
+    },
+    "deployment": {
+      "type": "object",
+      "description": "Deployment-level metadata.",
+      "additionalProperties": true,
+      "properties": {
+        "annotations": { "type": "object" },
+        "labels": { "type": "object" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "labels": { "type": "object" },
+        "annotations": { "type": "object" },
+        "hosts": { "type": ["array", "null"] },
+        "tls": { "type": ["array", "null"] },
+        "pathType": { "type": "string" }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "description": "Persistent volume configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "size": { "type": "string" }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Service configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]
+        },
+        "externalPort": { "type": "integer" },
+        "internalPort": { "type": "integer" },
+        "annotations": { "type": "object" },
+        "labels": { "type": "object" },
+        "selector": { "type": "object" }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "description": "Service account configuration.",
+      "additionalProperties": true,
+      "properties": {
+        "create": { "type": "boolean" },
+        "name": { "type": ["string", "null"] },
+        "annotations": { "type": "object" }
+      }
+    },
+    "extraContainers": { "type": "array", "description": "Additional sidecar containers." },
+    "extraVolumeMounts": { "type": "array", "description": "Additional volume mounts." },
+    "extraVolumes": { "type": "array", "description": "Additional volumes." },
+    "resources": {
+      "allOf": [{ "$ref": "#/$defs/resources" }],
+      "description": "Compute resources for the main container."
+    },
+    "priorityClassName": {
+      "type": "string",
+      "description": "Pod priority class name."
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules for pod assignment."
+    },
+    "tolerations": {
+      "type": "array",
+      "description": "Tolerations for pod assignment."
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node labels for pod assignment."
+    },
+    "podAnnotations": {
+      "type": "object",
+      "description": "Common annotations for all pods."
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of replicas."
+    },
+    "revisionHistoryLimit": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of old ReplicaSets to retain."
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "description": "Pod disruption budget configuration."
+    },
+    "securityContext": {
+      "type": "object",
+      "description": "Pod/container security context.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "allowPrivilegeEscalation": { "type": "boolean" },
+        "runAsUser": { "type": "integer" },
+        "fsGroup": { "type": "integer" }
+      }
+    },
+    "extraConfigMapMounts": { "type": "array", "description": "Additional ConfigMap mounts." },
+    "initContainers": { "type": "array", "description": "Additional init containers." },
+    "extraManifests": { "type": "array", "description": "Additional raw Kubernetes manifests to render." },
+    "securityGroupPolicy": {
+      "type": "object",
+      "description": "AWS security groups for pods.",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "groupIds": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

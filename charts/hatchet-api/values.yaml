@@ -1,11 +1,11 @@
 # sharedConfig (typically passed from parent chart)
 sharedConfig:
   image:
-    tag: "v0.84.0"
+    tag: "v0.94.10"
 
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-  tag: "v0.84.0"
+  tag: "v0.94.10"
   pullPolicy: "IfNotPresent"
 
 postgresImage:
@@ -17,7 +17,7 @@ setupJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
 
 migrationJob:
@@ -28,14 +28,14 @@ migrationJob:
   activeDeadlineSeconds: 900
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
 
 seedJob:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
-    tag: "v0.84.0"
+    tag: "v0.94.10"
     pullPolicy: "IfNotPresent"
 
 quickstartJob:
@@ -51,6 +51,10 @@ commandline:
 cloudSQLSidecar:
   enabled: false
   address: ""
+  args:
+    - "--private-ip"
+    - "--structured-logs"
+    - "--port=5432"
   resources:
     limits:
       memory: 512Mi

@@ -2,7 +2,22 @@ apiVersion: v2
 name: hatchet-frontend
 description: A Helm chart for deploying a frontend static file server on Kubernetes.
 type: application
-version: 0.11.1
+icon: https://hatchet.run/brand/logomark-white-bg.svg
+version: 0.13.1
+home: https://hatchet.run
+sources:
+  - https://github.com/hatchet-dev/hatchet-charts
+  - https://github.com/hatchet-dev/hatchet
+keywords:
+  - hatchet
+  - workflow
+  - dashboard
+  - frontend
+  - ui
 maintainers:
   - name: Hatchet Engineering
     email: alexander@hatchet.run
+annotations:
+  artifacthub.io/signKey: |
+    fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+    url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
