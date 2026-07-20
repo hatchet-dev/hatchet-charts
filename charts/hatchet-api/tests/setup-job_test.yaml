@@ -127,3 +127,29 @@ tests:
           value: test-release-hatchet-api-migration
           matchMany: true
           skipEmptyTemplates: true
+
+  - it: sets ttlSecondsAfterFinished on the setup Job so Completed pods self-clean
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+    asserts:
+      - equal:
+          path: spec.ttlSecondsAfterFinished
+          value: 600
+        documentSelector:
+          path: kind
+          value: Job
+
+  - it: omits ttlSecondsAfterFinished when jobTTLSecondsAfterFinished is null
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+      jobTTLSecondsAfterFinished: null
+    asserts:
+      - notExists:
+          path: spec.ttlSecondsAfterFinished
+        documentSelector:
+          path: kind
+          value: Job

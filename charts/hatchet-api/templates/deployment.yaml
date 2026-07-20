@@ -119,15 +119,3 @@ spec:
 {{- if .Values.extraVolumes }}
 {{ toYaml .Values.extraVolumes | indent 8 }}
 {{- end }}
----
-{{- if .Values.podDisruptionBudget }}
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: {{ template "hatchet.fullname" . }}
-spec:
-  {{ toYaml .Values.podDisruptionBudget }}
-  selector:
-    matchLabels:
-  {{- include "hatchet.selectorLabels" . | nindent 6 }}
-{{- end }}

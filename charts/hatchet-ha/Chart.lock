@@ -15,4 +15,4 @@ dependencies:
   repository: file://../hatchet-frontend
   version: 1.0.0
 digest: sha256:d3820e2a57e7cc66b5c04e5c1282cd78cca44ad7c49e98724b5be33ccd9bd668
-generated: "2026-07-16T16:53:04.549497+02:00"
+generated: "2026-07-20T15:38:28.35043+02:00"

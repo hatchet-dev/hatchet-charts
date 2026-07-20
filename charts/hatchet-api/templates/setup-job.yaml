@@ -25,6 +25,10 @@ spec:
     spec:
       restartPolicy: Never
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
@@ -98,6 +102,9 @@ metadata:
 spec:
   backoffLimit: {{ .Values.migrationJob.backoffLimit }}
   activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
+  {{- if .Values.jobTTLSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.jobTTLSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -107,6 +114,10 @@ spec:
       restartPolicy: Never
       shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}
@@ -207,6 +218,9 @@ metadata:
 spec:
   backoffLimit: 1
   activeDeadlineSeconds: 900
+  {{- if .Values.jobTTLSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.jobTTLSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ template "hatchet.fullname" . }}-migration
@@ -216,6 +230,10 @@ spec:
       restartPolicy: Never
       shareProcessNamespace: true
       serviceAccountName: {{ template "hatchet.serviceAccountName" . }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 8 }}
+      {{- end }}
       {{- if .Values.priorityClassName }}
       priorityClassName: "{{ .Values.priorityClassName }}"
       {{- end }}

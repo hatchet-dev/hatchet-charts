@@ -246,6 +246,113 @@ jobs:
           kubectl logs deploy/hatchet-api-test --previous --tail=200 || true
           kubectl logs -l job-name=hatchet-api-test-migration --all-containers=true --tail=200 || true
 
+  migration-cross-version-e2e:
+    # Install the API pinned to an OLD Hatchet version, then `helm upgrade` to the
+    # chart-default (newer) version with no image override. The pre-upgrade
+    # migration hook runs with the NEW migrate image and must apply the
+    # migrations that exist in the new version but not the old one. Goose's
+    # goose_db_version table is the source of truth for how many migrations ran.
+    runs-on: ubuntu-latest
+    env:
+      OLD_VERSION: v0.79.12
+      DB_URL: postgres://hatchet:hatchet@pg-postgresql:5432/hatchet?sslmode=disable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v3.21.0
+
+      - name: Set up kind
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Install postgres
+        run: |
+          helm install pg bitnami/postgresql \
+            --set image.repository=bitnamilegacy/postgresql \
+            --set global.security.allowInsecureImages=true \
+            --set auth.username=hatchet \
+            --set auth.password=hatchet \
+            --set auth.database=hatchet \
+            --set tls.enabled=false \
+            --set primary.extendedConfiguration="timezone = 'UTC'" \
+            --wait --timeout=5m
+
+      - name: Pre-create hatchet-config Secret with server-level config
+        run: |
+          kubectl create secret generic hatchet-config \
+            --from-literal=DATABASE_URL="$DB_URL" \
+            --from-literal=SERVER_URL='http://localhost:8080' \
+            --from-literal=SERVER_AUTH_COOKIE_DOMAIN='localhost' \
+            --from-literal=SERVER_AUTH_COOKIE_INSECURE='t' \
+            --from-literal=SERVER_AUTH_SET_EMAIL_VERIFIED='t' \
+            --from-literal=SERVER_AUTH_BASIC_AUTH_ENABLED='t' \
+            --from-literal=SERVER_GRPC_BROADCAST_ADDRESS='localhost:7070' \
+            --from-literal=SERVER_GRPC_INSECURE='t' \
+            --from-literal=SERVER_MSGQUEUE_KIND='postgres' \
+            --from-literal=ADMIN_EMAIL='admin@example.com' \
+            --from-literal=ADMIN_PASSWORD='Admin123!!'
+
+      - name: Install hatchet-api pinned to the old version
+        run: |
+          # sharedConfig.image.tag pins the API, migrate, seed and setup images
+          # to a single Hatchet version.
+          helm install hatchet-api-test charts/hatchet-api \
+            --set sharedConfig.image.tag="$OLD_VERSION" \
+            --set-json 'envFrom=[{"secretRef":{"name":"hatchet-config"}}]' \
+            --set seedJob.enabled=false \
+            --set workerTokenJob.enabled=false \
+            --set ingress.enabled=false \
+            --wait --timeout=10m
+
+      - name: Record migration count before upgrade
+        run: |
+          PG=$(kubectl get pod -l app.kubernetes.io/instance=pg \
+            -o jsonpath='{.items[0].metadata.name}')
+          BEFORE=$(kubectl exec "$PG" -- env PGPASSWORD=hatchet \
+            psql -U hatchet -d hatchet -tAc \
+            "select count(*) from goose_db_version" | tr -d '[:space:]')
+          echo "migrations applied at $OLD_VERSION: $BEFORE"
+          echo "BEFORE=$BEFORE" >> "$GITHUB_ENV"
+
+      - name: Helm upgrade to the chart-default version (applies new migrations)
+        run: |
+          helm upgrade hatchet-api-test charts/hatchet-api \
+            --set-json 'envFrom=[{"secretRef":{"name":"hatchet-config"}}]' \
+            --set seedJob.enabled=false \
+            --set workerTokenJob.enabled=false \
+            --set ingress.enabled=false \
+            --wait --timeout=10m
+
+      - name: Assert new migrations were applied and API is Ready
+        run: |
+          PG=$(kubectl get pod -l app.kubernetes.io/instance=pg \
+            -o jsonpath='{.items[0].metadata.name}')
+          AFTER=$(kubectl exec "$PG" -- env PGPASSWORD=hatchet \
+            psql -U hatchet -d hatchet -tAc \
+            "select count(*) from goose_db_version" | tr -d '[:space:]')
+          echo "migrations before=$BEFORE after=$AFTER"
+          if [ "$AFTER" -le "$BEFORE" ]; then
+            echo "expected the pre-upgrade hook to apply new migrations ($BEFORE -> $AFTER)" >&2
+            exit 1
+          fi
+          kubectl rollout status deploy/hatchet-api-test --timeout=5m
+
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get pods,jobs -A
+          kubectl describe job/hatchet-api-test-migration || true
+          kubectl logs -l job-name=hatchet-api-test-migration --all-containers=true --tail=200 || true
+          kubectl logs deploy/hatchet-api-test --tail=200 || true
+
   resolve-version:
     runs-on: ubuntu-latest
     outputs:
