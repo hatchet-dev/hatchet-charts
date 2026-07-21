@@ -138,8 +138,8 @@ helm install hatchet-ha-test charts/hatchet-ha \
     --namespace loadtest \
     ${otel_args[@]+"${otel_args[@]}"} \
     --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
-    --set postgres.resources.limits.memory=1Gi \
-    --set postgres.resources.limits.cpu=500m
+    --set postgres.resources.limits.memory=3750M \
+    --set postgres.resources.limits.cpu=1
 
 # Wait for engine deployment
 echo "Waiting for engine deployment to be ready..."
@@ -159,8 +159,23 @@ fi
 
 echo "Engine deployment is ready!"
 
-# Sleep for 30 seconds
-echo "Sleeping for 30 seconds to allow services to stabilize..."
+# The client token is written by the worker-token Job, which runs against the
+# database independently of the engine Deployment's readiness. Under a slow or
+# CPU-throttled Postgres the Job can finish well after the engine reports Ready,
+# so wait for the Secret to exist before templating it into the loadtest pod.
+echo "Waiting for hatchet-client-config secret (worker token) to be created..."
+for i in $(seq 1 60); do
+    if kubectl get secret hatchet-client-config -n loadtest &> /dev/null; then
+        echo "hatchet-client-config secret is present."
+        break
+    fi
+    if [[ "$i" == "60" ]]; then
+        echo "ERROR: hatchet-client-config secret not created within 300s"
+        print_deployment_debug "hatchet-grpc" "loadtest"
+        exit 1
+    fi
+    sleep 5
+done
 
 # Run load test
 echo "Running load test..."
