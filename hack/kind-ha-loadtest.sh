@@ -97,21 +97,46 @@ echo "VERSION: $VERSION"
 
 helm dependency build charts/hatchet-ha
 
-# Create the namespace up front so the in-cluster OTel collector (Jaeger) and the
-# engine share it, and the collector is reachable before the engine starts exporting.
+# Create the namespace up front so the engine has somewhere to land before install.
 kubectl create namespace loadtest --dry-run=client -o yaml | kubectl apply -f -
 
-echo "Deploying in-cluster Jaeger (OTLP trace sink)..."
-kubectl apply -n loadtest -f hack/loadtest-otel.yaml
-kubectl rollout status deployment/jaeger -n loadtest --timeout=120s || echo "WARNING: Jaeger not ready; engine traces may be unavailable"
+# Engine traces are shipped to ClickStack Cloud via an in-cluster ClickStack OTel
+# collector: the engine exports OTLP to svc `otel-collector:4317` (plaintext,
+# in-cluster) and the collector forwards spans to ClickHouse Cloud over TLS using the
+# credentials below (provided via GitHub secrets in CI). When any credential is unset
+# the collector is skipped and the engine's OTLP export is a no-op, so local runs work
+# without any secrets.
+otel_args=()
+if [[ -n "${CLICKHOUSE_ENDPOINT:-}" && -n "${CLICKHOUSE_USER:-}" && -n "${CLICKHOUSE_PASSWORD:-}" ]]; then
+    # Wake the ClickHouse Cloud service before the collector starts writing. A
+    # scaled-to-zero instance resumes on any HTTP hit; poll /ping until it's back
+    # (up to ~60s). Mirrors the wake-clickhouse job in hatchet-cloud's build.yml.
+    echo "Waking ClickHouse Cloud (${CLICKHOUSE_ENDPOINT%/}/ping)..."
+    curl -sS --retry 30 --retry-delay 2 --retry-all-errors "${CLICKHOUSE_ENDPOINT%/}/ping" \
+        || echo "WARNING: ClickHouse wake ping failed; collector writes may lag until it resumes"
+
+    echo "Deploying in-cluster ClickStack OTel collector (ships traces to ClickHouse Cloud)..."
+    kubectl create secret generic clickstack-otel -n loadtest \
+        --from-literal=CLICKHOUSE_ENDPOINT="${CLICKHOUSE_ENDPOINT}" \
+        --from-literal=CLICKHOUSE_USER="${CLICKHOUSE_USER}" \
+        --from-literal=CLICKHOUSE_PASSWORD="${CLICKHOUSE_PASSWORD}" \
+        --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -n loadtest -f hack/loadtest-otel.yaml
+    kubectl rollout status deployment/otel-collector -n loadtest --timeout=120s || echo "WARNING: collector not ready; engine traces may be unavailable"
+    otel_args=(
+        --set-string sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=otel-collector:4317
+        --set-string sharedConfig.env.SERVER_OTEL_INSECURE=true
+        --set-string sharedConfig.env.SERVER_OTEL_SERVICE_NAME=hatchet-loadtest-ha
+        --set-string sharedConfig.env.SERVER_OTEL_TRACE_ID_RATIO=0.5
+    )
+else
+    echo "CLICKHOUSE_ENDPOINT / CLICKHOUSE_USER / CLICKHOUSE_PASSWORD not set; engine trace export disabled."
+fi
 
 helm install hatchet-ha-test charts/hatchet-ha \
     --create-namespace \
     --namespace loadtest \
-    --set-string sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=jaeger:4317 \
-    --set-string sharedConfig.env.SERVER_OTEL_INSECURE=true \
-    --set-string sharedConfig.env.SERVER_OTEL_SERVICE_NAME=hatchet \
-    --set-string sharedConfig.env.SERVER_OTEL_TRACE_ID_RATIO=0.5 \
+    ${otel_args[@]+"${otel_args[@]}"} \
     --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
     --set postgres.primary.resources.limits.memory=1Gi \
     --set postgres.primary.resources.limits.cpu=500m \
@@ -257,45 +282,12 @@ else
     fi
 fi
 
-# --- Export engine traces + KPI summary as CI artifacts (best-effort) ---
-# Runs regardless of pass/fail (traces matter most on failure) and BEFORE the
-# cleanup trap deletes the namespace.
-echo "Exporting engine traces from Jaeger..."
-kubectl port-forward -n loadtest svc/jaeger 16686:16686 > /tmp/jaeger-pf.log 2>&1 &
-JAEGER_PF_PID=$!
-# Wait (up to ~30s) for the port-forward tunnel to actually accept connections.
-for _ in $(seq 1 30); do
-    if curl -sf "http://localhost:16686/api/services" > /dev/null 2>&1; then break; fi
-    sleep 1
-done
-echo "Jaeger services recorded (expect 'hatchet' once the engine has exported):"
-curl -sS --max-time 15 "http://localhost:16686/api/services" || echo "  (failed to list services)"
-echo
-# The engine's OTLP BatchSpanProcessor flushes to Jaeger asynchronously and can lag
-# the loadtest finishing by up to a minute, so poll the search until traces actually
-# appear rather than guessing a fixed sleep. Use a wide start/end window (micros) so
-# host/container clock skew can't hide the spans; /api/traces requires explicit bounds.
-NOW_US=$(( $(date +%s) * 1000000 ))
-START_US=$(( NOW_US - 24 * 3600 * 1000000 ))
-END_US=$(( NOW_US + 3600 * 1000000 ))
-TRACES_URL="http://localhost:16686/api/traces?service=hatchet&start=${START_US}&end=${END_US}&limit=1500"
-for attempt in $(seq 1 24); do
-    curl -sS --max-time 60 "$TRACES_URL" -o /tmp/loadtest-traces.json 2>/dev/null || true
-    SPAN_REFS=$(grep -o '"traceID"' /tmp/loadtest-traces.json 2>/dev/null | wc -l | tr -d ' ' || true)
-    if [[ "${SPAN_REFS:-0}" -gt 0 ]]; then
-        echo "Trace export succeeded on attempt ${attempt} (~${SPAN_REFS} span refs)"
-        break
-    fi
-    echo "Attempt ${attempt}: engine still flushing spans to Jaeger; retrying in 5s..."
-    sleep 5
-done
-kill "$JAEGER_PF_PID" 2>/dev/null || true
-if [[ -s /tmp/loadtest-traces.json ]]; then
-    TRACE_COUNT=$(grep -o '"traceID"' /tmp/loadtest-traces.json | wc -l | tr -d ' ' || true)
-else
-    TRACE_COUNT=0
+# --- KPI summary as a CI artifact (best-effort) ---
+# Engine traces for this run live in ClickStack Cloud (service hatchet-loadtest-ha),
+# so there is nothing to export from the cluster before the cleanup trap tears it down.
+if [[ -n "${CLICKHOUSE_ENDPOINT:-}" ]]; then
+    echo "Engine traces exported to ClickStack Cloud (service: hatchet-loadtest-ha)."
 fi
-echo "Exported ~${TRACE_COUNT} trace references to /tmp/loadtest-traces.json"
 
 # Parse the loadtest binary's own summary lines into a machine-readable summary.
 AVG_DURATION=$(grep -oE 'final average duration per executed event: .*' /tmp/loadtest-logs.txt | tail -1 | sed 's/.*event: //' || echo "")

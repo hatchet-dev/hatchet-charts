@@ -395,14 +395,16 @@ jobs:
           ./hack/kind-stack-loadtest.sh
         env:
           VERSION: ${{ needs.resolve-version.outputs.version }}
+          CLICKHOUSE_ENDPOINT: ${{ secrets.CLICKHOUSE_ENDPOINT }}
+          CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
+          CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
 
-      - name: Upload loadtest traces & summary
+      - name: Upload loadtest summary
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: loadtest-stack-${{ needs.resolve-version.outputs.version }}
           path: |
-            /tmp/loadtest-traces.json
             /tmp/loadtest-summary.json
             /tmp/loadtest-logs.txt
           if-no-files-found: warn
@@ -444,14 +446,16 @@ jobs:
           ./hack/kind-ha-loadtest.sh
         env:
           VERSION: ${{ needs.resolve-version.outputs.version }}
+          CLICKHOUSE_ENDPOINT: ${{ secrets.CLICKHOUSE_ENDPOINT }}
+          CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
+          CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
 
-      - name: Upload loadtest traces & summary
+      - name: Upload loadtest summary
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: loadtest-ha-${{ needs.resolve-version.outputs.version }}
           path: |
-            /tmp/loadtest-traces.json
             /tmp/loadtest-summary.json
             /tmp/loadtest-logs.txt
           if-no-files-found: warn
