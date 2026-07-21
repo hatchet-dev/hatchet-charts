@@ -137,9 +137,7 @@ helm install hatchet-ha-test charts/hatchet-ha \
     --create-namespace \
     --namespace loadtest \
     ${otel_args[@]+"${otel_args[@]}"} \
-    --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
-    --set postgres.resources.limits.memory=3750M \
-    --set postgres.resources.limits.cpu=1
+    --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070"
 
 # Wait for engine deployment
 echo "Waiting for engine deployment to be ready..."
