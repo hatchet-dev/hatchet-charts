@@ -135,6 +135,39 @@ Inherited by all backend services (`api`, `engine`).
 | `caddy.image.repository` | string | `"caddy"` | Caddy image repository. |
 | `caddy.image.tag` | string | `"2.7.6-alpine"` | Caddy image tag. |
 | `caddy.image.pullPolicy` | string | `"IfNotPresent"` | Caddy image pull policy. |
+| `caddy.ingress.enabled` | bool | `false` | Expose the Hatchet dashboard through an Ingress that fronts the Caddy service. |
+| `caddy.ingress.className` | string | _unset_ | IngressClass name (e.g. `nginx`). |
+| `caddy.ingress.host` | string | _unset_ | Host the dashboard is served at. Must be a dedicated host served at the root path. |
+| `caddy.ingress.path` | string | `"/"` | Ingress path. Keep as `/` because the frontend assets use root-relative paths and cannot be served under a sub-path. |
+| `caddy.ingress.pathType` | string | `"Prefix"` | Ingress `pathType`. |
+| `caddy.ingress.annotations` | object | `{}` | Annotations added to the Ingress. |
+| `caddy.ingress.tls` | array | _unset_ | TLS configuration passed through to the Ingress spec. |
+
+### Exposing the dashboard via Ingress
+
+The optional Caddy reverse proxy already routes `/api/*` to the API and `/*` to
+the frontend, so a single Ingress fronting the Caddy service exposes the whole
+dashboard. To serve it at `hatchet.example.com`:
+
+```yaml
+caddy:
+  enabled: true
+  # Accept the ingress Host header instead of only Host: localhost.
+  address: ":8080"
+  service:
+    # No cloud load balancer; the ingress controller fronts Caddy.
+    type: ClusterIP
+  ingress:
+    enabled: true
+    className: nginx
+    host: hatchet.example.com
+    path: "/"
+    pathType: Prefix
+```
+
+The frontend assets use root-relative paths (`/assets/...`, `/favicon.svg`), so
+the dashboard must be served at the **root of a dedicated host**; it cannot be
+mounted under a sub-path.
 
 ## License
 

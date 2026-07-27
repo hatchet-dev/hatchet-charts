@@ -186,3 +186,23 @@ caddy:
     # Set to ClusterIP to front Caddy with your own ingress, service mesh or VPN
     # overlay instead of provisioning a cloud load balancer.
     type: LoadBalancer
+  # Expose the Hatchet dashboard through a Kubernetes Ingress that fronts the
+  # Caddy service (which already routes /api/* to the API and /* to the
+  # frontend). Disabled by default to preserve the port-forward workflow.
+  #
+  # When enabling this, also set caddy.address to ":8080" so Caddy accepts the
+  # ingress Host header, and set caddy.service.type to ClusterIP so no cloud
+  # load balancer is provisioned. Because the frontend assets use root-relative
+  # paths, the dashboard must be served at the root of a dedicated host, so
+  # leave ingress.path as "/".
+  ingress:
+    enabled: false
+    # className: nginx
+    # host: hatchet.example.com
+    path: "/"
+    pathType: "Prefix"
+    annotations: {}
+    # tls:
+    #   - hosts:
+    #       - hatchet.example.com
+    #     secretName: hatchet-dashboard-tls

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.4] - 2026-07-27
+
+- Add `caddy.ingress` to expose the Hatchet dashboard through a Kubernetes Ingress that fronts the Caddy service (which already routes `/api/*` to the API and `/*` to the frontend). Disabled by default (`caddy.ingress.enabled: false`), so existing deployments are unaffected. When enabling it, set `caddy.address` to `":8080"` so Caddy accepts the ingress `Host` header and `caddy.service.type` to `ClusterIP` so no cloud load balancer is provisioned. Because the frontend assets use root-relative paths, the dashboard must be served at the root of a dedicated host.
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.13.4` (chart version bump only; no template changes).
+
 ## [0.13.3] - 2026-07-17
 
 - Add `caddy.address` to configure the Caddy site address (the top line of the generated Caddyfile). Defaults to `http://localhost:8080`, unchanged from previous releases, which serves only requests with `Host: localhost` and matches the documented `kubectl port-forward` workflow. Set it to `":8080"` to serve any `Host` instead, e.g. when fronting Caddy with an ingress, service mesh or VPN overlay such as Tailscale.
@@ -118,7 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.3...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.4...HEAD
+[0.13.4]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.3...hatchet-stack-0.13.4
 [0.13.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.3
 [0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.1

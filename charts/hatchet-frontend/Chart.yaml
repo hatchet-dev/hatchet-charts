@@ -3,7 +3,7 @@ name: hatchet-frontend
 description: A Helm chart for deploying a frontend static file server on Kubernetes.
 type: application
 icon: https://hatchet.run/brand/logomark-white-bg.svg
-version: 0.13.3
+version: 0.13.4
 home: https://hatchet.run
 sources:
   - https://github.com/hatchet-dev/hatchet-charts

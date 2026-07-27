@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.4] - 2026-07-27
+
+- Chart version bump only, to stay in lockstep with the `hatchet-stack` and `hatchet-ha` umbrella charts; no template changes in this release.
+
 ## [0.13.3] - 2026-07-17
 
 - Move the PodDisruptionBudget out of `deployment.yaml` into its own `pdb.yaml` template, and bump it from the removed `policy/v1beta1` API version to `policy/v1`. Setting `podDisruptionBudget` previously failed to install on Kubernetes 1.25+, where `policy/v1beta1` no longer exists.
@@ -106,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-frontend-0.13.3...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-frontend-0.13.4...HEAD
+[0.13.4]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-frontend-0.13.3...hatchet-frontend-0.13.4
 [0.13.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-frontend-0.13.3
 [0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-frontend-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-frontend-0.13.1

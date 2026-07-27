@@ -102,6 +102,20 @@
           "properties": {
             "type": { "type": "string", "description": "Service type for the Caddy reverse proxy." }
           }
+        },
+        "ingress": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Ingress that fronts the Caddy service to expose the Hatchet dashboard.",
+          "properties": {
+            "enabled": { "type": "boolean", "description": "Enable the dashboard Ingress." },
+            "className": { "type": "string", "description": "IngressClass name (e.g. nginx)." },
+            "host": { "type": "string", "description": "Host the dashboard is served at. Must be a dedicated host served at the root path." },
+            "path": { "type": "string", "description": "Ingress path. Keep as \"/\" because the frontend assets use root-relative paths." },
+            "pathType": { "type": "string", "description": "Ingress pathType." },
+            "annotations": { "type": "object", "additionalProperties": true, "description": "Annotations added to the Ingress." },
+            "tls": { "type": "array", "description": "TLS configuration passed through to the Ingress spec.", "items": { "type": "object" } }
+          }
         }
       }
     }

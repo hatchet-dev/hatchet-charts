@@ -1,0 +1,33 @@
+{{- if and .Values.caddy.enabled .Values.caddy.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-dashboard
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+{{- with .Values.caddy.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- with .Values.caddy.ingress.className }}
+  ingressClassName: {{ . }}
+{{- end }}
+{{- with .Values.caddy.ingress.tls }}
+  tls:
+{{ toYaml . | indent 4 }}
+{{- end }}
+  rules:
+  - http:
+      paths:
+      - path: {{ .Values.caddy.ingress.path | default "/" }}
+        pathType: {{ .Values.caddy.ingress.pathType | default "Prefix" }}
+        backend:
+          service:
+            name: caddy
+            port:
+              number: 8080
+{{- with .Values.caddy.ingress.host }}
+    host: {{ . | quote }}
+{{- end }}
+{{- end -}}
