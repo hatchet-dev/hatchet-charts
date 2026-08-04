@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-29
+
+- Update the default Hatchet image to [`v0.98.9`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.98.9) for the API, setup, migration and seed Jobs.
+
 ## [0.13.3] - 2026-07-17
 
 - Move the PodDisruptionBudget out of `deployment.yaml` into its own `pdb.yaml` template, and bump it from the removed `policy/v1beta1` API version to `policy/v1`. Setting `podDisruptionBudget` previously failed to install on Kubernetes 1.25+, where `policy/v1beta1` no longer exists.
@@ -117,7 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.13.3...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.14.0...HEAD
+[0.14.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.14.0
 [0.13.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.3
 [0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.13.1

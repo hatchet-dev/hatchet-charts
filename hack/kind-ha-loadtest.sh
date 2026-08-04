@@ -136,8 +136,7 @@ helm install hatchet-ha-test charts/hatchet-ha \
     --namespace loadtest \
     ${otel_args[@]+"${otel_args[@]}"} \
     --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
-    --set postgres.primary.resources.limits.memory=1Gi \
-    --set postgres.primary.resources.limits.cpu=500m \
+    --set postgres.primary.resourcesPreset=none \
     --set postgres.primary.extendedConfiguration="timezone='UTC'"
 
 # Wait for engine deployment
