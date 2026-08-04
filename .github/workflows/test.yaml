@@ -79,6 +79,7 @@ jobs:
         run: |
           helm install hatchet-api-test charts/hatchet-api \
             --set-json 'deploymentEnvFrom=[]' \
+            --set-string env.SERVER_SECURITY_CHECK_ENABLED=false \
             --set setupJob.enabled=false \
             --set migrationJob.enabled=false \
             --set seedJob.enabled=false \
@@ -108,6 +109,7 @@ jobs:
           helm install hatchet-stack-test charts/hatchet-stack \
             --set postgres.enabled=false \
             --set rabbitmq.enabled=false \
+            --set-string sharedConfig.env.SERVER_SECURITY_CHECK_ENABLED=false \
             --timeout=1m
 
           kubectl get pods
@@ -192,6 +194,7 @@ jobs:
             --from-literal=SERVER_GRPC_BROADCAST_ADDRESS='localhost:7070' \
             --from-literal=SERVER_GRPC_INSECURE='t' \
             --from-literal=SERVER_MSGQUEUE_KIND='postgres' \
+            --from-literal=SERVER_SECURITY_CHECK_ENABLED='false' \
             --from-literal=ADMIN_EMAIL='admin@example.com' \
             --from-literal=ADMIN_PASSWORD='Admin123!!'
 
@@ -297,6 +300,7 @@ jobs:
             --from-literal=SERVER_GRPC_BROADCAST_ADDRESS='localhost:7070' \
             --from-literal=SERVER_GRPC_INSECURE='t' \
             --from-literal=SERVER_MSGQUEUE_KIND='postgres' \
+            --from-literal=SERVER_SECURITY_CHECK_ENABLED='false' \
             --from-literal=ADMIN_EMAIL='admin@example.com' \
             --from-literal=ADMIN_PASSWORD='Admin123!!'
 

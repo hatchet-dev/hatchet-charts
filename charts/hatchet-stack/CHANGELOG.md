@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-08-04
+
+- Update the default Hatchet image to [`v0.98.9`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.98.9).
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.14.0`.
+
 ## [0.13.3] - 2026-07-17
 
 - Add `caddy.address` to configure the Caddy site address (the top line of the generated Caddyfile). Defaults to `http://localhost:8080`, unchanged from previous releases, which serves only requests with `Host: localhost` and matches the documented `kubectl port-forward` workflow. Set it to `":8080"` to serve any `Host` instead, e.g. when fronting Caddy with an ingress, service mesh or VPN overlay such as Tailscale.
@@ -118,7 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.13.3...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.14.0...HEAD
+[0.14.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.14.0
 [0.13.3]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.3
 [0.13.2]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.2
 [0.13.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.13.1
