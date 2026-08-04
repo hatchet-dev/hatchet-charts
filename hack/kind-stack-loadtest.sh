@@ -136,6 +136,7 @@ helm install hatchet-stack-test charts/hatchet-stack \
     --namespace loadtest-stack \
     ${otel_args[@]+"${otel_args[@]}"} \
     --set sharedConfig.grpcBroadcastAddress="hatchet-stack-test-engine:7070" \
+    --set-string sharedConfig.env.SERVER_SECURITY_CHECK_ENABLED=false \
     --set postgres.primary.resourcesPreset=none \
     --set postgres.primary.extendedConfiguration="timezone='UTC'"
 
