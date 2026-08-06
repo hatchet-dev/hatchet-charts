@@ -1,4 +1,4 @@
-# Migrating to v1.0.0 (operator-managed datastores)
+# Migrating to v1.0.0 (moving away from Bitnami)
 
 `hatchet-stack` and `hatchet-ha` `1.0.0` replace the bundled **Bitnami** PostgreSQL and
 RabbitMQ subcharts with operator-managed datastores:
@@ -10,24 +10,8 @@ RabbitMQ subcharts with operator-managed datastores:
 
 ## Why we changed this
 
-Not just because of the Bitnami catalog changes — that was the deadline, not the reason.
-
-Bitnami [froze its free images into an unmaintained `bitnamilegacy/*` catalog on 28 August
-2025](https://github.com/bitnami/charts/issues/35164) (deletion later pushed to 29 September),
-so staying put meant shipping a database and broker that receive **no further security
-patches**. That set the timeline. But the destination is a genuine upgrade, not a like-for-like
-swap to dodge the rug-pull:
-
-- **Actively maintained.** CloudNativePG and the RabbitMQ Cluster Operator are CNCF/community
-  projects with regular releases and security fixes — the thing the frozen Bitnami images can
-  no longer offer.
-- **Purpose-built, declarative operators.** They manage the full lifecycle — provisioning,
-  configuration, and version upgrades — instead of a static StatefulSet.
-- **Real high availability.** CloudNativePG does streaming replication with automated failover;
-  the RabbitMQ operator runs a proper clustered broker. `hatchet-ha` defaults to 3 instances of
-  each.
-- **A backup/recovery story.** CloudNativePG has first-class backups and point-in-time recovery
-  (opt-in), which the bundled Bitnami setup never provided.
+Bitnami [froze its free images into an unmaintained `bitnamilegacy/*` catalog on 29 September
+2025](https://github.com/bitnami/charts/issues/35164). We want to move towards alternatives that are actively maintained and receive regular security updates.
 
 This is also the direction the wider ecosystem took when Bitnami deprecated its catalog — see
 [goauthentik/helm#371](https://github.com/goauthentik/helm/issues/371) and the community
@@ -116,8 +100,7 @@ kubectl exec -i -n <ns> <release>-postgres-1 -- \
 cluster, so the dump becomes the source of truth. Restart the Hatchet components afterwards
 (`kubectl rollout restart deploy -n <ns>`).
 
-> Advanced: CloudNativePG can also import from a still-running source database at bootstrap via
-> [`bootstrap.import`](https://cloudnative-pg.io/docs/database_import/), avoiding the manual
+> Advanced: CloudNativePG can also import from a still-running source database at bootstrap via https://cloudnative-pg.io/docs/database_import/, avoiding the manual
 > dump/restore. Overkill for dev/staging, useful for larger datasets.
 
 ### RabbitMQ
