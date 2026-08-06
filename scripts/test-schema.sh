@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Verifies that each chart's values.schema.json actually rejects invalid values.
 # For every "bad" override we assert `helm template` FAILS; for the defaults we
-# assert it SUCCEEDS. Run from the repo root: ./hack/test-schema.sh
+# assert it SUCCEEDS. Run from the repo root: ./scripts/test-schema.sh
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -121,7 +121,7 @@ if [[ -n "${CLICKHOUSE_ENDPOINT:-}" && -n "${CLICKHOUSE_USER:-}" && -n "${CLICKH
         --from-literal=CLICKHOUSE_USER="${CLICKHOUSE_USER}" \
         --from-literal=CLICKHOUSE_PASSWORD="${CLICKHOUSE_PASSWORD}" \
         --dry-run=client -o yaml | kubectl apply -f -
-    kubectl apply -n loadtest-stack -f hack/loadtest-otel.yaml
+    kubectl apply -n loadtest-stack -f scripts/loadtest-otel.yaml
     kubectl rollout status deployment/otel-collector -n loadtest-stack --timeout=120s || echo "WARNING: collector not ready; engine traces may be unavailable"
     otel_args=(
         --set-string sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=otel-collector:4317

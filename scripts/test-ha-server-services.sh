@@ -3,7 +3,7 @@
 # chart. The engine splits into three roles (grpc-api, controllers, scheduler) and
 # each deployment must pin its role via SERVER_SERVICES, otherwise every replica
 # boots every service. We render the chart and assert each deployment's container
-# carries the expected value. Run from the repo root: ./hack/test-ha-server-services.sh
+# carries the expected value. Run from the repo root: ./scripts/test-ha-server-services.sh
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

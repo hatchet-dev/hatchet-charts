@@ -36,7 +36,7 @@ jobs:
           helm repo update
 
       - name: Assert values.schema.json rejects invalid values
-        run: ./hack/test-schema.sh
+        run: ./scripts/test-schema.sh
 
   charts:
     runs-on: ubuntu-latest
@@ -73,7 +73,7 @@ jobs:
           helm unittest charts/hatchet-api
 
       - name: Assert hatchet-ha pins SERVER_SERVICES per role
-        run: ./hack/test-ha-server-services.sh
+        run: ./scripts/test-ha-server-services.sh
 
       - name: Install and test hatchet-api chart
         run: |
@@ -396,7 +396,7 @@ jobs:
 
       - name: Run load test
         run: |
-          ./hack/kind-stack-loadtest.sh
+          ./scripts/kind-stack-loadtest.sh
         env:
           VERSION: ${{ needs.resolve-version.outputs.version }}
           CLICKHOUSE_ENDPOINT: ${{ secrets.CLICKHOUSE_ENDPOINT }}
@@ -447,7 +447,7 @@ jobs:
 
       - name: Run load test
         run: |
-          ./hack/kind-ha-loadtest.sh
+          ./scripts/kind-ha-loadtest.sh
         env:
           VERSION: ${{ needs.resolve-version.outputs.version }}
           CLICKHOUSE_ENDPOINT: ${{ secrets.CLICKHOUSE_ENDPOINT }}
@@ -535,7 +535,7 @@ jobs:
             --wait --timeout=10m
 
       - name: Install datastore operators (required by the chart in this PR)
-        run: ./hack/install-operators.sh
+        run: ./scripts/install-operators.sh
 
       - name: Build local chart dependencies
         run: helm dependency build "charts/${{ matrix.chart }}"

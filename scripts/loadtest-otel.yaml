@@ -1,5 +1,5 @@
 # In-cluster ClickStack OTel collector used only by the kind loadtests
-# (hack/kind-*-loadtest.sh) as the OTLP sink for the engine's OpenTelemetry export.
+# (scripts/kind-*-loadtest.sh) as the OTLP sink for the engine's OpenTelemetry export.
 # The engine is pointed at svc `otel-collector:4317` (in-cluster, plaintext); the
 # collector holds the ClickHouse Cloud credentials and ships spans there over TLS.
 # Credentials come from the `clickstack-otel` Secret the scripts create from GitHub

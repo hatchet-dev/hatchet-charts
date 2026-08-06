@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (default 3 instances) and `rabbitmq` renders a [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview)
   `RabbitmqCluster` (default 3 replicas). This removes the unmaintained `bitnamilegacy/*` images.
 - **New prerequisite:** when the bundled datastores are enabled (the default), the CloudNativePG
-  and RabbitMQ Cluster operators must be installed in the cluster first. Use `hack/install-operators.sh`.
+  and RabbitMQ Cluster operators must be installed in the cluster first. Use `scripts/install-operators.sh`.
 - **New `postgres` / `rabbitmq` value schema.** Bitnami-specific keys (`postgres.image.repository`,
   `postgres.tls`, `postgres.primary.*`, `postgres.global.security`, `rabbitmq.image.repository`,
   `rabbitmq.service.ports.*`, `global.security.allowInsecureImages`) are gone. See the chart README

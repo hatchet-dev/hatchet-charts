@@ -17,10 +17,10 @@ To view the docs for setting up this chart, see [Kubernetes High-Availability](h
   - [CloudNativePG](https://cloudnative-pg.io) — manages the bundled PostgreSQL.
   - [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview) — manages the bundled RabbitMQ.
 
-  Install both with the helper script from this repo:
+  Install both with the helper script:
 
   ```bash
-  ./hack/install-operators.sh
+  curl -fsSL https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/scripts/install-operators.sh | bash
   ```
 
   You do **not** need these operators if you run your own external PostgreSQL and
@@ -161,21 +161,14 @@ cluster first** — see [Prerequisites](#prerequisites).
 ### Migrating from a pre-1.0 (Bitnami) release
 
 `1.0.0` replaces the Bitnami PostgreSQL/RabbitMQ subcharts with the CloudNativePG and
-RabbitMQ Cluster operators. This is a **breaking change for the bundled datastores** and
-data is **not** migrated automatically — a `helm upgrade` removes the old Bitnami
-PostgreSQL StatefulSet and bootstraps a fresh, empty CloudNativePG cluster.
+RabbitMQ Cluster operators — a deliberate move to actively-maintained, operator-managed
+datastores (the Bitnami catalog deprecation set the deadline, not the direction). This is a
+**breaking change for the bundled datastores**: data is not migrated in place, and the
+operators must be installed before upgrading.
 
-If you relied on the bundled datastore (dev/staging), migrate explicitly:
-
-1. **Back up first.** `pg_dump` the old bundled database (or snapshot its PVC) before upgrading.
-2. Install the operators: `./hack/install-operators.sh`.
-3. `helm upgrade` to `1.0.0`.
-4. Restore your dump into the new cluster (`psql "$DATABASE_URL" < dump.sql`), or start
-   clean and let Hatchet re-run its migrations against the empty database.
-5. RabbitMQ carries no durable state worth migrating for dev/staging — let clients redeclare.
-
-Production users already on external datastores (`postgres.enabled=false` /
-`rabbitmq.enabled=false`) are unaffected.
+See **[MIGRATION.md](https://github.com/hatchet-dev/hatchet-charts/blob/main/MIGRATION.md)**
+for the rationale and step-by-step guide. Users on external datastores
+(`postgres.enabled=false` / `rabbitmq.enabled=false`) are unaffected.
 
 ### Caddy (optional)
 

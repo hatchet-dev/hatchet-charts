@@ -51,7 +51,7 @@ jobs:
 
       - name: Install datastore operators
         if: steps.list-changed.outputs.changed == 'true'
-        run: ./hack/install-operators.sh
+        run: ./scripts/install-operators.sh
 
       - name: Install charts
         if: steps.list-changed.outputs.changed == 'true'
