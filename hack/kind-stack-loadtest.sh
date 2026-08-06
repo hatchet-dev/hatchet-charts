@@ -137,7 +137,8 @@ helm install hatchet-stack-test charts/hatchet-stack \
     --create-namespace \
     --namespace loadtest-stack \
     ${otel_args[@]+"${otel_args[@]}"} \
-    --set sharedConfig.grpcBroadcastAddress="hatchet-stack-test-engine:7070"
+    --set sharedConfig.grpcBroadcastAddress="hatchet-stack-test-engine:7070" \
+    --set-string sharedConfig.env.SERVER_SECURITY_CHECK_ENABLED=false
 
 # Wait for engine deployment
 echo "Waiting for engine deployment to be ready..."
