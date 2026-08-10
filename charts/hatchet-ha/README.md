@@ -52,7 +52,7 @@ helm uninstall my-hatchet-ha
 | PostgreSQL | [CloudNativePG](https://cloudnative-pg.io) `Cluster` (operator-managed) | `postgres` | `postgres.enabled` |
 | RabbitMQ | [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview) `RabbitmqCluster` | `rabbitmq` | `rabbitmq.enabled` |
 
-Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key (e.g. `api.resources`, `grpc.replicaCount`). The `postgres` and `rabbitmq` sections accept all values of their respective Bitnami subcharts.
+Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key (e.g. `api.resources`, `grpc.replicaCount`). The `postgres` and `rabbitmq` sections render a CloudNativePG `Cluster` and a `RabbitmqCluster`; see [Bundled PostgreSQL & RabbitMQ](#bundled-postgresql--rabbitmq) for their values.
 
 Values flow into the components two ways:
 
@@ -142,7 +142,7 @@ cluster first** — see [Prerequisites](#prerequisites).
 | `postgres.storage.size` | string | `"8Gi"` | PersistentVolume size per instance. |
 | `postgres.storage.storageClass` | string | `""` | StorageClass (empty = cluster default). |
 | `postgres.resources` | object | `{}` | Pod resource requests/limits. |
-| `postgres.port` | int | `5432` | Read-write service port (used in `DATABASE_URL`). |
+| `postgres.extraSpec` | object | `{}` | Extra fields merged into the CloudNativePG `Cluster` spec (e.g. `backup`, `affinity`, `monitoring`). |
 | `postgres.sslmode` | string | `"require"` | sslmode used in the composed `DATABASE_URL`. |
 | `postgres.parameters` | object | `{}` | Extra `postgresql.conf` parameters (`timezone=UTC` is always forced). |
 | `postgres.initExtensions` | list | `[]` | SQL run once as superuser after bootstrap, e.g. `["CREATE EXTENSION IF NOT EXISTS pgcrypto;"]`. |
@@ -151,12 +151,12 @@ cluster first** — see [Prerequisites](#prerequisites).
 | `rabbitmq.auth.password` | string | `"hatchet"` | Default user password. |
 | `rabbitmq.image` | string | `"rabbitmq:4.1-management"` | RabbitMQ image. |
 | `rabbitmq.replicas` | int | `3` | Number of RabbitMQ nodes. |
-| `rabbitmq.port` | int | `5672` | AMQP service port (used in `SERVER_MSGQUEUE_RABBITMQ_URL`). |
+| `rabbitmq.extraSpec` | object | `{}` | Extra fields merged into the `RabbitmqCluster` spec (e.g. `override`, `affinity`, `tls`). |
 | `rabbitmq.persistence.storage` | string | `"8Gi"` | PersistentVolume size per node. |
 | `rabbitmq.persistence.storageClassName` | string | `""` | StorageClass (empty = cluster default). |
 | `rabbitmq.resources` | object | `{}` | Pod resource requests/limits. |
 
-> The `postgres`/`rabbitmq` sections also accept any additional keys, which are passed through to the rendered `Cluster` / `RabbitmqCluster`. See the [CloudNativePG](https://cloudnative-pg.io/docs/) and [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/using-operator) docs for the full spec.
+> To set operator spec fields not listed above, use `postgres.extraSpec` / `rabbitmq.extraSpec`; their contents are merged into the rendered `Cluster` / `RabbitmqCluster` spec. See the [CloudNativePG](https://cloudnative-pg.io/docs/) and [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/using-operator) docs for the full spec.
 
 ### Migrating from a pre-1.0 (Bitnami) release
 

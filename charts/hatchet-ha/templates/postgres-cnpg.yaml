@@ -42,4 +42,7 @@ spec:
   resources:
 {{ toYaml . | indent 4 }}
 {{- end }}
+{{- with .Values.postgres.extraSpec }}
+{{ toYaml . | indent 2 }}
+{{- end }}
 {{- end }}

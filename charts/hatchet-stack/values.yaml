@@ -141,10 +141,10 @@ postgres:
     size: "8Gi"
     storageClass: ""
   resources: {}
-  port: 5432
   sslmode: "require"
   parameters: {}
   initExtensions: []
+  extraSpec: {}
 
 rabbitmq:
   enabled: true
@@ -153,11 +153,11 @@ rabbitmq:
     password: "hatchet"
   image: "rabbitmq:4.1-management"
   replicas: 1
-  port: 5672
   persistence:
     storage: "8Gi"
     storageClassName: ""
   resources: {}
+  extraSpec: {}
 
 caddy:
   enabled: false

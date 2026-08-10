@@ -56,24 +56,32 @@ Bitnami-specific keys are gone; the datastore sections now describe the operator
 
 ## Migrating the data
 
-> **The bundled database is not migrated in place.** A `helm upgrade` removes the old Bitnami
-> StatefulSet and CloudNativePG bootstraps a **fresh, empty** cluster; Hatchet re-runs its
-> schema migrations against it. Choose one of the paths below.
+> **A plain `helm upgrade` does not initialize the new database.** The upgrade removes the old
+> Bitnami StatefulSet and CloudNativePG bootstraps a **fresh, empty** cluster. Hatchet's
+> bundled migration runs as a `pre-upgrade` hook against the *pre-upgrade* database, so it does
+> **not** run against the new CloudNativePG database — the Hatchet workloads stay unready until
+> you initialize it with one of the paths below.
 
 ### Option A — start clean (most dev/staging installs)
 
-If the bundled data is disposable:
+If the bundled data is disposable, do a fresh install rather than an in-place upgrade — a
+fresh install runs the migrations against the new CloudNativePG database automatically:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/scripts/install-operators.sh | bash
-helm upgrade my-hatchet hatchet/hatchet-stack --version 1.0.0
+helm uninstall my-hatchet
+helm install my-hatchet hatchet/hatchet-stack --version 1.0.0
 ```
-
-Hatchet re-creates its schema on the empty cluster. Done.
 
 ### Option B — preserve data (dump & restore)
 
-Dump **before** upgrading, while the old Bitnami pod still exists (adjust namespace/release):
+Stop the writers first so nothing changes after the snapshot (keep Postgres running):
+
+```bash
+kubectl scale deploy -n <ns> -l app.kubernetes.io/instance=<release> --replicas=0
+```
+
+Dump the old bundled database (its pod is still up):
 
 ```bash
 kubectl exec -n <ns> <release>-postgres-0 -- \
@@ -81,26 +89,31 @@ kubectl exec -n <ns> <release>-postgres-0 -- \
   > hatchet-backup.sql
 ```
 
-Install the operators and upgrade:
+Install the operators and upgrade (no `--wait`; the new database is empty until the restore,
+so the workloads intentionally stay unready):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/scripts/install-operators.sh | bash
 helm upgrade my-hatchet hatchet/hatchet-stack --version 1.0.0
 ```
 
-Wait for the new cluster to be healthy, then restore into the primary:
+Wait for the new cluster, then restore. Inside the pod the local socket uses peer auth, so
+connect over TCP (`-h 127.0.0.1`) to authenticate the `hatchet` role by password:
 
 ```bash
 kubectl wait --for=condition=Ready cluster/<release>-postgres -n <ns> --timeout=5m
 kubectl exec -i -n <ns> <release>-postgres-1 -- \
-  env PGPASSWORD=hatchet psql -U hatchet -d hatchet < hatchet-backup.sql
+  env PGPASSWORD=hatchet psql -h 127.0.0.1 -U hatchet -d hatchet < hatchet-backup.sql
 ```
 
-`--clean --if-exists` makes the restore overwrite the schema Hatchet re-created on the empty
-cluster, so the dump becomes the source of truth. Restart the Hatchet components afterwards
-(`kubectl rollout restart deploy -n <ns>`).
+Then bring the workloads back up against the restored database:
 
-> Advanced: CloudNativePG can also import from a still-running source database at bootstrap via https://cloudnative-pg.io/docs/database_import/, avoiding the manual
+```bash
+kubectl rollout restart deploy -n <ns>
+```
+
+> Advanced: CloudNativePG can also import from a still-running source database at bootstrap via
+> [`bootstrap.import`](https://cloudnative-pg.io/docs/database_import/), avoiding the manual
 > dump/restore. Overkill for dev/staging, useful for larger datasets.
 
 ### RabbitMQ

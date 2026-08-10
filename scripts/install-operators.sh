@@ -5,8 +5,7 @@ set -euo pipefail
 CNPG_VERSION="${CNPG_VERSION:-1.30.0}"
 RABBITMQ_OPERATOR_VERSION="${RABBITMQ_OPERATOR_VERSION:-2.21.0}"
 
-cnpg_minor="release-$(echo "$CNPG_VERSION" | cut -d. -f1-2)"
-CNPG_MANIFEST="https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/${cnpg_minor}/releases/cnpg-${CNPG_VERSION}.yaml"
+CNPG_MANIFEST="https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v${CNPG_VERSION}/cnpg-${CNPG_VERSION}.yaml"
 RABBITMQ_MANIFEST="https://github.com/rabbitmq/cluster-operator/releases/download/v${RABBITMQ_OPERATOR_VERSION}/cluster-operator.yml"
 
 echo "Installing CloudNativePG ${CNPG_VERSION}..."

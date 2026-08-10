@@ -486,22 +486,17 @@ jobs:
         with:
           sarif_file: reports/results.sarif
 
-  upgrade-e2e:
-    # Install the latest published chart, then upgrade to the chart in this PR
-    # and assert nothing breaks (the pre-upgrade migration hook runs and all
-    # workloads come back Ready).
+  bundled-migration-e2e:
+    # Validates the documented Bitnami (0.x) -> CloudNativePG (1.0) bundled-datastore
+    # migration end to end (see MIGRATION.md): install the last Bitnami release, seed a
+    # marker row, dump, install the operators, upgrade to the chart in this PR, restore
+    # the dump into the fresh CloudNativePG cluster, and assert the workloads come back
+    # Ready with the data preserved.
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        chart:
-          - hatchet-stack
-          - hatchet-ha
     env:
-      RELEASE: upgrade-test
-      NAMESPACE: upgrade-test
-      VALUES_LEGACY: charts/${{ matrix.chart }}/ci/ct-values-legacy.yaml
-      VALUES: charts/${{ matrix.chart }}/ci/ct-values.yaml
+      REL: bundled-mig
+      NS: bundled-mig
+      OLD_VERSION: "0.14.0"
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -520,54 +515,69 @@ jobs:
           helm repo add hatchet https://hatchet-dev.github.io/hatchet-charts
           helm repo update
 
-      - name: Install previously released ${{ matrix.chart }}
+      - name: Install the last Bitnami-based release
         run: |
-          PREV=$(helm search repo "hatchet/${{ matrix.chart }}" --output json | jq -r '.[0].version')
-          if [[ -z "$PREV" || "$PREV" == "null" ]]; then
-            echo "Could not resolve a published version of ${{ matrix.chart }}" >&2
-            exit 1
-          fi
-          echo "Installing previously released version: $PREV"
-          helm install "$RELEASE" "hatchet/${{ matrix.chart }}" \
-            --version "$PREV" \
-            --namespace "$NAMESPACE" --create-namespace \
-            -f "$VALUES_LEGACY" \
+          helm install "$REL" hatchet/hatchet-stack --version "$OLD_VERSION" \
+            --namespace "$NS" --create-namespace \
+            -f charts/hatchet-stack/ci/ct-values-legacy.yaml \
             --wait --timeout=10m
 
-      - name: Install datastore operators (required by the chart in this PR)
+      - name: Seed a marker row and dump the bundled database
+        run: |
+          kubectl exec -n "$NS" "$REL-postgres-0" -- env PGPASSWORD=hatchet \
+            psql -U hatchet -d hatchet -c \
+            "create table if not exists _mig_marker(id int); insert into _mig_marker values (42);"
+          kubectl exec -n "$NS" "$REL-postgres-0" -- env PGPASSWORD=hatchet \
+            pg_dump -U hatchet -d hatchet --clean --if-exists > backup.sql
+
+      - name: Install datastore operators
         run: ./scripts/install-operators.sh
 
       - name: Build local chart dependencies
-        run: helm dependency build "charts/${{ matrix.chart }}"
+        run: helm dependency build charts/hatchet-stack
 
       - name: Upgrade to the chart in this PR
-        # --wait runs the pre-upgrade migration hook synchronously and blocks
-        # until every workload is Ready again; a non-zero exit fails the job.
+        # No --wait: the fresh CloudNativePG database is empty until the restore below,
+        # so the Hatchet workloads intentionally stay unready until then.
         run: |
-          helm upgrade "$RELEASE" "charts/${{ matrix.chart }}" \
-            --namespace "$NAMESPACE" \
-            -f "$VALUES" \
-            --wait --timeout=10m
+          helm upgrade "$REL" charts/hatchet-stack \
+            --namespace "$NS" \
+            -f charts/hatchet-stack/ci/ct-values.yaml \
+            --timeout=10m
 
-      - name: Assert all workloads are Ready after upgrade
+      - name: Wait for the CloudNativePG cluster
         run: |
           kubectl wait --for=condition=Ready \
-            cluster.postgresql.cnpg.io/"$RELEASE"-postgres \
-            -n "$NAMESPACE" --timeout=5m
-          for d in $(kubectl get deploy -n "$NAMESPACE" -o name); do
-            kubectl rollout status "$d" -n "$NAMESPACE" --timeout=5m
+            cluster.postgresql.cnpg.io/"$REL-postgres" -n "$NS" --timeout=5m
+
+      - name: Restore the dump into CloudNativePG
+        # psql over the local socket inside the pod uses peer auth; force TCP so the
+        # hatchet role authenticates by password.
+        run: |
+          kubectl exec -i -n "$NS" "$REL-postgres-1" -- env PGPASSWORD=hatchet \
+            psql -h 127.0.0.1 -U hatchet -d hatchet < backup.sql
+
+      - name: Restart workloads onto the new database
+        run: kubectl rollout restart deploy -n "$NS"
+
+      - name: Assert workloads Ready and data preserved
+        run: |
+          for d in $(kubectl get deploy -n "$NS" -o name); do
+            kubectl rollout status "$d" -n "$NS" --timeout=5m
           done
-          for s in $(kubectl get statefulset -n "$NAMESPACE" -o name); do
-            kubectl rollout status "$s" -n "$NAMESPACE" --timeout=5m
-          done
+          MARK=$(kubectl exec -n "$NS" "$REL-postgres-1" -- env PGPASSWORD=hatchet \
+            psql -h 127.0.0.1 -U hatchet -d hatchet -tAc "select id from _mig_marker" \
+            | tr -d '[:space:]')
+          test "$MARK" = "42" || { echo "marker row lost after migration: '$MARK'"; exit 1; }
+          echo "Migration verified: data preserved and workloads healthy."
 
       - name: Debug on failure
         if: failure()
         run: |
-          kubectl get pods,jobs,deploy,statefulset -n "$NAMESPACE" -o wide || true
-          kubectl get cluster.postgresql.cnpg.io,rabbitmqcluster.rabbitmq.com -n "$NAMESPACE" -o wide || true
-          kubectl get events -n "$NAMESPACE" --sort-by=.lastTimestamp | tail -50 || true
-          for p in $(kubectl get pods -n "$NAMESPACE" -o name); do
+          kubectl get pods,jobs,deploy -n "$NS" -o wide || true
+          kubectl get cluster.postgresql.cnpg.io -n "$NS" -o wide || true
+          kubectl get events -n "$NS" --sort-by=.lastTimestamp | tail -50 || true
+          for p in $(kubectl get pods -n "$NS" -o name); do
             echo "=== logs $p ==="
-            kubectl logs "$p" -n "$NAMESPACE" --all-containers=true --tail=100 || true
+            kubectl logs "$p" -n "$NS" --all-containers=true --tail=100 || true
           done

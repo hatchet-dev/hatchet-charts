@@ -29,4 +29,7 @@ spec:
   resources:
 {{ toYaml . | indent 4 }}
 {{- end }}
+{{- with .Values.rabbitmq.extraSpec }}
+{{ toYaml . | indent 2 }}
+{{- end }}
 {{- end }}
