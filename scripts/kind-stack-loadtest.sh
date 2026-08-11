@@ -29,12 +29,12 @@ print_deployment_debug() {
     # Get pods
     echo ""
     echo "--- Pods ---"
-    kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-ha-test" -o wide || echo "Failed to get pods"
+    kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-stack-test" -o wide || echo "Failed to get pods"
 
     # Describe pods
     echo ""
     echo "--- Pod Details ---"
-    for pod in $(kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-ha-test" -o name 2>/dev/null); do
+    for pod in $(kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-stack-test" -o name 2>/dev/null); do
         echo ""
         echo "Describing $pod:"
         kubectl describe "$pod" -n "$namespace"
@@ -43,7 +43,7 @@ print_deployment_debug() {
     # Get pod logs
     echo ""
     echo "--- Pod Logs ---"
-    for pod in $(kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-ha-test" -o name 2>/dev/null); do
+    for pod in $(kubectl get pods -n "$namespace" -l "app.kubernetes.io/instance=hatchet-stack-test" -o name 2>/dev/null); do
         echo ""
         echo "Logs for $pod:"
         kubectl logs "$pod" -n "$namespace" --all-containers=true --tail=100 || echo "Failed to get logs for $pod"
@@ -66,11 +66,11 @@ print_deployment_debug() {
 # Function to clean up
 cleanup() {
     # Check if namespace exists before trying to delete
-    if kubectl get namespace loadtest &> /dev/null; then
-        echo "Cleaning up loadtest namespace..."
-        kubectl delete namespace loadtest || echo "Failed to delete loadtest namespace"
+    if kubectl get namespace loadtest-stack &> /dev/null; then
+        echo "Cleaning up loadtest-stack namespace..."
+        kubectl delete namespace loadtest-stack || echo "Failed to delete loadtest-stack namespace"
     else
-        echo "Namespace loadtest does not exist, skipping cleanup"
+        echo "Namespace loadtest-stack does not exist, skipping cleanup"
     fi
 }
 
@@ -93,10 +93,12 @@ done
 echo "All required environment variables are set"
 echo "VERSION: $VERSION"
 
-helm dependency build charts/hatchet-ha
+"$(dirname "$0")/install-operators.sh"
+
+helm dependency build charts/hatchet-stack
 
 # Create the namespace up front so the engine has somewhere to land before install.
-kubectl create namespace loadtest --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace loadtest-stack --dry-run=client -o yaml | kubectl apply -f -
 
 # Engine traces are shipped to ClickStack Cloud via an in-cluster ClickStack OTel
 # collector: the engine exports OTLP to svc `otel-collector:4317` (plaintext,
@@ -114,58 +116,71 @@ if [[ -n "${CLICKHOUSE_ENDPOINT:-}" && -n "${CLICKHOUSE_USER:-}" && -n "${CLICKH
         || echo "WARNING: ClickHouse wake ping failed; collector writes may lag until it resumes"
 
     echo "Deploying in-cluster ClickStack OTel collector (ships traces to ClickHouse Cloud)..."
-    kubectl create secret generic clickstack-otel -n loadtest \
+    kubectl create secret generic clickstack-otel -n loadtest-stack \
         --from-literal=CLICKHOUSE_ENDPOINT="${CLICKHOUSE_ENDPOINT}" \
         --from-literal=CLICKHOUSE_USER="${CLICKHOUSE_USER}" \
         --from-literal=CLICKHOUSE_PASSWORD="${CLICKHOUSE_PASSWORD}" \
         --dry-run=client -o yaml | kubectl apply -f -
-    kubectl apply -n loadtest -f hack/loadtest-otel.yaml
-    kubectl rollout status deployment/otel-collector -n loadtest --timeout=120s || echo "WARNING: collector not ready; engine traces may be unavailable"
+    kubectl apply -n loadtest-stack -f scripts/loadtest-otel.yaml
+    kubectl rollout status deployment/otel-collector -n loadtest-stack --timeout=120s || echo "WARNING: collector not ready; engine traces may be unavailable"
     otel_args=(
         --set-string sharedConfig.env.SERVER_OTEL_COLLECTOR_URL=otel-collector:4317
         --set-string sharedConfig.env.SERVER_OTEL_INSECURE=true
-        --set-string sharedConfig.env.SERVER_OTEL_SERVICE_NAME=hatchet-loadtest-ha
+        --set-string sharedConfig.env.SERVER_OTEL_SERVICE_NAME=hatchet-loadtest-stack
         --set-string sharedConfig.env.SERVER_OTEL_TRACE_ID_RATIO=0.5
     )
 else
     echo "CLICKHOUSE_ENDPOINT / CLICKHOUSE_USER / CLICKHOUSE_PASSWORD not set; engine trace export disabled."
 fi
 
-helm install hatchet-ha-test charts/hatchet-ha \
+helm install hatchet-stack-test charts/hatchet-stack \
     --create-namespace \
-    --namespace loadtest \
+    --namespace loadtest-stack \
     ${otel_args[@]+"${otel_args[@]}"} \
-    --set sharedConfig.grpcBroadcastAddress="hatchet-grpc:7070" \
-    --set-string sharedConfig.env.SERVER_SECURITY_CHECK_ENABLED=false \
-    --set postgres.primary.resourcesPreset=none \
-    --set postgres.primary.extendedConfiguration="timezone='UTC'"
+    --set sharedConfig.grpcBroadcastAddress="hatchet-stack-test-engine:7070" \
+    --set-string sharedConfig.env.SERVER_SECURITY_CHECK_ENABLED=false
 
 # Wait for engine deployment
 echo "Waiting for engine deployment to be ready..."
-if ! kubectl rollout status deployment/hatchet-grpc -n loadtest --timeout=300s; then
+if ! kubectl rollout status deployment/hatchet-stack-test-engine -n loadtest-stack --timeout=300s; then
     echo ""
     echo "ERROR: Engine deployment rollout failed!"
-    print_deployment_debug "hatchet-grpc" "loadtest"
+    print_deployment_debug "hatchet-stack-test-engine" "loadtest-stack"
     exit 1
 fi
 
-if ! kubectl wait --for=condition=available deployment/hatchet-grpc -n loadtest --timeout=300s; then
+if ! kubectl wait --for=condition=available deployment/hatchet-stack-test-engine -n loadtest-stack --timeout=300s; then
     echo ""
     echo "ERROR: Engine deployment did not become available!"
-    print_deployment_debug "hatchet-grpc" "loadtest"
+    print_deployment_debug "hatchet-stack-test-engine" "loadtest-stack"
     exit 1
 fi
 
 echo "Engine deployment is ready!"
 
-# Sleep for 30 seconds
-echo "Sleeping for 30 seconds to allow services to stabilize..."
+# The client token is written by the worker-token Job, which runs against the
+# database independently of the engine Deployment's readiness. Under a slow or
+# CPU-throttled Postgres the Job can finish well after the engine reports Ready,
+# so wait for the Secret to exist before templating it into the loadtest pod.
+echo "Waiting for hatchet-client-config secret (worker token) to be created..."
+for i in $(seq 1 60); do
+    if kubectl get secret hatchet-client-config -n loadtest-stack &> /dev/null; then
+        echo "hatchet-client-config secret is present."
+        break
+    fi
+    if [[ "$i" == "60" ]]; then
+        echo "ERROR: hatchet-client-config secret not created within 300s"
+        print_deployment_debug "hatchet-stack-test-engine" "loadtest-stack"
+        exit 1
+    fi
+    sleep 5
+done
 
 # Run load test
 echo "Running load test..."
 
 # Generate random identifier for the pod
-RANDOM_ID="loadtest-$(date +%s)"
+RANDOM_ID="loadtest-stack-$(date +%s)"
 echo "Load test pod name: $RANDOM_ID"
 
 # Create load test pod
@@ -174,7 +189,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: ${RANDOM_ID}
-  namespace: loadtest
+  namespace: loadtest-stack
 spec:
   restartPolicy: Never
   containers:
@@ -204,7 +219,7 @@ spec:
         - "second"
       env:
         - name: HATCHET_CLIENT_TOKEN
-          value: $(kubectl get secret hatchet-client-config -n loadtest -o jsonpath='{.data.HATCHET_CLIENT_TOKEN}' | base64 -d)
+          value: $(kubectl get secret hatchet-client-config -n loadtest-stack -o jsonpath='{.data.HATCHET_CLIENT_TOKEN}' | base64 -d)
         - name: HATCHET_CLIENT_NAMESPACE
           value: ${RANDOM_ID}
         - name: HATCHET_CLIENT_TLS_STRATEGY
@@ -221,12 +236,12 @@ EOF
 
 # Wait for pod to complete (timeout after 10 minutes)
 echo "Waiting for load test pod to complete..."
-kubectl wait --for=condition=Ready pod/${RANDOM_ID} -n loadtest --timeout=30s
+kubectl wait --for=condition=Ready pod/${RANDOM_ID} -n loadtest-stack --timeout=30s
 
 # Wait for pod to finish (either succeed or fail)
 echo "Waiting for load test to finish..."
 LOAD_TEST_EXIT_CODE=0
-kubectl wait --for=condition=ContainersReady=false pod/${RANDOM_ID} -n loadtest --timeout=240s || {
+kubectl wait --for=condition=ContainersReady=false pod/${RANDOM_ID} -n loadtest-stack --timeout=240s || {
     echo "Pod did not complete within timeout"
     LOAD_TEST_EXIT_CODE=1
 }
@@ -235,12 +250,12 @@ kubectl wait --for=condition=ContainersReady=false pod/${RANDOM_ID} -n loadtest 
 sleep 5
 
 # Get final pod status
-POD_STATUS=$(kubectl get pod ${RANDOM_ID} -n loadtest -o jsonpath='{.status.phase}')
+POD_STATUS=$(kubectl get pod ${RANDOM_ID} -n loadtest-stack -o jsonpath='{.status.phase}')
 echo "Final pod status: $POD_STATUS"
 
 # Capture logs
 echo "Capturing load test logs..."
-kubectl logs ${RANDOM_ID} -n loadtest > /tmp/loadtest-logs.txt || echo "Failed to capture logs"
+kubectl logs ${RANDOM_ID} -n loadtest-stack > /tmp/loadtest-logs.txt || echo "Failed to capture logs"
 
 # Show logs for debugging
 echo "Load test output:"
@@ -257,7 +272,7 @@ elif [[ "$POD_STATUS" == "Failed" ]]; then
     LOAD_TEST_EXIT_CODE=1
 else
     # Pod is still running or in unknown state - check container exit code
-    CONTAINER_EXIT_CODE=$(kubectl get pod ${RANDOM_ID} -n loadtest -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' 2>/dev/null || echo "")
+    CONTAINER_EXIT_CODE=$(kubectl get pod ${RANDOM_ID} -n loadtest-stack -o jsonpath='{.status.containerStatuses[0].state.terminated.exitCode}' 2>/dev/null || echo "")
     if [[ "$CONTAINER_EXIT_CODE" == "0" ]]; then
         LOAD_TEST_STATUS="✅ PASSED"
         LOAD_TEST_EMOJI="✅"
@@ -281,10 +296,10 @@ else
 fi
 
 # --- KPI summary as a CI artifact (best-effort) ---
-# Engine traces for this run live in ClickStack Cloud (service hatchet-loadtest-ha),
+# Engine traces for this run live in ClickStack Cloud (service hatchet-loadtest-stack),
 # so there is nothing to export from the cluster before the cleanup trap tears it down.
 if [[ -n "${CLICKHOUSE_ENDPOINT:-}" ]]; then
-    echo "Engine traces exported to ClickStack Cloud (service: hatchet-loadtest-ha)."
+    echo "Engine traces exported to ClickStack Cloud (service: hatchet-loadtest-stack)."
 fi
 
 # Parse the loadtest binary's own summary lines into a machine-readable summary.
@@ -293,7 +308,7 @@ AVG_SCHEDULING=$(grep -oE 'final average scheduling time per event: .*' /tmp/loa
 COUNTS_LINE=$(grep -oE 'pushed [0-9]+, executed [0-9]+, uniques [0-9]+[^)]*\)' /tmp/loadtest-logs.txt | tail -1 || echo "")
 cat > /tmp/loadtest-summary.json <<JSON
 {
-  "scenario": "ha",
+  "scenario": "stack",
   "version": "${VERSION}",
   "result": "${LOAD_TEST_STATUS}",
   "averageDuration": "${AVG_DURATION}",
@@ -307,7 +322,7 @@ cat /tmp/loadtest-summary.json
 # One-line summary for the GitHub Actions run summary (no-op locally).
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
     {
-        echo "### Loadtest (ha) — ${VERSION}"
+        echo "### Loadtest (stack) — ${VERSION}"
         echo ""
         echo "| Result | Avg duration | Avg scheduling | Counts |"
         echo "| --- | --- | --- | --- |"
@@ -316,7 +331,7 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
 fi
 
 # Clean up pod
-kubectl delete pod ${RANDOM_ID} -n loadtest || echo "Failed to delete pod"
+kubectl delete pod ${RANDOM_ID} -n loadtest-stack || echo "Failed to delete pod"
 
 if [[ $LOAD_TEST_EXIT_CODE -ne 0 ]]; then
     echo "Load test failed! Exiting with non-zero code."

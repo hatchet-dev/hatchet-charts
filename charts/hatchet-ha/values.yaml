@@ -227,45 +227,34 @@ frontend:
     enabled: false
 
 postgres:
-  # The bundled PostgreSQL is for development/staging only. For production,
-  # set enabled: false and point DATABASE_URL at a database you operate
-  # yourself (managed service or self-hosted with backups, HA and monitoring).
-  # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml for more options
   enabled: true
-  image:
-    repository: "bitnamilegacy/postgresql"
-  global:
-    security:
-      allowInsecureImages: true
   auth:
     username: "hatchet"
     password: "hatchet"
     database: "hatchet"
-  tls:
-    enabled: false
-  primary:
-    resourcesPreset: "medium"
-    service:
-      ports:
-        postgresql: 5432
+  image: "ghcr.io/cloudnative-pg/postgresql:17.6"
+  instances: 3
+  storage:
+    size: "8Gi"
+    storageClass: ""
+  resources: {}
+  sslmode: "require"
+  parameters: {}
+  initExtensions: []
+  extraSpec: {}
 
 rabbitmq:
-  # The bundled RabbitMQ is for development/staging only. For production,
-  # set enabled: false and point SERVER_MSGQUEUE_RABBITMQ_URL at a broker you
-  # operate yourself (managed service or self-hosted with HA and monitoring).
-  # Refer to the values at https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml for more options
   enabled: true
-  image:
-    repository: "bitnamilegacy/rabbitmq"
-  global:
-    security:
-      allowInsecureImages: true
   auth:
     username: "hatchet"
     password: "hatchet"
-  service:
-    ports:
-      amqp: 5672
+  image: "rabbitmq:4.1-management"
+  replicas: 3
+  persistence:
+    storage: "8Gi"
+    storageClassName: ""
+  resources: {}
+  extraSpec: {}
 
 caddy:
   enabled: false

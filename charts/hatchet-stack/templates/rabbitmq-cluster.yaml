@@ -1,0 +1,39 @@
+{{- if .Values.rabbitmq.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-rabbitmq-default-user
+type: Opaque
+stringData:
+  username: {{ .Values.rabbitmq.auth.username | quote }}
+  password: {{ .Values.rabbitmq.auth.password | quote }}
+  host: {{ printf "%s-rabbitmq.%s.svc" .Release.Name .Release.Namespace | quote }}
+  port: "5672"
+  provider: rabbitmq
+  type: rabbitmq
+  default_user.conf: |
+    default_user = {{ .Values.rabbitmq.auth.username }}
+    default_pass = {{ .Values.rabbitmq.auth.password }}
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: {{ .Release.Name }}-rabbitmq
+  labels:
+{{- include "hatchet.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.rabbitmq.replicas }}
+  image: {{ .Values.rabbitmq.image }}
+  persistence:
+    storage: {{ .Values.rabbitmq.persistence.storage }}
+{{- with .Values.rabbitmq.persistence.storageClassName }}
+    storageClassName: {{ . }}
+{{- end }}
+{{- with .Values.rabbitmq.resources }}
+  resources:
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- with .Values.rabbitmq.extraSpec }}
+{{ toYaml . | indent 2 }}
+{{- end }}
+{{- end }}

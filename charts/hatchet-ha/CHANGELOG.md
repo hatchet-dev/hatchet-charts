@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-06
+
+### Changed (BREAKING)
+
+- **Replaced the Bitnami PostgreSQL and RabbitMQ subcharts with operator-managed datastores.**
+  The bundled `postgres` now renders a [CloudNativePG](https://cloudnative-pg.io) `Cluster`
+  (default 3 instances) and `rabbitmq` renders a [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview)
+  `RabbitmqCluster` (default 3 replicas). This removes the unmaintained `bitnamilegacy/*` images.
+- **New prerequisite:** when the bundled datastores are enabled (the default), the CloudNativePG
+  and RabbitMQ Cluster operators must be installed in the cluster first. Use `scripts/install-operators.sh`.
+- **New `postgres` / `rabbitmq` value schema.** Bitnami-specific keys (`postgres.image.repository`,
+  `postgres.tls`, `postgres.primary.*`, `postgres.global.security`, `rabbitmq.image.repository`,
+  `rabbitmq.service.ports.*`, `global.security.allowInsecureImages`) are gone. See the chart README
+  for the new keys (`postgres.instances`, `postgres.storage.size`, `postgres.image`,
+  `rabbitmq.replicas`, `rabbitmq.persistence.storage`, `rabbitmq.image`, …). `postgres.auth.*` and
+  `rabbitmq.auth.*` are retained.
+- `DATABASE_URL` now targets the CloudNativePG read-write service (`<release>-postgres-rw`).
+
+### Migration
+
+- The bundled datastore is **not** migrated in place: a `helm upgrade` removes the old Bitnami
+  PostgreSQL StatefulSet and bootstraps a fresh, empty CloudNativePG cluster. Back up
+  (`pg_dump`) before upgrading and restore afterwards — see "Migrating from a pre-1.0 (Bitnami)
+  release" in the chart README. Users on external datastores (`postgres.enabled=false` /
+  `rabbitmq.enabled=false`) are unaffected.
+
 ## [0.14.0] - 2026-08-04
 
 - Update the default Hatchet image to [`v0.98.9`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.98.9).

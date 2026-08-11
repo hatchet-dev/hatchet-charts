@@ -1,13 +1,9 @@
 rabbitmq:
   enabled: false
 postgres:
-  instances: 1
-  storage:
-    size: 1Gi
-  resources:
-    requests:
-      cpu: 50m
-      memory: 256Mi
+  primary:
+    extendedConfiguration: "timezone='UTC'"
+    resourcesPreset: "small"
 sharedConfig:
   env:
     SERVER_MSGQUEUE_KIND: postgres

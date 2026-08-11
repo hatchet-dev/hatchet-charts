@@ -26,7 +26,7 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
 
       - name: Determine new chart release version and branch
-        run: bash hack/prepare-release.sh "${{ inputs.version }}"
+        run: bash scripts/prepare-release.sh "${{ inputs.version }}"
 
       - name: Create release branch
         run: git checkout -b "$RELEASE_BRANCH"
@@ -34,10 +34,10 @@ jobs:
       - name: Update chart values with new release tag
         run: |
           echo "Updating image tags to $RELEASE_TAG and chart versions to $CHART_VERSION"
-          bash hack/update-version.sh image-tags "$RELEASE_TAG"
-          bash hack/update-version.sh chart-versions "$CHART_VERSION"
+          bash scripts/update-version.sh image-tags "$RELEASE_TAG"
+          bash scripts/update-version.sh chart-versions "$CHART_VERSION"
 
       - name: Commit, push, and open pull request
         env:
           GH_TOKEN: ${{ github.token }}
-        run: bash hack/open-release-pr.sh
+        run: bash scripts/open-release-pr.sh

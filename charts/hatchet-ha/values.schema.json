@@ -1,18 +1,28 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "hatchet-ha values",
-  "description": "Values schema for the hatchet-ha umbrella Helm chart. Component sections (api, grpc, controllers, scheduler, frontend) accept all hatchet-api/hatchet-frontend subchart values; postgres and rabbitmq accept all Bitnami subchart values.",
+  "description": "Values schema for the hatchet-ha umbrella Helm chart. Component sections (api, grpc, controllers, scheduler, frontend) accept all hatchet-api/hatchet-frontend subchart values; postgres renders a CloudNativePG Cluster and rabbitmq renders a RabbitMQ Cluster Operator RabbitmqCluster (both operators must be installed in the cluster).",
   "type": "object",
   "$defs": {
     "image": {
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "repository": { "type": "string", "description": "Container image repository." },
-        "tag": { "type": "string", "description": "Container image tag." },
+        "repository": {
+          "type": "string",
+          "description": "Container image repository."
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag."
+        },
         "pullPolicy": {
           "type": "string",
-          "enum": ["Always", "Never", "IfNotPresent"],
+          "enum": [
+            "Always",
+            "Never",
+            "IfNotPresent"
+          ],
           "description": "Image pull policy."
         }
       }
@@ -22,9 +32,18 @@
       "description": "A Hatchet backend component (delegates to the hatchet-api subchart).",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean", "description": "Enable this component." },
-        "replicaCount": { "type": "integer", "minimum": 0, "description": "Number of replicas." },
-        "image": { "$ref": "#/$defs/image" }
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable this component."
+        },
+        "replicaCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of replicas."
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        }
       }
     }
   },
@@ -45,47 +64,213 @@
       "description": "Configuration inherited by all backend services (api, grpc, controllers, scheduler).",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean", "description": "Enable shared config." },
-        "image": { "$ref": "#/$defs/image" },
-        "serverUrl": { "type": "string", "description": "Public server URL." },
-        "serverAuthCookieDomain": { "type": "string", "description": "Domain for the auth cookie." },
-        "serverAuthCookieInsecure": { "type": "string", "description": "Allow cookies over http (\"t\"/\"f\")." },
-        "serverAuthSetEmailVerified": { "type": "string", "description": "Auto-verify user emails (\"t\"/\"f\")." },
-        "serverAuthBasicAuthEnabled": { "type": "string", "description": "Enable email/password login (\"t\"/\"f\")." },
-        "grpcBroadcastAddress": { "type": "string", "description": "gRPC server endpoint." },
-        "grpcInsecure": { "type": "string", "description": "Serve gRPC over http (\"t\"/\"f\")." },
-        "defaultAdminEmail": { "type": "string", "description": "Default admin email." },
-        "defaultAdminPassword": { "type": "string", "description": "Default admin password." },
-        "env": { "type": "object", "description": "Additional environment variables." }
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable shared config."
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "serverUrl": {
+          "type": "string",
+          "description": "Public server URL."
+        },
+        "serverAuthCookieDomain": {
+          "type": "string",
+          "description": "Domain for the auth cookie."
+        },
+        "serverAuthCookieInsecure": {
+          "type": "string",
+          "description": "Allow cookies over http (\"t\"/\"f\")."
+        },
+        "serverAuthSetEmailVerified": {
+          "type": "string",
+          "description": "Auto-verify user emails (\"t\"/\"f\")."
+        },
+        "serverAuthBasicAuthEnabled": {
+          "type": "string",
+          "description": "Enable email/password login (\"t\"/\"f\")."
+        },
+        "grpcBroadcastAddress": {
+          "type": "string",
+          "description": "gRPC server endpoint."
+        },
+        "grpcInsecure": {
+          "type": "string",
+          "description": "Serve gRPC over http (\"t\"/\"f\")."
+        },
+        "defaultAdminEmail": {
+          "type": "string",
+          "description": "Default admin email."
+        },
+        "defaultAdminPassword": {
+          "type": "string",
+          "description": "Default admin password."
+        },
+        "env": {
+          "type": "object",
+          "description": "Additional environment variables."
+        }
       }
     },
-    "api": { "$ref": "#/$defs/component", "description": "API component." },
-    "grpc": { "$ref": "#/$defs/component", "description": "gRPC engine component." },
-    "controllers": { "$ref": "#/$defs/component", "description": "Controllers engine component." },
-    "scheduler": { "$ref": "#/$defs/component", "description": "Scheduler engine component." },
+    "api": {
+      "$ref": "#/$defs/component",
+      "description": "API component."
+    },
+    "grpc": {
+      "$ref": "#/$defs/component",
+      "description": "gRPC engine component."
+    },
+    "controllers": {
+      "$ref": "#/$defs/component",
+      "description": "Controllers engine component."
+    },
+    "scheduler": {
+      "$ref": "#/$defs/component",
+      "description": "Scheduler engine component."
+    },
     "frontend": {
       "type": "object",
       "description": "Frontend component (delegates to the hatchet-frontend subchart).",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/$defs/image" }
+        "enabled": {
+          "type": "boolean"
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        }
       }
     },
     "postgres": {
       "type": "object",
-      "description": "Bundled PostgreSQL (Bitnami postgresql subchart). Accepts all subchart values.",
+      "description": "Bundled PostgreSQL, rendered as a CloudNativePG Cluster (dev/staging only; requires the CloudNativePG operator). Disable and supply your own DATABASE_URL for production.",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" }
+        "enabled": {
+          "type": "boolean",
+          "description": "Deploy the bundled CloudNativePG Cluster."
+        },
+        "auth": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "username": {
+              "type": "string",
+              "description": "Application role/owner name."
+            },
+            "password": {
+              "type": "string",
+              "description": "Application role password."
+            },
+            "database": {
+              "type": "string",
+              "description": "Application database name."
+            }
+          }
+        },
+        "image": {
+          "type": "string",
+          "description": "CloudNativePG-compatible PostgreSQL image (e.g. ghcr.io/cloudnative-pg/postgresql:17.6)."
+        },
+        "instances": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of PostgreSQL instances (1 primary + N-1 replicas)."
+        },
+        "storage": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "size": {
+              "type": "string",
+              "description": "PersistentVolume size for each instance."
+            },
+            "storageClass": {
+              "type": "string",
+              "description": "StorageClass name (empty = cluster default)."
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "description": "Pod resource requests/limits."
+        },
+        "sslmode": {
+          "type": "string",
+          "description": "sslmode used in the composed DATABASE_URL."
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Extra postgresql.conf parameters (timezone=UTC is always forced)."
+        },
+        "initExtensions": {
+          "type": "array",
+          "description": "SQL statements run once as superuser after bootstrap (e.g. CREATE EXTENSION).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "extraSpec": {
+          "type": "object",
+          "description": "Extra fields merged into the rendered postgres operator resource spec."
+        }
       }
     },
     "rabbitmq": {
       "type": "object",
-      "description": "Bundled RabbitMQ (Bitnami rabbitmq subchart). Accepts all subchart values.",
+      "description": "Bundled RabbitMQ, rendered as a RabbitMQ Cluster Operator RabbitmqCluster (dev/staging only; requires the RabbitMQ Cluster Operator). Disable and supply your own SERVER_MSGQUEUE_RABBITMQ_URL for production.",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" }
+        "enabled": {
+          "type": "boolean",
+          "description": "Deploy the bundled RabbitmqCluster."
+        },
+        "auth": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "username": {
+              "type": "string",
+              "description": "Default user name (provisioned via the operator's default-user Secret)."
+            },
+            "password": {
+              "type": "string",
+              "description": "Default user password."
+            }
+          }
+        },
+        "image": {
+          "type": "string",
+          "description": "RabbitMQ image (e.g. rabbitmq:4.1-management)."
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of RabbitMQ nodes."
+        },
+        "persistence": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "storage": {
+              "type": "string",
+              "description": "PersistentVolume size for each node."
+            },
+            "storageClassName": {
+              "type": "string",
+              "description": "StorageClass name (empty = cluster default)."
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "description": "Pod resource requests/limits."
+        },
+        "extraSpec": {
+          "type": "object",
+          "description": "Extra fields merged into the rendered rabbitmq operator resource spec."
+        }
       }
     },
     "caddy": {
@@ -93,14 +278,24 @@
       "description": "Optional Caddy reverse proxy.",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" },
-        "address": { "type": "string", "description": "Caddy site address (the top line of the generated Caddyfile block)." },
-        "image": { "$ref": "#/$defs/image" },
+        "enabled": {
+          "type": "boolean"
+        },
+        "address": {
+          "type": "string",
+          "description": "Caddy site address (the top line of the generated Caddyfile block)."
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
         "service": {
           "type": "object",
           "additionalProperties": true,
           "properties": {
-            "type": { "type": "string", "description": "Service type for the Caddy reverse proxy." }
+            "type": {
+              "type": "string",
+              "description": "Service type for the Caddy reverse proxy."
+            }
           }
         }
       }

@@ -12,6 +12,19 @@ To view the docs for setting up this chart, see [Kubernetes Quickstart](https://
 
 - Kubernetes 1.30+
 - Helm 3.8+
+- If you use the **bundled** datastores (the default), the operators that manage them
+  must be installed in the cluster first (once per cluster):
+  - [CloudNativePG](https://cloudnative-pg.io) — manages the bundled PostgreSQL.
+  - [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview) — manages the bundled RabbitMQ.
+
+  Install both with the helper script:
+
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/scripts/install-operators.sh | bash
+  ```
+
+  You do **not** need these operators if you run your own external PostgreSQL and
+  RabbitMQ (`postgres.enabled=false` / `rabbitmq.enabled=false`).
 
 ## Installing the chart
 
@@ -34,10 +47,10 @@ helm uninstall my-hatchet-stack
 | API | [hatchet-api](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) | `api` | `api.enabled` |
 | Engine | [hatchet-api](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-api) | `engine` | `engine.enabled` |
 | Frontend | [hatchet-frontend](https://github.com/hatchet-dev/hatchet-charts/tree/main/charts/hatchet-frontend) | `frontend` | `frontend.enabled` |
-| PostgreSQL | [bitnami/postgresql](https://github.com/bitnami/charts/tree/main/bitnami/postgresql) | `postgres` | `postgres.enabled` |
-| RabbitMQ | [bitnami/rabbitmq](https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq) | `rabbitmq` | `rabbitmq.enabled` |
+| PostgreSQL | [CloudNativePG](https://cloudnative-pg.io) `Cluster` (operator-managed) | `postgres` | `postgres.enabled` |
+| RabbitMQ | [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview) `RabbitmqCluster` | `rabbitmq` | `rabbitmq.enabled` |
 
-Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key (e.g. `api.resources`, `engine.replicaCount`). The `postgres` and `rabbitmq` sections accept all values of their respective Bitnami subcharts.
+Each Hatchet component accepts the full set of [`hatchet-api`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/README.md#parameters) or [`hatchet-frontend`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-frontend/README.md#parameters) values under its alias key (e.g. `api.resources`, `engine.replicaCount`). The `postgres` and `rabbitmq` sections render a CloudNativePG `Cluster` and a `RabbitmqCluster` respectively; their operators must be installed in the cluster (see [Prerequisites](#prerequisites)).
 
 Values flow into the components two ways:
 
@@ -95,7 +108,12 @@ Inherited by all backend services (`api`, `engine`).
 
 ### Bundled PostgreSQL & RabbitMQ
 
-> ⚠️ **The bundled `postgres` and `rabbitmq` subcharts are intended for development and staging environments only.** They are single-instance, store data on default storage, and are not configured for backups, high availability or monitoring. **For production, run PostgreSQL and RabbitMQ yourself** (a managed service, or a self-hosted deployment you own end-to-end), then disable the bundled ones:
+The bundled `postgres` renders a [CloudNativePG](https://cloudnative-pg.io) `Cluster` and
+`rabbitmq` renders a [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/operator-overview)
+`RabbitmqCluster`. **Both operators must be installed in the cluster first** — see
+[Prerequisites](#prerequisites).
+
+> ⚠️ **The bundled `postgres` and `rabbitmq` are intended for development and staging environments only.** The defaults store data on default storage and are not configured for backups or monitoring. **For production, run PostgreSQL and RabbitMQ yourself** (a managed service, or a self-hosted deployment you own end-to-end), then disable the bundled ones:
 >
 > ```bash
 > helm install my-hatchet-stack hatchet/hatchet-stack \
@@ -109,21 +127,42 @@ Inherited by all backend services (`api`, `engine`).
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `postgres.enabled` | bool | `true` | Deploy the bundled Bitnami PostgreSQL. |
-| `postgres.image.repository` | string | `"bitnamilegacy/postgresql"` | PostgreSQL image repository. |
-| `postgres.auth.username` | string | `"hatchet"` | PostgreSQL username. |
-| `postgres.auth.password` | string | `"hatchet"` | PostgreSQL password. |
-| `postgres.auth.database` | string | `"hatchet"` | PostgreSQL database name. |
-| `postgres.tls.enabled` | bool | `false` | Enable PostgreSQL TLS. |
-| `postgres.primary.resourcesPreset` | string | `"medium"` | PostgreSQL resources preset. |
-| `postgres.primary.service.ports.postgresql` | int | `5432` | PostgreSQL service port. |
-| `rabbitmq.enabled` | bool | `true` | Deploy the bundled Bitnami RabbitMQ. |
-| `rabbitmq.image.repository` | string | `"bitnamilegacy/rabbitmq"` | RabbitMQ image repository. |
-| `rabbitmq.auth.username` | string | `"hatchet"` | RabbitMQ username. |
-| `rabbitmq.auth.password` | string | `"hatchet"` | RabbitMQ password. |
-| `rabbitmq.service.ports.amqp` | int | `5672` | RabbitMQ AMQP service port. |
+| `postgres.enabled` | bool | `true` | Deploy the bundled CloudNativePG `Cluster` (requires the CloudNativePG operator). |
+| `postgres.auth.username` | string | `"hatchet"` | Application role/owner name. |
+| `postgres.auth.password` | string | `"hatchet"` | Application role password. |
+| `postgres.auth.database` | string | `"hatchet"` | Application database name. |
+| `postgres.image` | string | `"ghcr.io/cloudnative-pg/postgresql:17.6"` | CloudNativePG-compatible PostgreSQL image. |
+| `postgres.instances` | int | `1` | Number of PostgreSQL instances (1 = single primary). |
+| `postgres.storage.size` | string | `"8Gi"` | PersistentVolume size per instance. |
+| `postgres.storage.storageClass` | string | `""` | StorageClass (empty = cluster default). |
+| `postgres.resources` | object | `{}` | Pod resource requests/limits. |
+| `postgres.extraSpec` | object | `{}` | Extra fields merged into the CloudNativePG `Cluster` spec (e.g. `backup`, `affinity`, `monitoring`). |
+| `postgres.sslmode` | string | `"require"` | sslmode used in the composed `DATABASE_URL`. |
+| `postgres.parameters` | object | `{}` | Extra `postgresql.conf` parameters (`timezone=UTC` is always forced). |
+| `postgres.initExtensions` | list | `[]` | SQL run once as superuser after bootstrap, e.g. `["CREATE EXTENSION IF NOT EXISTS pgcrypto;"]`. |
+| `rabbitmq.enabled` | bool | `true` | Deploy the bundled `RabbitmqCluster` (requires the RabbitMQ Cluster Operator). |
+| `rabbitmq.auth.username` | string | `"hatchet"` | Default user name (provisioned via the operator's default-user Secret). |
+| `rabbitmq.auth.password` | string | `"hatchet"` | Default user password. |
+| `rabbitmq.image` | string | `"rabbitmq:4.1-management"` | RabbitMQ image. |
+| `rabbitmq.replicas` | int | `1` | Number of RabbitMQ nodes. |
+| `rabbitmq.extraSpec` | object | `{}` | Extra fields merged into the `RabbitmqCluster` spec (e.g. `override`, `affinity`, `tls`). |
+| `rabbitmq.persistence.storage` | string | `"8Gi"` | PersistentVolume size per node. |
+| `rabbitmq.persistence.storageClassName` | string | `""` | StorageClass (empty = cluster default). |
+| `rabbitmq.resources` | object | `{}` | Pod resource requests/limits. |
 
-> Both sections accept the full set of values for the upstream Bitnami [postgresql](https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml) and [rabbitmq](https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml) charts.
+> To set operator spec fields not listed above, use `postgres.extraSpec` / `rabbitmq.extraSpec`; their contents are merged into the rendered `Cluster` / `RabbitmqCluster` spec. See the [CloudNativePG](https://cloudnative-pg.io/docs/) and [RabbitMQ Cluster Operator](https://www.rabbitmq.com/kubernetes/operator/using-operator) docs for the full spec.
+
+### Migrating from a pre-1.0 (Bitnami) release
+
+`1.0.0` replaces the Bitnami PostgreSQL/RabbitMQ subcharts with the CloudNativePG and
+RabbitMQ Cluster operators — a deliberate move to actively-maintained, operator-managed
+datastores (the Bitnami catalog deprecation set the deadline, not the direction). This is a
+**breaking change for the bundled datastores**: data is not migrated in place, and the
+operators must be installed before upgrading.
+
+See **[MIGRATION.md](https://github.com/hatchet-dev/hatchet-charts/blob/main/MIGRATION.md)**
+for the rationale and step-by-step guide. Users on external datastores
+(`postgres.enabled=false` / `rabbitmq.enabled=false`) are unaffected.
 
 ### Caddy (optional)
 

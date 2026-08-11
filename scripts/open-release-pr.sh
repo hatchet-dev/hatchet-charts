@@ -25,7 +25,7 @@ git commit -m "Release ${CHART_VERSION}: update charts to ${RELEASE_TAG}"
 git push -u origin "$RELEASE_BRANCH"
 
 gh pr create \
-  --base main \
+  --base "${BASE_BRANCH:-${GITHUB_REF_NAME:-main}}" \
   --head "$RELEASE_BRANCH" \
   --title "Release ${CHART_VERSION}: update charts to ${RELEASE_TAG}" \
   --body "Automated chart release.
