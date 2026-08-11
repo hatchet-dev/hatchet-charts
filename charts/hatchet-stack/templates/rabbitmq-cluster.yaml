@@ -7,6 +7,10 @@ type: Opaque
 stringData:
   username: {{ .Values.rabbitmq.auth.username | quote }}
   password: {{ .Values.rabbitmq.auth.password | quote }}
+  host: {{ printf "%s-rabbitmq.%s.svc" .Release.Name .Release.Namespace | quote }}
+  port: "5672"
+  provider: rabbitmq
+  type: rabbitmq
   default_user.conf: |
     default_user = {{ .Values.rabbitmq.auth.username }}
     default_pass = {{ .Values.rabbitmq.auth.password }}
