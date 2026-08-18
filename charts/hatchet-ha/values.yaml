@@ -14,7 +14,7 @@ sharedConfig:
   # if set, this image tag will be used for all Hatchet components (api, grpc, controllers, scheduler, frontend)
   # individual component image.tag values will be used as fallbacks if this is not set
   image:
-    tag: "v0.98.9"
+    tag: "v0.101.27"
 
   # these are the most commonly configured values
   serverUrl: "http://localhost:8080"
@@ -35,7 +35,7 @@ api:
   replicaCount: 2
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api"
-    tag: "v0.98.9"
+    tag: "v0.101.27"
     pullPolicy: "IfNotPresent"
   # Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
   retainFailedHooks: true
@@ -47,7 +47,7 @@ api:
     activeDeadlineSeconds: 900
     image:
       repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
-      tag: "v0.98.9"
+      tag: "v0.101.27"
       pullPolicy: "IfNotPresent"
   serviceAccount:
     create: true
@@ -80,7 +80,7 @@ grpc:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.98.9"
+    tag: "v0.101.27"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -127,7 +127,7 @@ controllers:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.98.9"
+    tag: "v0.101.27"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -174,7 +174,7 @@ scheduler:
   replicaCount: 1
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine"
-    tag: "v0.98.9"
+    tag: "v0.101.27"
     pullPolicy: "IfNotPresent"
   setupJob:
     enabled: false
@@ -218,7 +218,7 @@ frontend:
   enabled: true
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-    tag: "v0.98.9"
+    tag: "v0.101.27"
     pullPolicy: "IfNotPresent"
   service:
     externalPort: 8080
