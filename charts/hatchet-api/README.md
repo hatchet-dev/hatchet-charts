@@ -48,6 +48,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `seedJob.image.pullPolicy` | string | `"IfNotPresent"` | Seed Job image pull policy. |
 | `quickstartJob.enabled` | bool | `true` | Enable the Job that generates cookie/encryption secrets via `hatchet-admin quickstart`. |
 | `workerTokenJob.enabled` | bool | `true` | Enable the Job that generates a worker API token. |
+| `jobResources` | object | `{}` | Compute resources applied to every container in the bootstrap Jobs (setup, seed, migration, `create-worker-token`, and their `check-db-connection` init containers). |
 | `retainFailedHooks` | bool | `true` | Retain failed Helm hook Jobs (e.g. the pre-upgrade migration hook) so logs survive for debugging. |
 
 ### Container runtime

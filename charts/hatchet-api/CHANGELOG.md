@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add `jobResources`, applied to every container in the bootstrap Jobs (setup, seed, migration and `create-worker-token`, plus their `check-db-connection` init containers). These were the only pods in the chart with no way to set requests or limits, which blocked installs on clusters whose admission policies require them. Defaults to `{}`, so existing releases are unchanged.
+
 ## [0.15.0] - 2026-08-17
 
 - Update the default Hatchet image to [`v0.101.27`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.101.27) for the API, setup, migration and seed Jobs.
