@@ -3,7 +3,7 @@ name: hatchet-stack
 description: A Helm chart for deploying Hatchet on Kubernetes.
 type: application
 icon: https://hatchet.run/brand/logomark-white-bg.svg
-version: 0.17.0
+version: 0.18.0
 home: https://hatchet.run
 sources:
   - https://github.com/hatchet-dev/hatchet-charts
@@ -27,12 +27,12 @@ dependencies:
   - name: "hatchet-api"
     condition: api.enabled
     repository: "file://../hatchet-api"
-    version: "0.17.0"
+    version: "0.18.0"
     alias: api
   - name: "hatchet-api"
     condition: engine.enabled
     repository: "file://../hatchet-api"
-    version: "0.17.0"
+    version: "0.18.0"
     alias: engine
   - name: "hatchet-frontend"
     condition: frontend.enabled
