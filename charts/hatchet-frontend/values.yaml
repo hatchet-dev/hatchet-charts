@@ -1,11 +1,11 @@
 # sharedConfig (typically passed from parent chart)
 sharedConfig:
   image:
-    tag: "v0.105.16"
+    tag: "v0.106.5"
 
 image:
   repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend"
-  tag: "v0.105.16"
+  tag: "v0.106.5"
   pullPolicy: "IfNotPresent"
 
 commandline:
