@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-09-15
+
+- Update the default Hatchet image to [`v0.107.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.107.0).
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.19.0`.
+
 ## [0.18.0] - 2026-09-08
 
 - Update the default Hatchet image to [`v0.106.5`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.106.5).
@@ -126,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - 2024-11-22
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.18.0...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.19.0...HEAD
+[0.19.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.19.0
 [0.18.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.18.0
 [0.17.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.17.0
 [0.16.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.16.0
