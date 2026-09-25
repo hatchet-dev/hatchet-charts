@@ -36,6 +36,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `setupJob.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-admin"` | Setup Job image repository. |
 | `setupJob.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Setup Job image tag. |
 | `setupJob.image.pullPolicy` | string | `"IfNotPresent"` | Setup Job image pull policy. |
+| `setupJob.annotations` | object | `{}` | Annotations for the setup Job, e.g. `argocd.argoproj.io/hook`. |
 | `migrationJob.enabled` | bool | `true` | Enable database migrations (init container on install, `pre-upgrade` hook on upgrade). |
 | `migrationJob.backoffLimit` | int | `1` | Number of retries before the migration Job is marked failed. |
 | `migrationJob.activeDeadlineSeconds` | int | `900` | Hard timeout (seconds) for the migration Job; raise for long-running schema changes. |
@@ -48,6 +49,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `seedJob.image.pullPolicy` | string | `"IfNotPresent"` | Seed Job image pull policy. |
 | `quickstartJob.enabled` | bool | `true` | Enable the Job that generates cookie/encryption secrets via `hatchet-admin quickstart`. |
 | `workerTokenJob.enabled` | bool | `true` | Enable the Job that generates a worker API token. |
+| `workerTokenJob.annotations` | object | `{}` | Annotations for the worker-token Job. |
 | `retainFailedHooks` | bool | `true` | Retain failed Helm hook Jobs (e.g. the pre-upgrade migration hook) so logs survive for debugging. |
 
 ### Container runtime

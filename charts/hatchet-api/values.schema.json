@@ -55,7 +55,8 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/$defs/image" }
+        "image": { "$ref": "#/$defs/image" },
+        "annotations": { "type": "object" }
       }
     },
     "migrationJob": {
@@ -99,7 +100,8 @@
       "description": "Job that generates a worker API token.",
       "additionalProperties": true,
       "properties": {
-        "enabled": { "type": "boolean" }
+        "enabled": { "type": "boolean" },
+        "annotations": { "type": "object" }
       }
     },
     "commandline": {
