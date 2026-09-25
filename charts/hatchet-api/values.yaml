@@ -15,6 +15,9 @@ postgresImage:
 
 setupJob:
   enabled: true
+  # Annotations for the setup Job, e.g. to run it as an Argo CD hook:
+  # argocd.argoproj.io/hook: PreSync
+  annotations: {}
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
     tag: "v0.107.0"
@@ -43,6 +46,7 @@ quickstartJob:
 
 workerTokenJob:
   enabled: true
+  annotations: {}
 
 commandline:
   command: ["/hatchet/hatchet-api"]
