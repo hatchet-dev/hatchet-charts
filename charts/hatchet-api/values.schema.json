@@ -102,6 +102,10 @@
         "enabled": { "type": "boolean" }
       }
     },
+    "jobResources": {
+      "allOf": [{ "$ref": "#/$defs/resources" }],
+      "description": "Compute resources for every container in the bootstrap Jobs (setup, seed, migration, create-worker-token)."
+    },
     "commandline": {
       "type": "object",
       "description": "Container entrypoint command and arguments.",

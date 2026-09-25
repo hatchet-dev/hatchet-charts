@@ -153,3 +153,82 @@ tests:
         documentSelector:
           path: kind
           value: Job
+
+  - it: omits resources on bootstrap containers by default
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources
+        documentSelector:
+          path: kind
+          value: Job
+
+  - it: applies jobResources to the setup Job containers and init containers
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+      jobResources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+        documentSelector:
+          path: kind
+          value: Job
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 512Mi
+        documentSelector:
+          path: kind
+          value: Job
+      - equal:
+          path: spec.template.spec.initContainers[0].resources.requests.memory
+          value: 256Mi
+        documentSelector:
+          path: kind
+          value: Job
+
+  - it: applies jobResources to the pre-upgrade migration hook
+    release:
+      upgrade: true
+    set:
+      jobResources:
+        requests:
+          cpu: 100m
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: spec.template.spec.initContainers[0].resources.requests.cpu
+          value: 100m
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
+  - it: applies jobResources to the create-worker-token Job
+    release:
+      upgrade: false
+    set:
+      jobResources:
+        limits:
+          memory: 512Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 512Mi
+        documentSelector:
+          path: spec.template.spec.containers[0].name
+          value: setup-worker-token

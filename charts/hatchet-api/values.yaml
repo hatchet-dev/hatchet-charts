@@ -71,6 +71,12 @@ retainFailedHooks: true
 # keep finished Jobs around indefinitely (previous behaviour).
 jobTTLSecondsAfterFinished: 600
 
+# Compute resources applied to every container in the bootstrap Jobs (setup,
+# seed, migration and create-worker-token, plus their check-db-connection init
+# containers). Empty by default, which leaves the Jobs unbounded. Set this where
+# a LimitRange or an admission policy requires requests and limits on every pod.
+jobResources: {}
+
 env: {}
 
 deploymentEnvFrom:
