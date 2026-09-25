@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add `setupJob.annotations` and `workerTokenJob.annotations`, rendered on each Job's metadata. The Jobs have generated names and no annotations, so under Argo CD the setup Job is deleted by its TTL and the app reports OutOfSync; annotations let it run as an Argo hook. Defaults to `{}`, so existing releases are unchanged.
+
 ## [0.19.0] - 2026-09-15
 
 - Update the default Hatchet image to [`v0.107.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.107.0) for the API, setup, migration and seed Jobs.
