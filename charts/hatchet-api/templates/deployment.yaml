@@ -54,6 +54,12 @@ spec:
         - name: "{{ $key }}"
           value: "{{ $value }}"
         {{- end }}
+        {{- if and .Values.goMemLimitFromResources (dig "limits" "memory" "" (.Values.resources | default dict)) (not (hasKey (.Values.env | default dict) "GOMEMLIMIT")) }}
+        - name: GOMEMLIMIT
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.memory
+        {{- end }}
         envFrom:
 {{ tpl (toYaml .Values.deploymentEnvFrom) . | nindent 10 }}
 {{- if .Values.envFrom }}

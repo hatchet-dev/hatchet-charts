@@ -1,0 +1,44 @@
+suite: deployment GOMEMLIMIT
+templates:
+  - deployment.yaml
+release:
+  name: test-release
+tests:
+  - it: sets GOMEMLIMIT from the container memory limit by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOMEMLIMIT
+            valueFrom:
+              resourceFieldRef:
+                resource: limits.memory
+
+  - it: keeps a GOMEMLIMIT set in env
+    set:
+      env:
+        GOMEMLIMIT: 900MiB
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GOMEMLIMIT
+            value: 900MiB
+      - lengthEqual:
+          path: spec.template.spec.containers[0].env
+          count: 1
+
+  - it: does not set GOMEMLIMIT when disabled
+    set:
+      goMemLimitFromResources: false
+    asserts:
+      - isNullOrEmpty:
+          path: spec.template.spec.containers[0].env
+
+  - it: does not set GOMEMLIMIT without a memory limit
+    set:
+      resources:
+        limits: null
+    asserts:
+      - isNullOrEmpty:
+          path: spec.template.spec.containers[0].env
