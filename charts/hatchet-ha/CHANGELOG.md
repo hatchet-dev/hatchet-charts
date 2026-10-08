@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-10-08
+
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.19.1`. The Hatchet services now set `GOMEMLIMIT` to their container's memory limit; see the `hatchet-api` changelog.
+
 ## [0.19.0] - 2026-09-15
 
 - Update the default Hatchet image to [`v0.107.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.107.0).

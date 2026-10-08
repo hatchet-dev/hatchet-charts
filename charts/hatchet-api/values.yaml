@@ -73,6 +73,11 @@ jobTTLSecondsAfterFinished: 600
 
 env: {}
 
+# Set GOMEMLIMIT to the container's memory limit (resources.limits.memory), so the Go garbage
+# collector works harder as memory use nears the limit instead of the container being OOM-killed.
+# To use a different value, set GOMEMLIMIT in env, e.g. "900MiB" to leave headroom.
+goMemLimitFromResources: true
+
 deploymentEnvFrom:
   - secretRef:
       name: hatchet-config

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-10-08
+
+- Set `GOMEMLIMIT` to the container's memory limit, so the Go garbage collector works harder as memory use nears the limit instead of the container being OOM-killed. A `GOMEMLIMIT` in `env` takes precedence, and `goMemLimitFromResources: false` turns it off.
+
 ## [0.19.0] - 2026-09-15
 
 - Update the default Hatchet image to [`v0.107.0`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.107.0) for the API, setup, migration and seed Jobs.

@@ -126,6 +126,10 @@
       "type": "boolean",
       "description": "Retain failed Helm hook Jobs (e.g. the pre-upgrade migration hook) so logs survive for debugging."
     },
+    "goMemLimitFromResources": {
+      "type": "boolean",
+      "description": "Set GOMEMLIMIT to the container's memory limit. A GOMEMLIMIT in env takes precedence."
+    },
     "env": {
       "type": "object",
       "description": "Additional environment variables injected into the Deployment.",
