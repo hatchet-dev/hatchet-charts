@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-21
+
+- Add an opt-in `installJobsAsHooks` flag (default `false`). When enabled, the setup and worker-token Jobs render as pre-install/pre-upgrade Helm hooks with stable names and `before-hook-creation` delete policy, and their Role/RoleBinding become lower-weight hooks. This avoids the perpetual drift and orphaned Jobs GitOps tools (e.g. ArgoCD) see with the default randomly-named Jobs.
+
 ## [0.20.0] - 2026-10-09
 
 - Update the default Hatchet image to [`v0.110.5`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.110.5) for the API, setup, migration and seed Jobs.
