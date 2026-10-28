@@ -1,0 +1,106 @@
+{{- if not (or .Values.hatchet.token .Values.hatchet.existingSecret) }}
+{{- fail "HATCHET_CLIENT_TOKEN is required: set hatchet.token or hatchet.existingSecret (a Secret containing the HATCHET_CLIENT_TOKEN key)" }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "brickie.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "brickie.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "brickie.selectorLabels" . | nindent 8 }}
+      {{- if .Values.hatchet.token }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "brickie.fullname" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: provider
+          image: {{ include "brickie.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: BRICKIE_DRIVER
+              value: kubernetes
+            - name: BRICKIE_SANDBOX_NAMESPACE
+              value: {{ include "brickie.sandboxNamespace" . | quote }}
+            - name: BRICKIE_SANDBOX_IMAGE
+              value: {{ .Values.sandbox.image | quote }}
+            - name: BRICKIE_SANDBOX_IDLE_TTL
+              value: {{ .Values.sandbox.idleTTL | quote }}
+            - name: BRICKIE_MAX_SANDBOX_IDLE_TTL
+              value: {{ .Values.sandbox.maxIdleTTL | quote }}
+            - name: BRICKIE_MAX_FILE_BYTES
+              value: {{ .Values.sandbox.maxFileBytes | int64 | quote }}
+            - name: BRICKIE_SANDBOX_RUNTIME
+              value: {{ .Values.sandbox.runtime | quote }}
+            - name: BRICKIE_WARM_REPLICAS
+              value: {{ .Values.sandbox.warmReplicas | quote }}
+            - name: BRICKIE_PROVIDER_IMAGE
+              value: {{ include "brickie.image" . | quote }}
+            - name: BRICKIE_SANDBOX_EGRESS
+              value: {{ .Values.sandbox.egress | quote }}
+            - name: BRICKIE_SANDBOX_CPU
+              value: {{ .Values.sandbox.resources.cpu | quote }}
+            - name: BRICKIE_SANDBOX_MEMORY
+              value: {{ .Values.sandbox.resources.memory | quote }}
+            - name: BRICKIE_SANDBOX_DISK
+              value: {{ .Values.sandbox.resources.disk | quote }}
+            - name: BRICKIE_STORE
+              value: {{ .Values.store | default "file:///var/lib/brickie" | quote }}
+            - name: BRICKIE_SLOTS
+              value: {{ .Values.slots | quote }}
+          envFrom:
+            {{- if .Values.hatchet.token }}
+            - secretRef:
+                name: {{ include "brickie.fullname" . }}
+            {{- end }}
+            {{- if .Values.hatchet.existingSecret }}
+            - secretRef:
+                name: {{ .Values.hatchet.existingSecret }}
+            {{- end }}
+            {{- if .Values.storeSecret }}
+            - secretRef:
+                name: {{ .Values.storeSecret }}
+            {{- end }}
+          volumeMounts:
+            - name: store
+              mountPath: /var/lib/brickie
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: store
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

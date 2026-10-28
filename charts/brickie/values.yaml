@@ -1,0 +1,172 @@
+# brickie: agent sandboxes as Hatchet tasks, one isolated pod per sandbox.
+#
+# Minimum install:
+#   helm repo add hatchet https://hatchet-dev.github.io/hatchet-charts
+#   helm upgrade --install brickie hatchet/brickie -n brickie --create-namespace \
+#     --set hatchet.token=$HATCHET_CLIENT_TOKEN \
+#     --set store='s3://my-bucket?prefix=brickie/'
+#
+# Everything the provider needs is bundled: the agent-sandbox controller, the
+# Kata Containers runtime (default), and an optional gVisor installer. See
+# README.md for what to set up first. values.schema.json rejects unknown keys,
+# so a typo fails at install time.
+
+# Keep this at 1. Calls on one sandbox are serialized inside the provider
+# process; a second replica would race on the same sandbox.
+replicaCount: 1
+
+# How many sandbox calls in Hatchet the provider runs at the same time.
+slots: 10
+
+# The provider image. It also runs in every sandbox pod as the TLS proxy in
+# front of the sandbox daemon, so sandbox nodes pull it too. An empty tag means
+# the chart's appVersion. Build from the repository Dockerfile for a private
+# registry.
+image:
+  repository: ghcr.io/hatchet-dev/brickie
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# Pull secrets for the provider image. Sandbox images are pulled by the sandbox
+# namespace's default ServiceAccount; give that one its own pull secrets.
+imagePullSecrets: []
+
+# Annotations on the provider's ServiceAccount. On EKS, put the IAM role that
+# may read and write the object store here (IRSA):
+#   annotations:
+#     eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/brickie-provider
+serviceAccount:
+  annotations: {}
+
+# The Hatchet tenant the provider connects to. Hatchet v0.110 or newer with
+# gRPC operators enabled. Set one of the two:
+#   token:          the client token, stored by the chart in a Secret
+#   existingSecret: a Secret you created with the key HATCHET_CLIENT_TOKEN
+hatchet:
+  token: ""
+  existingSecret: ""
+
+sandbox:
+  # Namespace for sandbox pods. Empty means the release namespace. Use a
+  # separate namespace to give sandboxes their own quotas and policies.
+  namespace: ""
+
+  # Image for sandboxes that do not ask for one. Needs sh and tar. The SDK can
+  # choose another image per sandbox with the template option.
+  image: alpine:3
+
+  # Remove a sandbox after this long without a call. Every call extends it.
+  idleTTL: 30m
+
+  # Largest idle timeout a sandbox may ask for at create (idleTimeoutMs).
+  maxIdleTTL: 24h
+
+  # Largest file files.read and files.write carry inside a Hatchet task.
+  # Larger files go through store. Raising this above 3 MiB also needs
+  # SERVER_GRPC_MAX_MSG_SIZE raised on the Hatchet engine (default 4 MiB).
+  maxFileBytes: 2097152
+
+  # Runtime class for sandbox pods:
+  #   kata:   Kata Containers with Cloud Hypervisor, one micro-VM per sandbox.
+  #           Needs nodes with KVM (bare-metal x86 on EKS). Installed by the
+  #           bundled kata-deploy chart below.
+  #   gvisor: gVisor (runsc), any node type. Set gvisor.install: true.
+  #   auto:   kata-clh if present, else gvisor, else the default runtime.
+  #   none:   plain containers. Development only; not isolated from the node.
+  runtime: kata
+
+  # Ready pods each warm pool keeps. Every image the SDK asks for gets its own
+  # pool on first use; the default image gets one at provider start.
+  warmReplicas: 2
+
+  # What the agent's own code may reach from a sandbox. The provider writes a
+  # NetworkPolicy into every sandbox template, which the agent-sandbox
+  # controller keeps: ingress only from the provider pod, and egress
+  #   internet: public addresses and cluster DNS; private ranges and the
+  #             cloud metadata endpoint are blocked
+  #   none:     nothing; add an allow-list with networkPolicy.egressCIDRs
+  # Only enforced by a CNI that implements NetworkPolicy.
+  egress: internet
+
+  # Limits on every sandbox pod; the workspace volume has the same size limit
+  # as disk. An agent can exhaust its own sandbox, not the node. cpu and
+  # memory are reserved on the node per sandbox pod; disk is a ceiling only
+  # (the pod requests 50Mi), so size node disks for the sandboxes you expect
+  # to be busy, not for every pod times disk.
+  resources:
+    cpu: "1"
+    memory: 2Gi
+    disk: 10Gi
+
+# Bucket for snapshots, sandbox metadata, and files larger than
+# sandbox.maxFileBytes. Empty keeps everything on the pod's emptyDir, which is
+# lost on restart, and files over maxFileBytes then fail because your
+# application cannot reach the pod's disk. Development only.
+# A prefix goes in the query, not the path:
+#   s3://bucket?prefix=brickie/&region=us-east-1
+#   gs://bucket?prefix=brickie/
+#   azblob://container?prefix=brickie/
+#   s3://bucket?prefix=brickie/&endpoint=https://host&use_path_style=true   (S3-compatible)
+# Credentials come from the pod identity (IRSA, workload identity) or from
+# storeSecret, a Secret with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY or the
+# GCP and Azure equivalents.
+store: ""
+storeSecret: ""
+
+# Extra egress for sandbox pods on top of sandbox.egress, as a second
+# NetworkPolicy in the sandbox namespace. Policies add up, so with
+# sandbox.egress: none this is the whole allow-list. Rendered only when
+# egressCIDRs is set.
+networkPolicy:
+  # Let sandboxes resolve names through kube-dns.
+  allowDNS: true
+  # CIDRs sandboxes may reach, for example your LLM provider's ranges.
+  egressCIDRs: []
+
+# Resources, placement, and tolerations for the provider pod.
+resources: {}
+nodeSelector: {}
+tolerations: []
+
+# agent-sandbox (kubernetes-sigs) runs sandbox pods, warm pools, claims, and
+# idle expiry. Bundled; set enabled: false if your cluster already has it.
+# The controller runs in its own namespace, agent-sandbox-system.
+agent-sandbox:
+  enabled: true
+  image:
+    tag: v1.0.8
+  controller:
+    extensions: true
+
+# kata-deploy installs Kata Containers on every node it is scheduled to, as a
+# privileged DaemonSet, and creates the kata-clh RuntimeClass. Only the Cloud
+# Hypervisor shim is enabled. Use nodeSelector to limit it to sandbox nodes.
+# Every key here is passed to the bundled kata-deploy chart.
+kata-deploy:
+  enabled: true
+  deploymentMode: daemonset
+  priorityClassName: ""
+  k8sDistribution: k8s
+  shims:
+    disableAll: true
+    clh:
+      enabled: true
+  defaultShim:
+    amd64: clh
+  runtimeClasses:
+    enabled: true
+  node-feature-discovery:
+    enabled: false
+  # nodeSelector:
+  #   brickie.hatchet.run/sandbox-node: "true"
+  # Leave verification.pod unset when nodeSelector is set: the upstream 4.2.0
+  # verification job expects every node in the cluster to carry the Kata label.
+
+# gVisor installer: a privileged DaemonSet that downloads the pinned release to
+# every node, registers runsc with containerd, and creates the gvisor
+# RuntimeClass. Enable with sandbox.runtime: gvisor. nodeSelector limits the
+# installer to sandbox nodes and makes the RuntimeClass schedule only there.
+gvisor:
+  install: false
+  release: "20261005.0"
+  nodeSelector: {}

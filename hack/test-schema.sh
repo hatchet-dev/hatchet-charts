@@ -20,10 +20,10 @@ assert_reject() {
   fi
 }
 
-# assert_accept <chart>  (defaults must validate)
+# assert_accept <chart> [helm --set args...]  (defaults must validate)
 assert_accept() {
-  local chart="$1"
-  if helm template t "charts/$chart" >/dev/null 2>&1; then
+  local chart="$1"; shift
+  if helm template t "charts/$chart" "$@" >/dev/null 2>&1; then
     echo "  ✓ accepted: [$chart] default values"
   else
     echo "  ✗ FAIL: [$chart] default values rejected by schema"
@@ -60,6 +60,13 @@ assert_accept hatchet-ha
 assert_reject hatchet-ha "grpc.replicaCount not an integer"  --set grpc.replicaCount=two
 assert_reject hatchet-ha "sharedConfig.enabled not a boolean" --set sharedConfig.enabled=yes
 assert_reject hatchet-ha "scheduler.replicaCount < 0"        --set scheduler.replicaCount=-1
+
+echo "brickie:"
+assert_accept brickie --set hatchet.token=x
+assert_reject brickie "a token is required"               --set hatchet.token=
+assert_reject brickie "sandbox.runtime not in enum"       --set hatchet.token=x --set sandbox.runtime=firecracker
+assert_reject brickie "sandbox.egress not in enum"        --set hatchet.token=x --set sandbox.egress=all
+assert_reject brickie "unknown key"                       --set hatchet.token=x --set networkPolicy.enabled=true
 
 echo
 if [ "$fails" -ne 0 ]; then

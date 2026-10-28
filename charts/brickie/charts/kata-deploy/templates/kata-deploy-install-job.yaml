@@ -1,0 +1,137 @@
+{{- /*
+Install dispatcher (deploymentMode: job).
+
+A single, tiny post-install/post-upgrade hook Job that runs k8s-job-dispatcher.
+The dispatcher enumerates the selected nodes LIVE, then
+creates one node-pinned install Job per node from the job-templates ConfigMap,
+keeping at most job.parallelism in flight and refilling as they finish. This
+guarantees one install per node (coverage) with a paced rollout, while the Helm
+release stays O(1) regardless of fleet size.
+
+Each per-node Job runs the staged pipeline and exits:
+
+  host-check -> artifacts   (initContainers, run sequentially)
+  cri                       (main container)
+
+Labelling the node is not one of the stages: the dispatcher does it once the Job
+as a whole has succeeded, which is what lets these pods run with no token.
+
+Helm waits only on THIS dispatcher Job (the verification hook runs at a higher
+weight, after it). before-hook-creation lets `helm upgrade` re-run the dispatcher,
+which re-enumerates nodes (idempotent stages skip already-installed nodes and
+pick up newly added ones).
+*/ -}}
+{{- if eq (.Values.deploymentMode | default "daemonset") "job" }}
+{{- $root := . }}
+{{- $base := .Chart.Name }}
+{{- if .Values.env.multiInstallSuffix }}
+{{- $base = printf "%s-%s" .Chart.Name .Values.env.multiInstallSuffix }}
+{{- end }}
+{{- $sa := include "kata-deploy.dispatcherServiceAccountName" . }}
+{{- $dispatcherName := printf "%s-install-dispatcher" $base | trunc 63 | trimSuffix "-" }}
+{{- $nodes := .Values.job.nodes | default list }}
+{{- $selectors := include "kata-deploy.installNodeSelectors" . | splitList "\n" | compact }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $dispatcherName }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "kata-deploy.name" $root }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+    kata-deploy/dispatcher: install
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+{{- /* Otherwise Helm reports only that a hook Job failed, leaving the reader to
+       find a pod that holds the names of the nodes that failed. */}}
+    "helm.sh/hook-output-log-policy": hook-failed
+spec:
+  # The dispatcher does per-node retries (job.backoffLimit) itself; a dispatcher
+  # failure means "some node failed" and should surface, not be retried blindly.
+  backoffLimit: 0
+  ttlSecondsAfterFinished: {{ $root.Values.job.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "kata-deploy.name" $root }}
+        app.kubernetes.io/instance: {{ $root.Release.Name }}
+        kata-deploy/dispatcher: install
+{{- if eq ($root.Values.deploymentMode | default "daemonset") "job" }}
+      annotations:
+        checksum/job-templates: {{ include (print $root.Template.BasePath "/kata-deploy-job-templates.yaml") $root | sha256sum }}
+{{- end }}
+    spec:
+{{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+      serviceAccountName: {{ $sa }}
+      restartPolicy: Never
+      # The dispatcher never touches the host; it is a plain API client. Lock the
+      # pod down so a compromise cannot escalate beyond its (minimal) API rights.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+{{- with include "kata-deploy.dispatcherPlacement" $root | trim }}
+{{- . | nindent 6 }}
+{{- end }}
+{{- with $root.Values.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+{{- end }}
+      containers:
+        - name: dispatcher
+          image: {{ include "kata-deploy.dispatcherImage" $root }}
+          imagePullPolicy: {{ $root.Values.imagePullPolicy }}
+          {{- /* The dispatcher's last words are its per-node summary. */}}
+          terminationMessagePolicy: FallbackToLogsOnError
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - /usr/bin/k8s-job-dispatcher
+            - "--job-template=/etc/kata-job/install-job.yaml"
+            - "--cleanup-job-template=/etc/kata-job/cleanup-job.yaml"
+            - "--name-prefix={{ $base }}-install"
+            - "--owner-job-name={{ $dispatcherName }}"
+            - "--parallelism={{ $root.Values.job.parallelism }}"
+{{- if $nodes }}
+            - "--nodes={{ join "," $nodes }}"
+{{- else }}
+{{- /* One flag per nodeSelectorTerm; the dispatcher unions the matches (OR). */}}
+{{- range $selector := $selectors }}
+            - "--node-selector={{ $selector }}"
+{{- end }}
+{{- /*
+Node eligibility is a moving target at install time (NFD is still labelling,
+new nodes are still settling), so let the dispatcher re-resolve instead of
+acting on the first snapshot it happens to see. Not passed with an explicit
+job.nodes list, which names nodes outright and needs no discovery.
+*/}}
+            - "--wait-for-nodes-secs={{ $root.Values.job.waitForNodesSeconds | default 0 }}"
+            - "--node-settle-secs={{ $root.Values.job.nodeSettleSeconds | default 15 }}"
+{{- end }}
+{{- include "kata-deploy.dispatcherNodeWorkFlags" (dict "root" $root "stage" "install") | nindent 12 }}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: job-templates
+              mountPath: /etc/kata-job
+              readOnly: true
+      volumes:
+        - name: job-templates
+          configMap:
+            name: {{ printf "%s-job-templates" $base | trunc 63 | trimSuffix "-" }}
+{{- end }}

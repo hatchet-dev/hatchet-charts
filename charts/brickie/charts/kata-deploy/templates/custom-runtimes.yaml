@@ -1,0 +1,37 @@
+{{- $hasCustomRuntimes := and .Values.customRuntimes.enabled .Values.customRuntimes.runtimes -}}
+{{- if eq (include "kata-deploy.hasCustomConfigsConfigMap" . | trim) "true" }}
+---
+# ConfigMap containing custom runtime configuration and runtime drop-ins
+# This is mounted into the kata-deploy pod at /custom-configs/
+{{ include "kata-deploy.customConfigsConfigMap" . }}
+{{- if $hasCustomRuntimes }}
+---
+# RuntimeClasses for custom runtimes
+{{- $runtimeClassConfigs := fromYaml (include "kata-deploy.runtimeClassConfigs" .) | default dict }}
+{{- range $name, $runtime := .Values.customRuntimes.runtimes }}
+{{- if $runtime.runtimeClass }}
+{{- $runtimeClassObj := fromYaml $runtime.runtimeClass | default dict }}
+{{- $inheritBaseOverhead := true }}
+{{- if hasKey $runtime "inheritBaseOverhead" }}
+{{- $inheritBaseOverhead = $runtime.inheritBaseOverhead }}
+{{- end }}
+{{- if and $inheritBaseOverhead (hasKey $runtimeClassConfigs (default "" $runtime.baseConfig)) }}
+{{- $defaultOverhead := deepCopy (index $runtimeClassConfigs $runtime.baseConfig) }}
+{{- $runtimeOverhead := dig "overhead" "podFixed" (dict) $runtimeClassObj }}
+{{- $_ := set $runtimeClassObj "overhead" (dict "podFixed" (mergeOverwrite $defaultOverhead $runtimeOverhead)) }}
+{{- end }}
+{{- /* Custom RuntimeClasses need the same gate as the built-in ones, or they would
+       keep scheduling onto a node this install is being removed from, on the
+       strength of a label another install holds. */}}
+{{- with include "kata-deploy.instanceMarkerLabel" $ }}
+{{- $scheduling := dig "scheduling" (dict) $runtimeClassObj }}
+{{- $selector := dig "nodeSelector" (dict) $scheduling }}
+{{- $_ := set $selector . "true" }}
+{{- $_ := set $runtimeClassObj "scheduling" (merge (dict "nodeSelector" $selector) $scheduling) }}
+{{- end }}
+{{ toYaml $runtimeClassObj }}
+---
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
