@@ -34,6 +34,7 @@ assert_accept() {
 echo "Building umbrella chart dependencies..."
 helm dependency build charts/hatchet-stack >/dev/null
 helm dependency build charts/hatchet-ha >/dev/null
+helm dependency build charts/brickie >/dev/null
 
 echo "hatchet-api:"
 assert_accept hatchet-api
