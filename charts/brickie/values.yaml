@@ -68,7 +68,7 @@ sandbox:
 
   # Runtime class for sandbox pods:
   #   kata:   Kata Containers with Cloud Hypervisor, one micro-VM per sandbox.
-  #           Needs nodes with KVM (bare-metal x86 on EKS). Installed by the
+  #           Needs x86 nodes with /dev/kvm. Installed by the
   #           bundled kata-deploy chart below.
   #   gvisor: gVisor (runsc), any node type. Set gvisor.install: true.
   #   auto:   kata-clh if present, else gvisor, else the default runtime.
