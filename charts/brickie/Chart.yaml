@@ -28,4 +28,5 @@ dependencies:
     condition: agent-sandbox.enabled
   - name: kata-deploy
     version: 4.2.0
+    repository: oci://quay.io/kata-containers/kata-deploy-charts
     condition: kata-deploy.enabled

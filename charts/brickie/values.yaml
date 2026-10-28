@@ -69,7 +69,7 @@ sandbox:
   # Runtime class for sandbox pods:
   #   kata:   Kata Containers with Cloud Hypervisor, one micro-VM per sandbox.
   #           Needs x86 nodes with /dev/kvm. Installed by the
-  #           bundled kata-deploy chart below.
+  #           kata-deploy chart below.
   #   gvisor: gVisor (runsc), any node type. Set gvisor.install: true.
   #   auto:   kata-clh if present, else gvisor, else the default runtime.
   #   none:   plain containers. Development only; not isolated from the node.
@@ -141,7 +141,7 @@ agent-sandbox:
 # kata-deploy installs Kata Containers on every node it is scheduled to, as a
 # privileged DaemonSet, and creates the kata-clh RuntimeClass. Only the Cloud
 # Hypervisor shim is enabled. Use nodeSelector to limit it to sandbox nodes.
-# Every key here is passed to the bundled kata-deploy chart.
+# Every key here is passed to the kata-deploy chart, fetched from quay.io at package time.
 kata-deploy:
   enabled: true
   deploymentMode: daemonset

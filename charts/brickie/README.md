@@ -2,6 +2,8 @@
 
 A Helm chart that deploys [brickie](https://github.com/hatchet-dev/brickie), the Hatchet sandbox provider, on Kubernetes. The provider connects to a Hatchet tenant as a gRPC operator and runs agent sandboxes as Hatchet tasks, one isolated pod per sandbox.
 
+> **⚠️ Preview.** brickie and this chart are in preview. Values, defaults and resource names may change between releases without a deprecation cycle. More information is coming soon.
+
 ## Prerequisites
 
 - Kubernetes 1.30+
@@ -30,8 +32,8 @@ helm uninstall brickie
 
 | Component | Subchart | Condition |
 |-----------|----------|-----------|
-| agent-sandbox controller | [agent-sandbox](https://github.com/kubernetes-sigs/agent-sandbox) v1.0.8 (bundled) | `agent-sandbox.enabled` |
-| Kata Containers | [kata-deploy](https://github.com/kata-containers/kata-containers/tree/main/tools/packaging/kata-deploy/helm-chart) 4.2.0 (bundled) | `kata-deploy.enabled` |
+| agent-sandbox controller | [agent-sandbox](https://github.com/kubernetes-sigs/agent-sandbox) v1.0.8, bundled; upstream publishes no chart | `agent-sandbox.enabled` |
+| Kata Containers | [kata-deploy](https://github.com/kata-containers/kata-containers/tree/main/tools/packaging/kata-deploy/helm-chart) 4.2.0 from `oci://quay.io/kata-containers/kata-deploy-charts` | `kata-deploy.enabled` |
 
 Both sections accept all values of their respective subcharts. Set a condition to `false` when the component is already on the cluster.
 
