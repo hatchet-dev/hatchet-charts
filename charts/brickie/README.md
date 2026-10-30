@@ -86,6 +86,8 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `sandbox.maxIdleTTL` | string | `"24h"` | Largest idle timeout a sandbox may ask for at create. |
 | `sandbox.maxFileBytes` | int | `2097152` | Largest file carried inside a Hatchet task; larger files go through `store`. |
 | `sandbox.egress` | string | `"internet"` | What sandboxes may reach: `internet` (public addresses and cluster DNS) or `none`. Enforced by the sandbox NetworkPolicy where the CNI supports it. |
+| `sandbox.nodeSelector` | object | `{}` | Node labels sandbox pods are placed on, in addition to the runtime class's own selector. |
+| `sandbox.tolerations` | list | `[]` | Tolerations on sandbox pods, for tainted sandbox nodes. Give the Kata installer the same ones through `kata-deploy.tolerations`. |
 | `sandbox.resources.cpu` | string | `"1"` | CPU limit per sandbox pod. |
 | `sandbox.resources.memory` | string | `"2Gi"` | Memory limit per sandbox pod. |
 | `sandbox.resources.disk` | string | `"10Gi"` | Ephemeral-storage limit per sandbox pod, also the workspace volume size limit. |
