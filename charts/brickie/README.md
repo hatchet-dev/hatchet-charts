@@ -64,6 +64,8 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `resources` | object | `{}` | Provider pod resources. |
 | `nodeSelector` | object | `{}` | Provider pod node selector. |
 | `tolerations` | list | `[]` | Provider pod tolerations. |
+| `extraEnv` | list | `[]` | Extra environment variables for the provider container, for example `AWS_USE_FIPS_ENDPOINT`. Never reaches sandbox pods. |
+| `extraEnvFrom` | list | `[]` | Extra `envFrom` sources for the provider container, such as `secretRef` or `configMapRef`. |
 
 ### Store
 
