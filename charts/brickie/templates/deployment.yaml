@@ -69,6 +69,14 @@ spec:
               value: {{ .Values.sandbox.resources.memory | quote }}
             - name: BRICKIE_SANDBOX_DISK
               value: {{ .Values.sandbox.resources.disk | quote }}
+            {{- with .Values.sandbox.nodeSelector }}
+            - name: BRICKIE_SANDBOX_NODE_SELECTOR
+              value: {{ $pairs := list }}{{ range $k, $v := . }}{{ $pairs = append $pairs (printf "%s=%s" $k $v) }}{{ end }}{{ join "," $pairs | quote }}
+            {{- end }}
+            {{- with .Values.sandbox.tolerations }}
+            - name: BRICKIE_SANDBOX_TOLERATIONS
+              value: {{ toJson . | quote }}
+            {{- end }}
             - name: BRICKIE_STORE
               value: {{ .Values.store | default "file:///var/lib/brickie" | quote }}
             - name: BRICKIE_SLOTS

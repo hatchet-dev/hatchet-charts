@@ -88,6 +88,19 @@ sandbox:
   # Only enforced by a CNI that implements NetworkPolicy.
   egress: internet
 
+  # Placement of sandbox pods, on top of what the runtime class adds. Use
+  # these when the sandbox nodes are tainted or labelled, for example
+  #   nodeSelector:
+  #     brickie.hatchet.run/sandbox-node: "true"
+  #   tolerations:
+  #     - key: brickie.hatchet.run/sandbox
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
+  # The Kata installer needs the same toleration through kata-deploy.tolerations.
+  nodeSelector: {}
+  tolerations: []
+
   # Limits on every sandbox pod; the workspace volume has the same size limit
   # as disk. An agent can exhaust its own sandbox, not the node. cpu and
   # memory are reserved on the node per sandbox pod; disk is a ceiling only
