@@ -128,6 +128,19 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 
+# Extra environment for the provider container: plain variables and sources
+# such as a Secret or ConfigMap loaded whole. Use these for cloud settings
+# like AWS_USE_FIPS_ENDPOINT or a proxy. Nothing here reaches sandbox pods;
+# sandboxes never see the provider's environment.
+#   extraEnv:
+#     - name: AWS_USE_FIPS_ENDPOINT
+#       value: "true"
+#   extraEnvFrom:
+#     - secretRef:
+#         name: brickie-provider-env
+extraEnv: []
+extraEnvFrom: []
+
 # agent-sandbox (kubernetes-sigs) runs sandbox pods, warm pools, claims, and
 # idle expiry. Bundled; set enabled: false if your cluster already has it.
 # The controller runs in its own namespace, agent-sandbox-system.

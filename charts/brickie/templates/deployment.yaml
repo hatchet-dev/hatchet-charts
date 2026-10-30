@@ -73,6 +73,9 @@ spec:
               value: {{ .Values.store | default "file:///var/lib/brickie" | quote }}
             - name: BRICKIE_SLOTS
               value: {{ .Values.slots | quote }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           envFrom:
             {{- if .Values.hatchet.token }}
             - secretRef:
@@ -85,6 +88,9 @@ spec:
             {{- if .Values.storeSecret }}
             - secretRef:
                 name: {{ .Values.storeSecret }}
+            {{- end }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
           volumeMounts:
             - name: store
