@@ -19,6 +19,10 @@ setupJob:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
     tag: "v0.114.2"
     pullPolicy: "IfNotPresent"
+  noopImage:
+    repository: "alpine"
+    tag: "3.14"
+    pullPolicy: "IfNotPresent"
 
 migrationJob:
   enabled: true

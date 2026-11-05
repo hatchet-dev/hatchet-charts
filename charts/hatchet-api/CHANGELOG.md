@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add `setupJob.noopImage` to configure the image of the no-op container the setup Job runs when `quickstartJob.enabled` is `false`. The default stays `alpine:3.14`.
+
 ## [0.21.1] - 2026-11-12
 
 - Remove the `SYS_PTRACE` capability and `shareProcessNamespace` from the setup, migration, seed and worker-token Job containers. They were only needed to stop a Cloud SQL proxy sidecar that these Jobs no longer run, and they blocked clusters enforcing the Pod Security `baseline` profile or running Falco.

@@ -191,7 +191,8 @@ spec:
 {{- else }}
       # Write an empty container to avoid a syntax error
       - name: empty
-        image: "alpine:3.14"
+        image: "{{ .Values.setupJob.noopImage.repository }}:{{ .Values.setupJob.noopImage.tag }}"
+        imagePullPolicy: {{ .Values.setupJob.noopImage.pullPolicy }}
         command: ["sh", "-c", "echo 'No setup job configured'"]
 {{- end }}
 ---
