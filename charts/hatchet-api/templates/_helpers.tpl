@@ -24,6 +24,21 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
+Name for one of the stable-named install Jobs, reserving room for its suffix.
+
+hatchet.fullname already truncates at 63, so appending a suffix to it can push the result past the
+63-character limit Kubernetes applies to Job names, which become label values. A 40-character
+release name yields a 52-character fullname and so a 65-character worker-token name, which the API
+server rejects. Truncate the prefix by the suffix length instead of after it.
+
+Usage: include "hatchet.suffixedName" (dict "ctx" . "suffix" "-worker-token")
+*/}}
+{{- define "hatchet.suffixedName" -}}
+{{- $max := int (sub 63 (len .suffix)) -}}
+{{- printf "%s%s" (include "hatchet.fullname" .ctx | trunc $max | trimSuffix "-") .suffix -}}
+{{- end }}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "hatchet.chart" -}}

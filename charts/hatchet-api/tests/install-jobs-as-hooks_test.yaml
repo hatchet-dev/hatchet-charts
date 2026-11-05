@@ -1,0 +1,147 @@
+suite: installJobsAsHooks
+templates:
+  - setup-job.yaml
+release:
+  name: test-release
+tests:
+  - it: leaves the setup Job an ordinary resource by default
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+    asserts:
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: Job
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: Role
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: RoleBinding
+
+  - it: gives the setup Job a stable name and hook annotations when enabled
+    release:
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: false
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-3"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+
+  - it: gives the worker-token Job a stable name and hook annotations when enabled
+    release:
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: true
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-2"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+
+  - it: makes the Role and RoleBinding lower-weight hooks so RBAC lands first
+    release:
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: false
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-10"
+        documentSelector:
+          path: kind
+          value: Role
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation
+        documentSelector:
+          path: kind
+          value: Role
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-10"
+        documentSelector:
+          path: kind
+          value: RoleBinding
+
+  - it: adds hook-failed to the hook Jobs delete policy when retainFailedHooks is false
+    release:
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      retainFailedHooks: false
+      workerTokenJob.enabled: false
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded,hook-failed
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+
+  - it: keeps the stable Job names within 63 characters for a long release name
+    # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa is 40 chars; before the suffix budget was
+    # reserved the worker-token name came out at 65 and the API server rejected the hook.
+    release:
+      name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: true
+    asserts:
+      # 63 chars
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-hatchet-a-worker-token
+      # 58 chars
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-hatchet-api-setup

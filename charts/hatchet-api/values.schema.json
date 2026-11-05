@@ -122,6 +122,10 @@
         "resources": { "$ref": "#/$defs/resources" }
       }
     },
+    "installJobsAsHooks": {
+      "type": "boolean",
+      "description": "Render the install-time setup and worker-token Jobs as Helm hooks with stable names instead of plain resources with a random name suffix. Leave false for a normal helm install/upgrade. Set true for GitOps tools (e.g. ArgoCD) that otherwise treat the randomly-named Jobs as a new resource on every reconcile."
+    },
     "retainFailedHooks": {
       "type": "boolean",
       "description": "Retain failed Helm hook Jobs (e.g. the pre-upgrade migration hook) so logs survive for debugging."
