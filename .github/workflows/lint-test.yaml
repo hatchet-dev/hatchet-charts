@@ -54,4 +54,7 @@ jobs:
         # hatchet-api is excluded: standalone it requires an externally-managed
         # database and a pre-created hatchet-config Secret to reach Ready. That
         # path is covered by the migration-e2e job in test.yaml.
-        run: ct install --config .github/ct.yaml --excluded-charts hatchet-api
+        # brickie is excluded: its provider needs a Hatchet tenant token and a
+        # reachable engine to become Ready. Its end-to-end runs live in the
+        # brickie repository.
+        run: ct install --config .github/ct.yaml --excluded-charts hatchet-api,brickie

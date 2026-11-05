@@ -1,0 +1,9 @@
+dependencies:
+- name: agent-sandbox
+  repository: ""
+  version: 0.1.2
+- name: kata-deploy
+  repository: oci://quay.io/kata-containers/kata-deploy-charts
+  version: 4.2.0
+digest: sha256:d1f2b21a179bce3048843bd769f3d95e49467ae9dcb782ea45381f41065ef204
+generated: "2026-10-28T16:19:15.199253+01:00"

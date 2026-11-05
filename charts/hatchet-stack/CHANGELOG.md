@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.21.0] - 2026-10-21
+## [0.22.0] - 2026-11-05
 
-- Bump the bundled `hatchet-api` subchart to `0.21.0` (adds the opt-in `installJobsAsHooks` flag).
+- Bump the bundled `hatchet-api` subchart to `0.22.0` (adds the opt-in `installJobsAsHooks` flag).
+
+## [0.21.0] - 2026-10-26
+
+- Update the default Hatchet image to [`v0.114.2`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.114.2).
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.21.0`.
 
 ## [0.20.0] - 2026-10-09
 
@@ -157,7 +162,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.20.0...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-stack-0.21.0...HEAD
+[0.21.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.21.0
 [0.20.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.20.0
 [0.19.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.19.0
 [0.18.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-stack-0.18.0

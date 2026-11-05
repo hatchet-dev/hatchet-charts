@@ -19,7 +19,7 @@ function update_image_tags() {
 
   echo "Updating image tags to: $RELEASE_TAG"
 
-  find . -name "values.yaml" -type f | while read -r file; do
+  find . -name "values.yaml" -type f -not -path "./charts/brickie/*" | while read -r file; do
     echo "Processing values file: $file"
     $SED_INPLACE "s/tag: \"v[^\"]*\"/tag: \"$RELEASE_TAG\"/" "$file"
     $SED_INPLACE "s/tag: v[^[:space:]]*/tag: $RELEASE_TAG/" "$file"
@@ -43,19 +43,19 @@ function update_chart_versions() {
 
   echo "Updating chart versions to: $CHART_VERSION"
 
-  find . -name "Chart.yaml" -type f | while read -r file; do
+  find . -name "Chart.yaml" -type f -not -path "./charts/brickie/*" | while read -r file; do
     echo "Processing Chart file: $file"
     $SED_INPLACE "s/^version: .*/version: $CHART_VERSION/" "$file"
     $SED_INPLACE '/name: "hatchet-api"/,/version:/ s/version: "[^"]*"/version: "'"$CHART_VERSION"'"/' "$file"
     $SED_INPLACE '/name: "hatchet-frontend"/,/version:/ s/version: "[^"]*"/version: "'"$CHART_VERSION"'"/' "$file"
   done
 
-  find . -name "Chart.lock" -type f | while read -r file; do
+  find . -name "Chart.lock" -type f -not -path "./charts/brickie/*" | while read -r file; do
     echo "Removing Chart.lock file: $file"
     rm "$file"
   done
 
-  find . -name "Chart.yaml" -type f | while read -r file; do
+  find . -name "Chart.yaml" -type f -not -path "./charts/brickie/*" | while read -r file; do
     chart_dir=$(dirname "$file")
     if grep -q "dependencies:" "$file"; then
       echo "Running helm dependency update in: $chart_dir"

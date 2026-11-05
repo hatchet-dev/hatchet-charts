@@ -1,0 +1,95 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "brickie.fullname" . }}-provider
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["brickie-sandboxd"]
+    verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "brickie.fullname" . }}-provider
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "brickie.fullname" . }}-provider
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "brickie.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "brickie.fullname" . }}
+  namespace: {{ include "brickie.sandboxNamespace" . }}
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxclaims"]
+    verbs: ["get", "list", "create", "patch", "delete"]
+  - apiGroups: ["extensions.agents.x-k8s.io"]
+    resources: ["sandboxtemplates", "sandboxwarmpools"]
+    verbs: ["get", "create", "update"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["brickie-sandbox-tls"]
+    verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "brickie.fullname" . }}
+  namespace: {{ include "brickie.sandboxNamespace" . }}
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "brickie.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "brickie.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "brickie.fullname" . }}-cluster
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["node.k8s.io"]
+    resources: ["runtimeclasses"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "brickie.fullname" . }}-cluster
+  labels:
+    {{- include "brickie.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "brickie.fullname" . }}-cluster
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "brickie.fullname" . }}
+    namespace: {{ .Release.Namespace }}
