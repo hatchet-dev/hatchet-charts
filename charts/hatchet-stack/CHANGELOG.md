@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-05
+
+- Bump the bundled `hatchet-api` subchart to `0.22.0` (adds the opt-in `installJobsAsHooks` flag).
+
 ## [0.21.0] - 2026-10-26
 
 - Update the default Hatchet image to [`v0.114.2`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.114.2).

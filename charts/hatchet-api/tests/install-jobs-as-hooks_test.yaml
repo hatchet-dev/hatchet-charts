@@ -1,0 +1,190 @@
+suite: installJobsAsHooks
+templates:
+  - setup-job.yaml
+release:
+  name: test-release
+tests:
+  - it: leaves the setup Job an ordinary resource by default
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+    asserts:
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: Job
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: Role
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: RoleBinding
+
+  - it: makes the setup Job a pre-upgrade hook on upgrade
+    release:
+      upgrade: true
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: false
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-3"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+
+  - it: makes the worker-token Job a pre-upgrade hook on upgrade
+    release:
+      upgrade: true
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: true
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-2"
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+
+  - it: makes the Role and RoleBinding lower-weight hooks so RBAC lands first
+    release:
+      upgrade: true
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: false
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-10"
+        documentSelector:
+          path: kind
+          value: Role
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation
+        documentSelector:
+          path: kind
+          value: Role
+      - equal:
+          path: metadata.annotations["helm.sh/hook-weight"]
+          value: "-10"
+        documentSelector:
+          path: kind
+          value: RoleBinding
+
+  - it: adds hook-failed to the hook Jobs delete policy when retainFailedHooks is false
+    release:
+      upgrade: true
+    set:
+      installJobsAsHooks: true
+      retainFailedHooks: false
+      workerTokenJob.enabled: false
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook-delete-policy"]
+          value: before-hook-creation,hook-succeeded,hook-failed
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+
+  - it: keeps the stable Job names within 63 characters for a long release name
+    # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa is 40 chars; before the suffix budget was
+    # reserved the worker-token name came out at 65 and the API server rejected the hook.
+    release:
+      name: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: true
+    asserts:
+      # 63 chars
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-hatchet-a-worker-token
+      # 58 chars
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-hatchet-api-setup
+
+  - it: renders stable-named but un-hooked Jobs on install, so a fresh install does not deadlock
+    # A pre-install hook Job cannot start before the ServiceAccount and the
+    # hatchet-shared-config Secret exist, and both are ordinary resources created after
+    # pre-install hooks run. Keeping the Jobs ordinary on install keeps the stable names
+    # GitOps tools need without that ordering problem. helm template reports IsUpgrade
+    # false, so this is also the path ArgoCD renders.
+    release:
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: true
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: Role
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: RoleBinding
