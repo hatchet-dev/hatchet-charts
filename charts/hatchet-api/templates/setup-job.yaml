@@ -109,7 +109,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   {{- if .Values.installJobsAsHooks }}
-  name: {{ template "hatchet.fullname" . }}-setup
+  name: {{ include "hatchet.suffixedName" (dict "ctx" . "suffix" "-setup") }}
   {{- else }}
   name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}"
   {{- end }}
@@ -239,7 +239,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   {{- if .Values.installJobsAsHooks }}
-  name: {{ template "hatchet.fullname" . }}-worker-token
+  name: {{ include "hatchet.suffixedName" (dict "ctx" . "suffix" "-worker-token") }}
   {{- else }}
   name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}-worker-token"
   {{- end }}
