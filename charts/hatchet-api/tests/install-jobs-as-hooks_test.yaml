@@ -26,9 +26,9 @@ tests:
           path: kind
           value: RoleBinding
 
-  - it: gives the setup Job a stable name and hook annotations when enabled
+  - it: makes the setup Job a pre-upgrade hook on upgrade
     release:
-      upgrade: false
+      upgrade: true
     set:
       installJobsAsHooks: true
       workerTokenJob.enabled: false
@@ -40,7 +40,7 @@ tests:
           value: test-release-hatchet-api-setup
       - equal:
           path: metadata.annotations["helm.sh/hook"]
-          value: pre-install,pre-upgrade
+          value: pre-upgrade
         documentSelector:
           path: metadata.name
           value: test-release-hatchet-api-setup
@@ -57,9 +57,9 @@ tests:
           path: metadata.name
           value: test-release-hatchet-api-setup
 
-  - it: gives the worker-token Job a stable name and hook annotations when enabled
+  - it: makes the worker-token Job a pre-upgrade hook on upgrade
     release:
-      upgrade: false
+      upgrade: true
     set:
       installJobsAsHooks: true
       workerTokenJob.enabled: true
@@ -71,7 +71,7 @@ tests:
           value: test-release-hatchet-api-worker-token
       - equal:
           path: metadata.annotations["helm.sh/hook"]
-          value: pre-install,pre-upgrade
+          value: pre-upgrade
         documentSelector:
           path: metadata.name
           value: test-release-hatchet-api-worker-token
@@ -84,7 +84,7 @@ tests:
 
   - it: makes the Role and RoleBinding lower-weight hooks so RBAC lands first
     release:
-      upgrade: false
+      upgrade: true
     set:
       installJobsAsHooks: true
       workerTokenJob.enabled: false
@@ -110,7 +110,7 @@ tests:
 
   - it: adds hook-failed to the hook Jobs delete policy when retainFailedHooks is false
     release:
-      upgrade: false
+      upgrade: true
     set:
       installJobsAsHooks: true
       retainFailedHooks: false
@@ -145,3 +145,46 @@ tests:
         documentSelector:
           path: metadata.name
           value: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-hatchet-api-setup
+
+  - it: renders stable-named but un-hooked Jobs on install, so a fresh install does not deadlock
+    # A pre-install hook Job cannot start before the ServiceAccount and the
+    # hatchet-shared-config Secret exist, and both are ordinary resources created after
+    # pre-install hooks run. Keeping the Jobs ordinary on install keeps the stable names
+    # GitOps tools need without that ordering problem. helm template reports IsUpgrade
+    # false, so this is also the path ArgoCD renders.
+    release:
+      upgrade: false
+    set:
+      installJobsAsHooks: true
+      workerTokenJob.enabled: true
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-setup
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-worker-token
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: Role
+      - notExists:
+          path: metadata.annotations["helm.sh/hook"]
+        documentSelector:
+          path: kind
+          value: RoleBinding
