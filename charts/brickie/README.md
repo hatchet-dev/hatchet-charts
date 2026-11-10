@@ -54,7 +54,8 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `image.repository` | string | `"ghcr.io/hatchet-dev/brickie"` | Provider image repository. The same image runs in every sandbox pod as the TLS proxy in front of the sandbox daemon. |
+| `global.fipsMode` | bool | `true` | Use the `-fips` images from ghcr.io/hatchet-dev for the provider, controller, sandboxd and default sandbox image. |
+| `image.repository` | string | by `global.fipsMode` | Provider image repository, `ghcr.io/hatchet-dev/brickie` or `brickie-fips`. The same image runs in every sandbox pod as the TLS proxy in front of the sandbox daemon. |
 | `image.tag` | string | chart `appVersion` | Provider image tag. |
 | `image.pullPolicy` | string | `"IfNotPresent"` | Provider image pull policy. |
 | `imagePullSecrets` | list | `[]` | Pull secrets for the provider image. |
@@ -79,7 +80,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `sandbox.namespace` | string | release namespace | Namespace for sandbox pods and claims. |
-| `sandbox.image` | string | `"alpine:3"` | Default sandbox image. Needs `sh` and `tar`. |
+| `sandbox.image` | string | by `global.fipsMode` | Default sandbox image, `alpine:3` or `ghcr.io/hatchet-dev/ubi-minimal-fips:9.8` (FIPS OpenSSL). Needs `sh` and `tar`. |
 | `sandbox.runtime` | string | `"kata"` | Runtime class for sandbox pods: `kata` (`kata-clh`), `gvisor`, `auto` (kata, then gvisor, then the default runtime), or `none`. |
 | `sandbox.warmReplicas` | int | `2` | Ready pods each warm pool keeps. |
 | `sandbox.idleTTL` | string | `"30m"` | Remove a sandbox after this long without a call. |
@@ -105,10 +106,12 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 |-----|------|---------|-------------|
 | `kata-deploy.enabled` | bool | `true` | Install Kata Containers with the bundled kata-deploy chart (Cloud Hypervisor shim, DaemonSet mode). |
 | `kata-deploy.nodeSelector` | object | _unset_ | Limit the Kata installer to selected nodes. |
+| `kata-deploy.shims.clh.dropIn` | string | `kernel_params` with `fips=1` | Kata config drop-in for the `kata-clh` shim. Default boots sandbox guest kernels in FIPS mode. |
 | `gvisor.install` | bool | `false` | Install gVisor with a DaemonSet and create the `gvisor` RuntimeClass. |
 | `gvisor.release` | string | `"20261005.0"` | gVisor release to install. |
 | `gvisor.nodeSelector` | object | `{}` | Limit the gVisor installer and RuntimeClass to selected nodes. |
 | `agent-sandbox.enabled` | bool | `true` | Install the agent-sandbox controller with the bundled chart. |
+| `agent-sandbox.image.tag` | string | `"v1.0.8"` | Controller version; also the `sandboxd-fips` tag in FIPS mode. |
 
 ## License
 

@@ -11,6 +11,12 @@
 # README.md for what to set up first. values.schema.json rejects unknown keys,
 # so a typo fails at install time.
 
+# FIPS mode uses the -fips images from ghcr.io/hatchet-dev for the provider,
+# the agent-sandbox controller, sandboxd and the default sandbox image. Under
+# global so the bundled charts see it.
+global:
+  fipsMode: true
+
 # Keep this at 1. Calls on one sandbox are serialized inside the provider
 # process; a second replica would race on the same sandbox.
 replicaCount: 1
@@ -19,11 +25,11 @@ replicaCount: 1
 slots: 10
 
 # The provider image. It also runs in every sandbox pod as the TLS proxy in
-# front of the sandbox daemon, so sandbox nodes pull it too. An empty tag means
-# the chart's appVersion. Build from the repository Dockerfile for a private
-# registry.
+# front of the sandbox daemon, so sandbox nodes pull it too. Empty repository
+# means ghcr.io/hatchet-dev/brickie or brickie-fips by global.fipsMode; empty
+# tag means the chart's appVersion.
 image:
-  repository: ghcr.io/hatchet-dev/brickie
+  repository: ""
   tag: ""
   pullPolicy: IfNotPresent
 
@@ -51,9 +57,11 @@ sandbox:
   # separate namespace to give sandboxes their own quotas and policies.
   namespace: ""
 
-  # Image for sandboxes that do not ask for one. Needs sh and tar. The SDK can
-  # choose another image per sandbox with the template option.
-  image: alpine:3
+  # Image for sandboxes that do not ask for one. Needs sh and tar. Empty means
+  # alpine:3, or ghcr.io/hatchet-dev/ubi-minimal-fips (FIPS OpenSSL) in FIPS
+  # mode. The SDK can choose another image per sandbox with the template
+  # option.
+  image: ""
 
   # Remove a sandbox after this long without a call. Every call extends it.
   idleTTL: 30m
@@ -156,10 +164,12 @@ extraEnvFrom: []
 
 # agent-sandbox (kubernetes-sigs) runs sandbox pods, warm pools, claims, and
 # idle expiry. Bundled; set enabled: false if your cluster already has it.
-# The controller runs in its own namespace, agent-sandbox-system.
+# The controller runs in its own namespace, agent-sandbox-system. The tag also
+# selects the sandboxd-fips image in FIPS mode.
 agent-sandbox:
   enabled: true
   image:
+    fipsRepository: ghcr.io/hatchet-dev/agent-sandbox-controller-fips
     tag: v1.0.8
   controller:
     extensions: true
@@ -167,7 +177,8 @@ agent-sandbox:
 # kata-deploy installs Kata Containers on every node it is scheduled to, as a
 # privileged DaemonSet, and creates the kata-clh RuntimeClass. Only the Cloud
 # Hypervisor shim is enabled. Use nodeSelector to limit it to sandbox nodes.
-# Every key here is passed to the kata-deploy chart, fetched from quay.io at package time.
+# Every key here is passed to the kata-deploy chart, fetched from quay.io at
+# package time. No FIPS variant: nothing in it does cryptography.
 kata-deploy:
   enabled: true
   deploymentMode: daemonset
@@ -177,6 +188,11 @@ kata-deploy:
     disableAll: true
     clh:
       enabled: true
+      # Boots sandbox guest kernels in FIPS mode. kernel_params replaces
+      # Kata's defaults, so they are repeated here. Set to "" to disable.
+      dropIn: |
+        [hypervisor.clh]
+        kernel_params = "cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1 fips=1"
   defaultShim:
     amd64: clh
   runtimeClasses:

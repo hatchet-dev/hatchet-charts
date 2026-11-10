@@ -4,7 +4,12 @@
   "additionalProperties": false,
   "properties": {
     "global": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "fipsMode": {
+          "type": "boolean"
+        }
+      }
     },
     "agent-sandbox": {
       "type": "object"
@@ -26,8 +31,7 @@
       "additionalProperties": false,
       "properties": {
         "repository": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "tag": {
           "type": "string"

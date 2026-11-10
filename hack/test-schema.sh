@@ -68,6 +68,7 @@ assert_reject brickie "a token is required"               --set hatchet.token=
 assert_reject brickie "sandbox.runtime not in enum"       --set hatchet.token=x --set sandbox.runtime=firecracker
 assert_reject brickie "sandbox.egress not in enum"        --set hatchet.token=x --set sandbox.egress=all
 assert_reject brickie "unknown key"                       --set hatchet.token=x --set networkPolicy.enabled=true
+assert_reject brickie "global.fipsMode not a bool"        --set hatchet.token=x --set-string global.fipsMode=yes
 
 echo
 if [ "$fails" -ne 0 ]; then

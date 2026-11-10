@@ -5,6 +5,7 @@ namespace:
 
 image:
   repository: registry.k8s.io/agent-sandbox/agent-sandbox-controller
+  fipsRepository: ""  # used instead of repository when global.fipsMode is true
   tag: ""  # required, eg. v0.3.10
   pullPolicy: IfNotPresent
 

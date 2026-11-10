@@ -18,5 +18,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{- define "brickie.image" -}}
-{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- $repo := .Values.image.repository | default (ternary "ghcr.io/hatchet-dev/brickie-fips" "ghcr.io/hatchet-dev/brickie" .Values.global.fipsMode) -}}
+{{- printf "%s:%s" $repo (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- end -}}
+
+{{- define "brickie.sandboxImage" -}}
+{{- .Values.sandbox.image | default (ternary "ghcr.io/hatchet-dev/ubi-minimal-fips:9.8" "alpine:3" .Values.global.fipsMode) -}}
 {{- end -}}

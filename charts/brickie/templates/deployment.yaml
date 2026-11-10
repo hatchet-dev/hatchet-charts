@@ -48,7 +48,11 @@ spec:
             - name: BRICKIE_SANDBOX_NAMESPACE
               value: {{ include "brickie.sandboxNamespace" . | quote }}
             - name: BRICKIE_SANDBOX_IMAGE
-              value: {{ .Values.sandbox.image | quote }}
+              value: {{ include "brickie.sandboxImage" . | quote }}
+            {{- if .Values.global.fipsMode }}
+            - name: BRICKIE_SANDBOXD_IMAGE
+              value: {{ printf "ghcr.io/hatchet-dev/sandboxd-fips:%s" (index .Values "agent-sandbox" "image" "tag") | quote }}
+            {{- end }}
             - name: BRICKIE_SANDBOX_IDLE_TTL
               value: {{ .Values.sandbox.idleTTL | quote }}
             - name: BRICKIE_MAX_SANDBOX_IDLE_TTL

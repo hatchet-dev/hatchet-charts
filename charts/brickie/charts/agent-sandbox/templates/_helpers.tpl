@@ -45,5 +45,7 @@ The controller image reference.
 */}}
 {{- define "agent-sandbox.image" -}}
 {{- $tag := required "image.tag is required" .Values.image.tag }}
-{{- printf "%s:%s" .Values.image.repository $tag }}
+{{- $repo := .Values.image.repository }}
+{{- if and .Values.global.fipsMode .Values.image.fipsRepository }}{{ $repo = .Values.image.fipsRepository }}{{ end }}
+{{- printf "%s:%s" $repo $tag }}
 {{- end }}
