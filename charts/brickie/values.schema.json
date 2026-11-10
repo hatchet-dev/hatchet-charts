@@ -106,12 +106,7 @@
         },
         "runtime": {
           "type": "string",
-          "enum": [
-            "auto",
-            "gvisor",
-            "kata",
-            "none"
-          ]
+          "minLength": 1
         },
         "warmReplicas": {
           "type": "integer",

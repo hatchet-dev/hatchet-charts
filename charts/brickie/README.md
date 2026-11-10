@@ -80,7 +80,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 |-----|------|---------|-------------|
 | `sandbox.namespace` | string | release namespace | Namespace for sandbox pods and claims. |
 | `sandbox.image` | string | `"alpine:3"` | Default sandbox image. Needs `sh` and `tar`. |
-| `sandbox.runtime` | string | `"kata"` | Runtime class for sandbox pods: `kata` (`kata-clh`), `gvisor`, `auto` (kata, then gvisor, then the default runtime), or `none`. |
+| `sandbox.runtime` | string | `"kata"` | Runtime class for sandbox pods: `kata` (`kata-clh`), `gvisor`, `nitro` (EKS `isolated-sandbox`, set `kata-deploy.enabled: false`), `auto` (kata, gvisor, nitro, then the default runtime), `none`, or any RuntimeClass name. |
 | `sandbox.warmReplicas` | int | `2` | Ready pods each warm pool keeps. |
 | `sandbox.idleTTL` | string | `"30m"` | Remove a sandbox after this long without a call. |
 | `sandbox.maxIdleTTL` | string | `"24h"` | Largest idle timeout a sandbox may ask for at create. |
