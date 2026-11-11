@@ -71,8 +71,11 @@ sandbox:
   #           Needs x86 nodes with /dev/kvm. Installed by the
   #           kata-deploy chart below.
   #   gvisor: gVisor (runsc), any node type. Set gvisor.install: true.
-  #   auto:   kata-clh if present, else gvisor, else the default runtime.
+  #   nitro:  EKS isolated-sandbox, one Nitro Sandbox per pod. Comes with EKS
+  #           Auto Mode; set kata-deploy.enabled: false.
+  #   auto:   kata-clh, gvisor, then isolated-sandbox, else the default runtime.
   #   none:   plain containers. Development only; not isolated from the node.
+  # Any other value is used as a RuntimeClass name as is.
   runtime: kata
 
   # Ready pods each warm pool keeps. Every image the SDK asks for gets its own

@@ -65,7 +65,7 @@ assert_reject hatchet-ha "scheduler.replicaCount < 0"        --set scheduler.rep
 echo "brickie:"
 assert_accept brickie --set hatchet.token=x
 assert_reject brickie "a token is required"               --set hatchet.token=
-assert_reject brickie "sandbox.runtime not in enum"       --set hatchet.token=x --set sandbox.runtime=firecracker
+assert_reject brickie "sandbox.runtime empty"             --set hatchet.token=x --set sandbox.runtime=
 assert_reject brickie "sandbox.egress not in enum"        --set hatchet.token=x --set sandbox.egress=all
 assert_reject brickie "unknown key"                       --set hatchet.token=x --set networkPolicy.enabled=true
 
