@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-11-12
+
+- Remove the `SYS_PTRACE` capability and `shareProcessNamespace` from the setup, migration, seed and worker-token Job containers. They were only needed to stop a Cloud SQL proxy sidecar that these Jobs no longer run, and they blocked clusters enforcing the Pod Security `baseline` profile or running Falco.
+
 ## [0.21.0] - 2026-10-26
 
 - Update the default Hatchet image to [`v0.114.2`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.114.2) for the API, setup, migration and seed Jobs.
@@ -149,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2024-02-21
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.21.0...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-api-0.21.1...HEAD
+[0.21.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.21.1
 [0.21.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.21.0
 [0.20.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.20.0
 [0.19.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-api-0.19.0
