@@ -244,6 +244,9 @@ postgres:
   tls:
     enabled: false
   primary:
+    # Hatchet refuses to start unless the database timezone is UTC
+    # (DATABASE_ENFORCE_UTC_TIMEZONE); the image default is GMT.
+    extendedConfiguration: "timezone='UTC'"
     resourcesPreset: "medium"
     service:
       ports:
