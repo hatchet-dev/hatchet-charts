@@ -141,6 +141,42 @@ tests:
           path: kind
           value: Job
 
+  - it: uses alpine:3.14 for the no-op container by default
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+      quickstartJob.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: empty
+            image: alpine:3.14
+          any: true
+        documentSelector:
+          path: kind
+          value: Job
+
+  - it: uses setupJob.noopImage for the no-op container
+    release:
+      upgrade: false
+    set:
+      workerTokenJob.enabled: false
+      quickstartJob.enabled: false
+      setupJob.noopImage.repository: registry.example.com/library/alpine
+      setupJob.noopImage.tag: "3.20"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: empty
+            image: registry.example.com/library/alpine:3.20
+          any: true
+        documentSelector:
+          path: kind
+          value: Job
+
   - it: omits ttlSecondsAfterFinished when jobTTLSecondsAfterFinished is null
     release:
       upgrade: false
