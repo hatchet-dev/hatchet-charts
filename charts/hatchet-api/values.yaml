@@ -26,6 +26,13 @@ migrationJob:
   backoffLimit: 1
   # Hard timeout (seconds) for the migration Job; raise for long-running schema changes.
   activeDeadlineSeconds: 900
+  # Render the migration Job as a `pre-install,pre-upgrade` hook on every render instead of
+  # only on `helm upgrade`, and skip the install-time migration init container in the setup
+  # Job. Enable this for GitOps tools such as Argo CD, which render with `helm template`
+  # (always an install) and run `pre-install`/`pre-upgrade` hooks as `PreSync`; without it
+  # they never get a migration Job. On a fresh `helm install` the hook runs before the
+  # release's ServiceAccount and `envFrom` Secrets exist, so those must be created first.
+  renderAsHookOnInstall: false
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
     tag: "v0.114.2"

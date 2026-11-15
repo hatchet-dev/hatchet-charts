@@ -10,6 +10,12 @@ This chart deploys the `hatchet-api` Deployment together with the helper Jobs th
 
 The chart runs schema migrations both as an init container in the setup Job (on install) and as a `pre-upgrade` hook Job (on upgrade), controlled by `migrationJob`. Both default to a 15-minute timeout. See the [repository README](https://github.com/hatchet-dev/hatchet-charts/blob/main/README.md#long-running-migrations) for tuning `migrationJob.activeDeadlineSeconds`, `migrationJob.backoffLimit` and the Helm `--timeout` flag.
 
+## Argo CD and other GitOps tools
+
+Argo CD renders the chart with `helm template`, so `.Release.IsUpgrade` is always `false` and the `pre-upgrade` migration Job is never rendered. Set `migrationJob.renderAsHookOnInstall: true` to render it on every render as a `pre-install,pre-upgrade` hook; Argo CD runs both as `PreSync`, so migrations finish before the api and engine roll out, and a failed migration stops the sync. The setup Job's install-time migration init container is skipped while this is on, so migrations don't run twice.
+
+With plain `helm install` into an empty namespace, the hook runs before the release's ServiceAccount and the `envFrom` Secrets exist, so create those first or leave this off.
+
 ## Values validation
 
 This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet-charts/blob/main/charts/hatchet-api/values.schema.json). Helm validates your supplied values against it on `install`, `upgrade`, `template` and `lint`, so type errors (e.g. a string where an integer is expected) are caught before anything is applied to the cluster.
@@ -39,6 +45,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `migrationJob.enabled` | bool | `true` | Enable database migrations (init container on install, `pre-upgrade` hook on upgrade). |
 | `migrationJob.backoffLimit` | int | `1` | Number of retries before the migration Job is marked failed. |
 | `migrationJob.activeDeadlineSeconds` | int | `900` | Hard timeout (seconds) for the migration Job; raise for long-running schema changes. |
+| `migrationJob.renderAsHookOnInstall` | bool | `false` | Render the migration Job as a `pre-install,pre-upgrade` hook on every render and skip the install-time init container. Enable for GitOps tools such as Argo CD, which always render as an install. See [Argo CD and other GitOps tools](#argo-cd-and-other-gitops-tools). |
 | `migrationJob.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-migrate"` | Migration Job image repository. |
 | `migrationJob.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Migration Job image tag. |
 | `migrationJob.image.pullPolicy` | string | `"IfNotPresent"` | Migration Job image pull policy. |
