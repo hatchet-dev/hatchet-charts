@@ -14,7 +14,7 @@ The chart runs schema migrations both as an init container in the setup Job (on 
 
 Argo CD renders the chart with `helm template`, so `.Release.IsUpgrade` is always `false` and the `pre-upgrade` migration Job is never rendered. Set `migrationJob.renderAsHookOnInstall: true` to render it on every render as a `pre-install,pre-upgrade` hook; Argo CD runs both as `PreSync`, so migrations finish before the api and engine roll out, and a failed migration stops the sync. The setup Job's install-time migration init container is skipped while this is on, so migrations don't run twice.
 
-With plain `helm install` into an empty namespace, the hook runs before the release's ServiceAccount and the `envFrom` Secrets exist, so create those first or leave this off.
+The hook runs before any of the release's other resources exist on a first deploy: with plain `helm install` into an empty namespace, and on the first Argo CD sync, since `PreSync` runs before the chart creates the ServiceAccount, the `envFrom` Secrets and the bundled PostgreSQL. The migration Job then cannot finish, so those resources are never created. Either create them beforehand, or do the first deploy with this flag off and turn it on afterwards.
 
 ## Values validation
 

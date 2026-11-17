@@ -30,8 +30,10 @@ migrationJob:
   # only on `helm upgrade`, and skip the install-time migration init container in the setup
   # Job. Enable this for GitOps tools such as Argo CD, which render with `helm template`
   # (always an install) and run `pre-install`/`pre-upgrade` hooks as `PreSync`; without it
-  # they never get a migration Job. On a fresh `helm install` the hook runs before the
-  # release's ServiceAccount and `envFrom` Secrets exist, so those must be created first.
+  # they never get a migration Job. On a first deploy (a fresh `helm install`, or the first
+  # Argo CD sync, where `PreSync` runs before everything else) the hook runs before the
+  # release's ServiceAccount, `envFrom` Secrets and bundled PostgreSQL exist, so it cannot
+  # finish. Create those first, or deploy once with this off and enable it afterwards.
   renderAsHookOnInstall: false
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate"
