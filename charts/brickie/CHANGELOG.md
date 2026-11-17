@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.5] - 2026-11-17
 
-- Sandbox guest kernels boot in FIPS mode: the chart installs a Kata drop-in that adds `fips=1` to the `kata-clh` kernel parameters. `/proc/sys/crypto/fips_enabled` reads `1` inside every sandbox. Set `kata-deploy.shims.clh.dropIn` to `""` to turn it off.
+- **Behavior change:** sandbox guest kernels boot in FIPS mode. The chart installs a Kata drop-in that adds `fips=1` to the `kata-clh` kernel parameters, so `/proc/sys/crypto/fips_enabled` reads `1` in the sandbox and crypto libraries that follow it (e.g. RHEL/UBI OpenSSL) reject non-approved algorithms such as MD5. It applies to sandboxes created after kata-deploy rolls out; recycle warm pools to pick it up. Set `kata-deploy.shims.clh.dropIn` to `""` to turn it off.
 - `sandbox.initContainers`: Kubernetes container specs run as init containers in every sandbox pod before the sandbox starts, for operator checks such as a FIPS verification script. Needs brickie 0.1.7.
 - The agent-sandbox controller image is `ghcr.io/hatchet-dev/agent-sandbox-controller`, a FIPS 140-3 build of the upstream release, instead of the upstream image.
 - Update the default brickie image to [`0.1.7`](https://github.com/hatchet-dev/brickie/releases/tag/v0.1.7): JSON logs, a clean shutdown, and sandboxd from our FIPS build `ghcr.io/hatchet-dev/sandboxd:v1.0.8`.

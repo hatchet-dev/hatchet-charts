@@ -193,7 +193,10 @@ kata-deploy:
     clh:
       enabled: true
       # Boots every sandbox guest kernel in FIPS mode. kernel_params replaces
-      # Kata's defaults, so they are repeated. Set to "" to turn it off.
+      # Kata's defaults (src/runtime/arch/amd64-options.mk in kata-containers),
+      # so they are repeated; recheck them when bumping kata-deploy. It also
+      # replaces the params kata-deploy adds for debug or the agent proxy, so add
+      # those here if you set them. Set to "" to turn it off.
       dropIn: |
         [hypervisor.clh]
         kernel_params = "cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1 fips=1"

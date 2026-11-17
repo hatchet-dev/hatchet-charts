@@ -67,6 +67,13 @@ assert_accept brickie --set hatchet.token=x
 assert_reject brickie "a token is required"               --set hatchet.token=
 assert_reject brickie "sandbox.runtime empty"             --set hatchet.token=x --set sandbox.runtime=
 assert_reject brickie "sandbox.initContainers entry without image" --set hatchet.token=x --set sandbox.initContainers[0].name=check
+assert_accept brickie --set hatchet.token=x --set sandbox.initContainers[0].name=check --set sandbox.initContainers[0].image=busybox:1.37 --set sandbox.initContainers[0].command[0]=sh
+rendered=$(helm template brickie charts/brickie --set hatchet.token=x --set sandbox.initContainers[0].name=check --set sandbox.initContainers[0].image=busybox:1.37 --set sandbox.initContainers[0].command[0]=sh 2>/dev/null | grep -A1 'name: BRICKIE_SANDBOX_INIT_CONTAINERS' | tail -1)
+if [ "$rendered" = '              value: "[{\"command\":[\"sh\"],\"image\":\"busybox:1.37\",\"name\":\"check\"}]"' ]; then
+  echo "  ✓ rendered: [brickie] sandbox.initContainers reaches BRICKIE_SANDBOX_INIT_CONTAINERS"
+else
+  echo "  ✗ rendered: [brickie] sandbox.initContainers env mismatch: $rendered"; fails=$((fails + 1))
+fi
 assert_reject brickie "sandbox.egress not in enum"        --set hatchet.token=x --set sandbox.egress=all
 assert_reject brickie "unknown key"                       --set hatchet.token=x --set networkPolicy.enabled=true
 
