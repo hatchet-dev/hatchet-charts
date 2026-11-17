@@ -143,6 +143,17 @@
             "type": "string"
           }
         },
+        "initContainers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "image"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "image": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
         "tolerations": {
           "type": "array",
           "items": {
