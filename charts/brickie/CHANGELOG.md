@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-17
+
+- Update the default brickie image to [`0.1.6`](https://github.com/hatchet-dev/brickie/releases/tag/v0.1.6), which fixes snapshot restore for sandbox images that run as a non-root user.
+
 ## [0.1.3] - 2026-11-10
 
 - `sandbox.runtime` accepts any RuntimeClass name and the alias `nitro` for EKS `isolated-sandbox`; `auto` tries `kata-clh`, `gvisor`, then `isolated-sandbox`. Needs brickie 0.1.5.
