@@ -106,6 +106,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 |-----|------|---------|-------------|
 | `kata-deploy.enabled` | bool | `true` | Install Kata Containers with the bundled kata-deploy chart (Cloud Hypervisor shim, DaemonSet mode). |
 | `kata-deploy.nodeSelector` | object | _unset_ | Limit the Kata installer to selected nodes. |
+| `kata-deploy.shims.clh.dropIn` | string | `kernel_params` with `fips=1` | Kata config drop-in for the `kata-clh` shim. The default boots every sandbox guest kernel in FIPS mode; set `""` to turn it off. |
 | `gvisor.install` | bool | `false` | Install gVisor with a DaemonSet and create the `gvisor` RuntimeClass. |
 | `gvisor.release` | string | `"20261005.0"` | gVisor release to install. |
 | `gvisor.nodeSelector` | object | `{}` | Limit the gVisor installer and RuntimeClass to selected nodes. |
