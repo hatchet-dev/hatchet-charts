@@ -104,6 +104,15 @@ sandbox:
   nodeSelector: {}
   tolerations: []
 
+  # Init containers run in every sandbox pod, in order, before the sandbox
+  # starts, under the sandbox runtime class. Plain Kubernetes container specs;
+  # the pod runs only if each exits 0. For checks such as a FIPS script:
+  #   initContainers:
+  #     - name: fips-check
+  #       image: registry.example.com/compliance-checks:1.4
+  #       command: ["/opt/checks/fips.sh"]
+  initContainers: []
+
   # Limits on every sandbox pod; the workspace volume has the same size limit
   # as disk. An agent can exhaust its own sandbox, not the node. cpu and
   # memory are reserved on the node per sandbox pod; disk is a ceiling only
@@ -159,10 +168,13 @@ extraEnvFrom: []
 
 # agent-sandbox (kubernetes-sigs) runs sandbox pods, warm pools, claims, and
 # idle expiry. Bundled; set enabled: false if your cluster already has it.
-# The controller runs in its own namespace, agent-sandbox-system.
+# The controller runs in its own namespace, agent-sandbox-system. The image is
+# our FIPS build of the upstream release; the tag must match the sandboxd
+# tag built into brickie.
 agent-sandbox:
   enabled: true
   image:
+    repository: ghcr.io/hatchet-dev/agent-sandbox-controller
     tag: v1.0.8
   controller:
     extensions: true

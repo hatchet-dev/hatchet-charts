@@ -66,6 +66,7 @@ echo "brickie:"
 assert_accept brickie --set hatchet.token=x
 assert_reject brickie "a token is required"               --set hatchet.token=
 assert_reject brickie "sandbox.runtime empty"             --set hatchet.token=x --set sandbox.runtime=
+assert_reject brickie "sandbox.initContainers entry without image" --set hatchet.token=x --set sandbox.initContainers[0].name=check
 assert_reject brickie "sandbox.egress not in enum"        --set hatchet.token=x --set sandbox.egress=all
 assert_reject brickie "unknown key"                       --set hatchet.token=x --set networkPolicy.enabled=true
 

@@ -88,6 +88,7 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `sandbox.egress` | string | `"internet"` | What sandboxes may reach: `internet` (public addresses and cluster DNS) or `none`. Enforced by the sandbox NetworkPolicy where the CNI supports it. |
 | `sandbox.nodeSelector` | object | `{}` | Node labels sandbox pods are placed on, in addition to the runtime class's own selector. |
 | `sandbox.tolerations` | list | `[]` | Tolerations on sandbox pods, for tainted sandbox nodes. Give the Kata installer the same ones through `kata-deploy.tolerations`. |
+| `sandbox.initContainers` | list | `[]` | Kubernetes container specs run as init containers in every sandbox pod, in order, before the sandbox starts, under its runtime class. For checks such as a FIPS verification script. |
 | `sandbox.resources.cpu` | string | `"1"` | CPU limit per sandbox pod. |
 | `sandbox.resources.memory` | string | `"2Gi"` | Memory limit per sandbox pod. |
 | `sandbox.resources.disk` | string | `"10Gi"` | Ephemeral-storage limit per sandbox pod, also the workspace volume size limit. |
@@ -109,6 +110,8 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `gvisor.release` | string | `"20261005.0"` | gVisor release to install. |
 | `gvisor.nodeSelector` | object | `{}` | Limit the gVisor installer and RuntimeClass to selected nodes. |
 | `agent-sandbox.enabled` | bool | `true` | Install the agent-sandbox controller with the bundled chart. |
+| `agent-sandbox.image.repository` | string | `ghcr.io/hatchet-dev/agent-sandbox-controller` | Controller image, a FIPS 140-3 build of the upstream release. |
+| `agent-sandbox.image.tag` | string | `"v1.0.8"` | Controller version. Must match the `sandboxd` tag built into brickie. |
 
 ## License
 

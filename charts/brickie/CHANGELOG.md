@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.4] - 2026-11-17
 
-- Update the default brickie image to [`0.1.6`](https://github.com/hatchet-dev/brickie/releases/tag/v0.1.6), which fixes snapshot restore for sandbox images that run as a non-root user.
+- `sandbox.initContainers`: Kubernetes container specs run as init containers in every sandbox pod before the sandbox starts, for operator checks such as a FIPS verification script. Needs brickie 0.1.7.
+- The agent-sandbox controller image is `ghcr.io/hatchet-dev/agent-sandbox-controller`, a FIPS 140-3 build of the upstream release, instead of the upstream image.
+- Update the default brickie image to [`0.1.7`](https://github.com/hatchet-dev/brickie/releases/tag/v0.1.7): snapshot restore works for sandbox images that run as a non-root user, and sandboxd comes from our FIPS build `ghcr.io/hatchet-dev/sandboxd:v1.0.8`.
 
 ## [0.1.3] - 2026-11-10
 
