@@ -6,6 +6,47 @@ entries:
         fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
         url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
     apiVersion: v2
+    appVersion: 0.1.7
+    created: "2026-11-17T16:26:37.240482038Z"
+    dependencies:
+    - condition: agent-sandbox.enabled
+      name: agent-sandbox
+      repository: ""
+      version: 0.1.2
+    - condition: kata-deploy.enabled
+      name: kata-deploy
+      repository: oci://quay.io/kata-containers/kata-deploy-charts
+      version: 4.2.0
+    description: Hatchet sandbox provider. Runs agent sandboxes as Hatchet tasks on
+      Kubernetes, one isolated pod per sandbox, with agent-sandbox and Kata Containers
+      bundled.
+    digest: 61c44a1a9ddea14ff1b705ffa1a62b8e2c090e3740379084f0dbb129adc1c9e0
+    home: https://hatchet.run
+    icon: https://hatchet.run/brand/logomark-white-bg.svg
+    keywords:
+    - hatchet
+    - sandbox
+    - agents
+    - agent-sandbox
+    - isolation
+    - kata-containers
+    - gvisor
+    maintainers:
+    - email: alexander@hatchet.run
+      name: Hatchet Engineering
+    name: brickie
+    sources:
+    - https://github.com/hatchet-dev/hatchet-charts
+    - https://github.com/hatchet-dev/brickie
+    type: application
+    urls:
+    - https://github.com/hatchet-dev/hatchet-charts/releases/download/brickie-0.1.5/brickie-0.1.5.tgz
+    version: 0.1.5
+  - annotations:
+      artifacthub.io/signKey: |
+        fingerprint: E087E4C6368DB465CB6A75BE779CE2A7829DEA1A
+        url: https://raw.githubusercontent.com/hatchet-dev/hatchet-charts/main/KEYS
+    apiVersion: v2
     appVersion: 0.1.6
     created: "2026-11-17T13:33:39.661902476Z"
     dependencies:
@@ -5453,4 +5494,4 @@ entries:
     urls:
     - https://github.com/hatchet-dev/hatchet-charts/releases/download/hatchet-stack-0.1.0/hatchet-stack-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-17T13:33:39.662096898Z"
+generated: "2026-11-17T16:26:37.240633692Z"
