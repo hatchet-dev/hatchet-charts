@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add `migrationJob.renderAsHookOnInstall` (default `false`). When `true`, the migration Job renders on every render as a `pre-install,pre-upgrade` hook and the setup Job skips its install-time migration init container. This gives GitOps tools such as Argo CD, which always render as an install and run these hooks as `PreSync`, a migration Job that runs before the api and engine roll out ([#103](https://github.com/hatchet-dev/hatchet-charts/issues/103)).
+
 ## [0.21.1] - 2026-11-12
 
 - Remove the `SYS_PTRACE` capability and `shareProcessNamespace` from the setup, migration, seed and worker-token Job containers. They were only needed to stop a Cloud SQL proxy sidecar that these Jobs no longer run, and they blocked clusters enforcing the Pod Security `baseline` profile or running Falco.

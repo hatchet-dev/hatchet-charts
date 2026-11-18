@@ -1,5 +1,6 @@
-{{- $runInstallMigrations := and .Values.migrationJob.enabled .Release.IsInstall -}}
-{{- if and .Values.migrationJob.enabled .Release.IsUpgrade }}
+{{- $migrationHookOnInstall := and .Values.migrationJob.enabled .Values.migrationJob.renderAsHookOnInstall -}}
+{{- $runInstallMigrations := and .Values.migrationJob.enabled .Release.IsInstall (not $migrationHookOnInstall) -}}
+{{- if and .Values.migrationJob.enabled (or .Release.IsUpgrade $migrationHookOnInstall) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -7,7 +8,7 @@ metadata:
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook": {{ if $migrationHookOnInstall }}pre-install,pre-upgrade{{ else }}pre-upgrade{{ end }}
     "helm.sh/hook-weight": "-5"
     {{- if .Values.retainFailedHooks }}
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded

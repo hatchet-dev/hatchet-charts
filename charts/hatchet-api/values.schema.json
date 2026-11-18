@@ -74,6 +74,10 @@
           "minimum": 1,
           "description": "Hard timeout (seconds) for the migration Job."
         },
+        "renderAsHookOnInstall": {
+          "type": "boolean",
+          "description": "Render the migration Job as a pre-install,pre-upgrade hook on every render (for GitOps tools such as Argo CD) instead of only on helm upgrade."
+        },
         "image": { "$ref": "#/$defs/image" }
       }
     },

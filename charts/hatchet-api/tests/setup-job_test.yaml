@@ -153,3 +153,66 @@ tests:
         documentSelector:
           path: kind
           value: Job
+
+  - it: renders the migration Job as a pre-install,pre-upgrade hook on install when renderAsHookOnInstall is true
+    release:
+      upgrade: false
+    set:
+      migrationJob.renderAsHookOnInstall: true
+      workerTokenJob.enabled: false
+    asserts:
+      - isKind:
+          of: Job
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
+  - it: renders the migration Job as a pre-install,pre-upgrade hook on upgrade when renderAsHookOnInstall is true
+    release:
+      upgrade: true
+    set:
+      migrationJob.renderAsHookOnInstall: true
+    asserts:
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: pre-install,pre-upgrade
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+
+  - it: skips the install-time migration init container when renderAsHookOnInstall is true
+    release:
+      upgrade: false
+    set:
+      migrationJob.renderAsHookOnInstall: true
+      workerTokenJob.enabled: false
+      seedJob.enabled: false
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+        documentSelector:
+          path: spec.template.spec.containers[0].name
+          value: setup-job
+
+  - it: renders no migration Job when renderAsHookOnInstall is true but migrationJob.enabled is false
+    release:
+      upgrade: false
+    set:
+      migrationJob.enabled: false
+      migrationJob.renderAsHookOnInstall: true
+      workerTokenJob.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+          filterAware: true
+        documentSelector:
+          path: metadata.name
+          value: test-release-hatchet-api-migration
+          matchMany: true
+          skipEmptyTemplates: true
