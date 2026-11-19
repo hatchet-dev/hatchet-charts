@@ -36,6 +36,9 @@ This chart ships a [`values.schema.json`](https://github.com/hatchet-dev/hatchet
 | `setupJob.image.repository` | string | `"ghcr.io/hatchet-dev/hatchet/hatchet-admin"` | Setup Job image repository. |
 | `setupJob.image.tag` | string | [latest Hatchet release](https://github.com/hatchet-dev/hatchet/releases/latest) | Setup Job image tag. |
 | `setupJob.image.pullPolicy` | string | `"IfNotPresent"` | Setup Job image pull policy. |
+| `setupJob.noopImage.repository` | string | `"alpine"` | Image repository for the no-op container the setup Job runs when `quickstartJob.enabled` is `false`. |
+| `setupJob.noopImage.tag` | string | `"3.14"` | No-op container image tag. |
+| `setupJob.noopImage.pullPolicy` | string | `"IfNotPresent"` | No-op container image pull policy. |
 | `migrationJob.enabled` | bool | `true` | Enable database migrations (init container on install, `pre-upgrade` hook on upgrade). |
 | `migrationJob.backoffLimit` | int | `1` | Number of retries before the migration Job is marked failed. |
 | `migrationJob.activeDeadlineSeconds` | int | `900` | Hard timeout (seconds) for the migration Job; raise for long-running schema changes. |

@@ -55,7 +55,11 @@
       "additionalProperties": true,
       "properties": {
         "enabled": { "type": "boolean" },
-        "image": { "$ref": "#/$defs/image" }
+        "image": { "$ref": "#/$defs/image" },
+        "noopImage": {
+          "allOf": [{ "$ref": "#/$defs/image" }],
+          "description": "Image for the no-op container the setup Job runs when quickstartJob is disabled."
+        }
       }
     },
     "migrationJob": {
