@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-05
+
+- Add an opt-in `installJobsAsHooks` flag (default `false`). When enabled, the setup and worker-token Jobs render as pre-install/pre-upgrade Helm hooks with stable names and `before-hook-creation` delete policy, and their Role/RoleBinding become lower-weight hooks. This avoids the perpetual drift and orphaned Jobs GitOps tools (e.g. ArgoCD) see with the default randomly-named Jobs.
+
 ## [0.21.1] - 2026-11-12
 
 - Remove the `SYS_PTRACE` capability and `shareProcessNamespace` from the setup, migration, seed and worker-token Job containers. They were only needed to stop a Cloud SQL proxy sidecar that these Jobs no longer run, and they blocked clusters enforcing the Pod Security `baseline` profile or running Falco.
