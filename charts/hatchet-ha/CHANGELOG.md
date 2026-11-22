@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.22.0] - 2026-11-05
+## [0.22.0] - 2026-11-22
 
-- Bump the bundled `hatchet-api` subchart to `0.22.0` (adds the opt-in `installJobsAsHooks` flag).
+- Bump the bundled `hatchet-api` subchart to `0.22.0` (adds `api.setupJob.annotations` and `api.workerTokenJob.annotations`).
 
 ## [0.21.1] - 2026-11-12
 

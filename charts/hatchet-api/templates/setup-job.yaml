@@ -73,12 +73,6 @@ metadata:
   name: {{ template "hatchet.fullname" . }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
-  {{- if and .Values.installJobsAsHooks .Release.IsUpgrade }}
-  annotations:
-    "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "-10"
-    "helm.sh/hook-delete-policy": before-hook-creation
-  {{- end }}
 rules:
 - apiGroups: [""]
   resources: ["configmaps", "secrets"]
@@ -90,12 +84,6 @@ metadata:
   name: {{ template "hatchet.fullname" . }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
-  {{- if and .Values.installJobsAsHooks .Release.IsUpgrade }}
-  annotations:
-    "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "-10"
-    "helm.sh/hook-delete-policy": before-hook-creation
-  {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -108,22 +96,12 @@ subjects:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  {{- if .Values.installJobsAsHooks }}
-  name: {{ include "hatchet.suffixedName" (dict "ctx" . "suffix" "-setup") }}
-  {{- else }}
   name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}"
-  {{- end }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
-  {{- if and .Values.installJobsAsHooks .Release.IsUpgrade }}
+  {{- with .Values.setupJob.annotations }}
   annotations:
-    "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "-3"
-    {{- if .Values.retainFailedHooks }}
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    {{- else }}
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-    {{- end }}
+{{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   backoffLimit: {{ .Values.migrationJob.backoffLimit }}
@@ -225,22 +203,12 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  {{- if .Values.installJobsAsHooks }}
-  name: {{ include "hatchet.suffixedName" (dict "ctx" . "suffix" "-worker-token") }}
-  {{- else }}
   name: "{{ .Release.Name | trunc 20 }}-{{ randAlphaNum 10 | lower }}-worker-token"
-  {{- end }}
   labels:
 {{- include "hatchet.labels" . | nindent 4 }}
-  {{- if and .Values.installJobsAsHooks .Release.IsUpgrade }}
+  {{- with .Values.workerTokenJob.annotations }}
   annotations:
-    "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-weight": "-2"
-    {{- if .Values.retainFailedHooks }}
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    {{- else }}
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
-    {{- end }}
+{{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   backoffLimit: 1

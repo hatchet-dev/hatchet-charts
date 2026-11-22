@@ -36,6 +36,26 @@ Related knobs:
 - `migrationJob.backoffLimit` (default `1`) — retries before the migration Job is marked failed.
 - `retainFailedHooks` (default `true`) — keeps the failed pre-upgrade hook Job around so you can `kubectl logs job/<release>-migration` to debug.
 
+## GitOps (ArgoCD)
+
+The setup and worker-token Jobs get a random name suffix on every render. With plain Helm that is harmless: each `helm install`/`helm upgrade` creates a fresh Job, which `jobTTLSecondsAfterFinished` cleans up. ArgoCD, however, re-renders the chart on every reconcile, so it sees a "new" Job each time and reports the application as permanently OutOfSync.
+
+Mark both Jobs as ArgoCD sync hooks. Hooks are excluded from sync status, run during each sync after the ServiceAccount, RBAC and config Secret exist, and are deleted once they succeed:
+
+```yaml
+api:  # standalone hatchet-api chart: drop this level
+  setupJob:
+    annotations:
+      argocd.argoproj.io/hook: Sync
+      argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  workerTokenJob:
+    annotations:
+      argocd.argoproj.io/hook: Sync
+      argocd.argoproj.io/hook-delete-policy: HookSucceeded
+```
+
+Do not use the Helm `pre-install` hook here: ArgoCD maps it to PreSync, which runs before the config Secret and the bundled Postgres exist, so the first sync never completes.
+
 ## Local validation
 
 Unit tests use the [helm-unittest](https://github.com/helm-unittest/helm-unittest) plugin, pinned to the same version CI runs:

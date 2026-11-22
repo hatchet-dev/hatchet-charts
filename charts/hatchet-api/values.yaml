@@ -15,6 +15,12 @@ postgresImage:
 
 setupJob:
   enabled: true
+  # Annotations added to this Job. Empty by default. For ArgoCD, set
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  # so the randomly-named Job runs as a sync hook instead of showing as drift.
+  # See "GitOps (ArgoCD)" in the repository README.
+  annotations: {}
   image:
     repository: "ghcr.io/hatchet-dev/hatchet/hatchet-admin"
     tag: "v0.114.2"
@@ -43,6 +49,12 @@ quickstartJob:
 
 workerTokenJob:
   enabled: true
+  # Annotations added to this Job. Empty by default. For ArgoCD, set
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  # so the randomly-named Job runs as a sync hook instead of showing as drift.
+  # See "GitOps (ArgoCD)" in the repository README.
+  annotations: {}
 
 commandline:
   command: ["/hatchet/hatchet-api"]
@@ -61,13 +73,6 @@ cloudSQLSidecar:
     requests:
       cpu: 500m
       memory: 512Mi
-
-# Render the install-time setup and worker-token Jobs as Helm hooks with stable
-# names instead of the default plain resources with a random name suffix. Leave
-# false for a normal `helm install`/`upgrade` (unchanged behaviour). Set true for
-# GitOps tools (e.g. ArgoCD) that otherwise treat the randomly-named Jobs as a
-# brand-new resource on every reconcile, causing perpetual drift and orphaned Jobs.
-installJobsAsHooks: false
 
 # Retain failed Helm hook Jobs (currently the pre-upgrade migration hook) so logs survive for debugging.
 retainFailedHooks: true

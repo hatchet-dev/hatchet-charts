@@ -1,0 +1,56 @@
+suite: setup and worker-token Job annotations
+templates:
+  - setup-job.yaml
+release:
+  name: test-release
+tests:
+  - it: renders no annotations on either Job by default
+    asserts:
+      - notExists:
+          path: metadata.annotations
+        documentSelector:
+          path: kind
+          value: Job
+          matchMany: true
+
+  - it: renders setupJob.annotations on the setup Job only
+    set:
+      setupJob.annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/hook: Sync
+            argocd.argoproj.io/hook-delete-policy: HookSucceeded
+        documentIndex: 2
+      - notExists:
+          path: metadata.annotations
+        documentIndex: 3
+
+  - it: renders workerTokenJob.annotations on the worker-token Job only
+    set:
+      workerTokenJob.annotations:
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    asserts:
+      - notExists:
+          path: metadata.annotations
+        documentIndex: 2
+      - equal:
+          path: metadata.annotations
+          value:
+            argocd.argoproj.io/hook: Sync
+            argocd.argoproj.io/hook-delete-policy: HookSucceeded
+        documentIndex: 3
+
+  - it: keeps the random Job name when annotations are set
+    set:
+      setupJob.annotations:
+        argocd.argoproj.io/hook: Sync
+    asserts:
+      - matchRegex:
+          path: metadata.name
+          pattern: ^test-release-[a-z0-9]{10}$
+        documentIndex: 2
