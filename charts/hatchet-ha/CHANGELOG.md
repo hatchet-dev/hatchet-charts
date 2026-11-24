@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-23
+
+- Update the default Hatchet image to [`v0.120.24`](https://github.com/hatchet-dev/hatchet/releases/tag/v0.120.24).
+- Bump the bundled `hatchet-api` and `hatchet-frontend` subcharts to `0.22.0`.
+
 ## [0.21.1] - 2026-11-12
 
 - Bump the bundled `hatchet-api` subchart to `0.21.1`, which removes the `SYS_PTRACE` capability and `shareProcessNamespace` from the setup, migration, seed and worker-token Job containers.
@@ -145,7 +150,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.7.0] - 2024-11-22
 
-[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.21.1...HEAD
+[Unreleased]: https://github.com/hatchet-dev/hatchet-charts/compare/hatchet-ha-0.22.0...HEAD
+[0.22.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.22.0
 [0.21.1]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.21.1
 [0.21.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.21.0
 [0.20.0]: https://github.com/hatchet-dev/hatchet-charts/releases/tag/hatchet-ha-0.20.0
